@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en" data-theme="dusk">
+<head>
+  <meta charset="utf-8" />
+  <title>premiumwater — Luxury Water for the People</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Colombian table water, bottled at source for restaurants, hotels and brands that treat hospitality as craft." />
+  <meta name="theme-color" content="#0B0B0C" />
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="%23C6A25B"/></svg>' />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="premiumwater — Luxury Water for the People" />
+  <meta property="og:description" content="Colombian table water, bottled at source in the high Andes." />
+  <meta property="og:image" content="assets/og-image.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="premiumwater — Luxury Water for the People" />
+  <meta name="twitter:description" content="Colombian table water, bottled at source in the high Andes." />
+  <meta name="twitter:image" content="assets/og-image.jpg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=9" />
+</head>
+<body>
+
+<!-- ============ cinematic pour stage (fixed, behind everything) ============ -->
+<!-- A single fullscreen stage. Everything is driven by window scroll progress.
+     Acts:
+       0.00-0.18  intro backdrop fade in
+       0.18-0.42  bottle rises into view, condensation appears
+       0.42-0.62  cap unscrews, rotates, lifts off
+       0.62-0.85  bottle tilts right, stream arcs into glass (glass fills)
+       0.85-1.00  splash + settle, wordmark fades in
+-->
+<div class="cine-stage" id="cineStage" aria-hidden="true">
+  <!-- flat saturated backdrop -->
+  <div class="cine-bg" id="cineBg"></div>
+  <!-- scroll-scrubbed pour video: scroll position drives currentTime -->
+  <video
+    class="cine-video"
+    id="cineVideo"
+    src="assets/pour-scrub.mp4"
+    poster="assets/poster.jpg"
+    muted
+    playsinline
+    preload="auto"
+    disablePictureInPicture
+    aria-hidden="true"></video>
+  <!-- static hero image — shown when prefers-reduced-motion or video fails -->
+  <div class="cine-static" aria-hidden="true" style="background-image: url('assets/poster.jpg');"></div>
+  <!-- vignette for depth -->
+  <div class="cine-vignette"></div>
+  <!-- subtle grain -->
+  <div class="cine-grain"></div>
+
+  <!-- headline captions that crossfade per act -->
+  <div class="cine-captions" id="cineCaptions">
+    <div class="cine-caption" data-act="1">
+      <div class="cine-kicker" data-i18n="act1.kicker">01 — The source</div>
+      <h2 class="cine-hed" data-i18n-html="act1.hed">From the <em>páramo</em>.</h2>
+    </div>
+    <div class="cine-caption" data-act="2">
+      <div class="cine-kicker" data-i18n="act2.kicker">02 — Opened</div>
+      <h2 class="cine-hed" data-i18n="act2.hed">Unhurried.</h2>
+    </div>
+    <div class="cine-caption" data-act="3">
+      <div class="cine-kicker" data-i18n="act3.kicker">03 — Poured</div>
+      <h2 class="cine-hed" data-i18n-html="act3.hed">With <em>intention</em>.</h2>
+    </div>
+    <div class="cine-caption" data-act="4">
+      <div class="cine-kicker" data-i18n="act4.kicker">04 — Served</div>
+      <h2 class="cine-hed" data-i18n-html="act4.hed">premium<em>water</em></h2>
+    </div>
+  </div>
+
+  <!-- faint atmospherics over the video (kept minimal so the pour reads clean) -->
+  <div class="cine-scene" aria-hidden="true"></div>
+  <!-- soft grade on top -->
+  <div class="cine-grade" aria-hidden="true"></div>
+
+  <!-- vertical scroll progress indicator (subtle) -->
+  <div class="cine-progress" aria-hidden="true">
+    <div class="cine-progress-fill" id="cineProgressFill"></div>
+  </div>
+</div>
+
+<!-- ============ navigation ============ -->
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-dot"></span>
+      <span>premium<i>water</i></span>
+    </a>
+    <nav class="nav-center" aria-label="Primary">
+      <a href="#product" data-i18n="nav.product">Product</a>
+      <a href="#story" data-i18n="nav.story">Story</a>
+      <a href="#trade" data-i18n="nav.trade">Trade</a>
+      <a href="#impact" data-i18n="nav.impact">Impact</a>
+    </nav>
+    <div class="nav-right">
+      <div class="lang-pill" role="group" aria-label="Language">
+        <button data-lang="en" aria-pressed="true">EN</button>
+        <button data-lang="es" aria-pressed="false">ES</button>
+      </div>
+      <a class="pill pill-ghost" href="https://wa.me/573000000000" target="_blank" rel="noopener" data-i18n="nav.talk">Talk to us</a>
+      <a class="pill pill-solid" href="#contact" data-i18n="nav.become">Become a distributor</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ vertical side badge ============ -->
+<aside class="side-badge" aria-hidden="true">
+  <div class="side-badge-top">PW.</div>
+  <div class="side-badge-bottom" data-i18n="badge.bottom">Est 2024 · Andes</div>
+</aside>
+
+<!-- ============ vertical river (right edge, scroll-driven) ============ -->
+<aside class="river" aria-hidden="true">
+  <svg viewBox="0 0 80 800" preserveAspectRatio="none">    <defs>
+      <linearGradient id="riverBase" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0"  stop-color="#1A2820"/>
+        <stop offset=".4" stop-color="#2A4538"/>
+        <stop offset="1"  stop-color="#0E1A14"/>
+      </linearGradient>
+      <linearGradient id="riverEdge" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="#000" stop-opacity=".7"/>
+        <stop offset=".15" stop-color="#000" stop-opacity="0"/>
+        <stop offset=".85" stop-color="#000" stop-opacity="0"/>
+        <stop offset="1" stop-color="#000" stop-opacity=".7"/>
+      </linearGradient>
+      <linearGradient id="rivShine" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#E6D9B8" stop-opacity="0"/>
+        <stop offset=".5" stop-color="#E6D9B8" stop-opacity=".22"/>
+        <stop offset="1" stop-color="#E6D9B8" stop-opacity="0"/>
+      </linearGradient>
+      <pattern id="ripPat" width="80" height="60" patternUnits="userSpaceOnUse">
+        <path d="M0 30 Q 20 22 40 30 T 80 30" stroke="rgba(230,217,184,0.18)" stroke-width="0.7" fill="none"/>
+        <path d="M0 50 Q 20 44 40 50 T 80 50" stroke="rgba(230,217,184,0.10)" stroke-width="0.5" fill="none"/>
+      </pattern>
+      <pattern id="curPat" width="80" height="100" patternUnits="userSpaceOnUse">
+        <ellipse cx="20" cy="20" rx="12" ry="2" fill="rgba(255,255,255,0.10)"/>
+        <ellipse cx="55" cy="55" rx="14" ry="2.5" fill="rgba(255,255,255,0.07)"/>
+        <ellipse cx="30" cy="85" rx="10" ry="2" fill="rgba(255,255,255,0.09)"/>
+      </pattern>
+    </defs>
+    <!-- base water column (long, will be translated) -->
+    <g id="riverFill"><rect x="0" y="-400" width="80" height="2400" fill="url(#riverBase)"/></g>
+    <!-- subtle current streaks -->
+    <g id="riverCurrent"><rect x="0" y="-200" width="80" height="2400" fill="url(#curPat)"/></g>
+    <!-- ripples -->
+    <g id="riverRipples"><rect x="0" y="-180" width="80" height="2400" fill="url(#ripPat)"/></g>
+    <!-- center luminist shine -->
+    <rect x="22" y="0" width="36" height="800" fill="url(#rivShine)" opacity=".7"/>
+    <!-- side darken so it reads as a contained river, not a slab -->
+    <rect x="0" y="0" width="80" height="800" fill="url(#riverEdge)"/>
+  </svg>
+  <div class="river-label" data-i18n="river.label">FLOW</div>
+</aside>
+
+<!-- ============ scroll prompt card ============ -->
+<aside class="scroll-card" id="scrollCard">
+  <div class="scroll-card-label" data-i18n="scroll.label">Scroll down</div>
+  <div class="scroll-card-sub" data-i18n="scroll.sub">&amp; pour in</div>
+  <svg class="scroll-arrow" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 4 V20 M6 14 L12 20 L18 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</aside>
+
+<!-- ============ content ============ -->
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-copy">
+      <div class="hero-eyebrow" data-i18n="hero.eyebrow">Luxury water for the people</div>
+      <h1 class="hero-title">
+        <span class="line" data-i18n="hero.line1">Still water,</span>
+        <span class="line" data-i18n="hero.line2">poured with</span>
+        <span class="line" data-i18n-html="hero.line3"><em>intention.</em></span>
+      </h1>
+      <p class="hero-lede" data-i18n="hero.lede">A Colombian table water bottled for restaurants, hotels and brands that treat hospitality as craft — poured with the same care as the meal it accompanies.</p>
+      <div class="hero-actions">
+        <a class="pill pill-ghost" href="https://wa.me/573000000000" target="_blank" rel="noopener" data-i18n="nav.talk">Talk to us</a>
+        <a class="pill pill-solid" href="#contact" data-i18n="hero.cta">Get started →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPACER to let scene breathe -->
+  <div class="sep"></div>
+
+  <!-- MARQUEE -->
+  <section class="marquee-band">
+    <div class="marquee">
+      <div class="marquee-track" id="marqueeTrack"></div>
+    </div>
+  </section>
+
+  <!-- STORY / ORIGIN -->
+  <section class="block" id="story">
+    <div class="grid-2">
+      <div class="reveal">
+        <div class="eyebrow" data-i18n="story.eyebrow">01 · The source</div>
+        <h2 class="h-display" data-i18n-html="story.hed">From the <em>páramo</em>,<br/>unhurried.</h2>
+      </div>
+      <div class="reveal">
+        <p class="lede" data-i18n="story.lede">Our water rises through volcanic rock in the Colombian high Andes and is bottled within forty kilometers of source. No long hauls, no stripping, no re-mineralization — only what the mountain gives.</p>
+        <ul class="spec-list">
+          <li><span data-i18n="story.s1.k">Altitude</span><em data-i18n="story.s1.v">3,600 m páramo catchment</em></li>
+          <li><span data-i18n="story.s2.k">Mineral</span><em data-i18n="story.s2.v">Low-to-medium, naturally alkaline</em></li>
+          <li><span data-i18n="story.s3.k">Distance</span><em data-i18n="story.s3.v">&lt; 40 km from source to bottle</em></li>
+          <li><span data-i18n="story.s4.k">Packaging</span><em data-i18n="story.s4.v">Glass first, PET where service demands</em></li>
+        </ul>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- PRODUCT -->
+  <section class="block" id="product">
+    <div class="section-head reveal">
+      <div class="eyebrow" data-i18n="product.eyebrow">02 · The range</div>
+      <h2 class="h-display" data-i18n-html="product.hed">A small,<br/><em>considered</em> range.</h2>
+      <p class="lede" data-i18n="product.lede">Three formats, chosen so a front-of-house team never has to apologize. Specify by occasion; we handle the rest.</p>
+    </div>
+    <div class="product-row">
+      <article class="product reveal">
+        <div class="product-visual">
+          <svg viewBox="0 0 200 460" class="mini-bottle"><use href="#mini-bottle"/></svg>
+        </div>
+        <div class="product-meta">
+          <div class="product-name"><span class="product-title" data-i18n="product.p1.name">Carafe</span><span class="product-spec" data-i18n="product.p1.spec">750 ml · Glass</span></div>
+          <p data-i18n="product.p1.desc">A refillable service bottle for plated dining. Natural still.</p>
+        </div>
+      </article>
+      <article class="product reveal">
+        <div class="product-visual">
+          <svg viewBox="0 0 200 460" class="mini-bottle small"><use href="#mini-bottle"/></svg>
+        </div>
+        <div class="product-meta">
+          <div class="product-name"><span class="product-title" data-i18n="product.p2.name">Table</span><span class="product-spec" data-i18n="product.p2.spec">500 ml · Glass</span></div>
+          <p data-i18n="product.p2.desc">The everyday hospitality size. Fits any room, any cover.</p>
+        </div>
+      </article>
+      <article class="product reveal">
+        <div class="product-visual">
+          <svg viewBox="0 0 200 460" class="mini-bottle tiny"><use href="#mini-bottle"/></svg>
+        </div>
+        <div class="product-meta">
+          <div class="product-name"><span class="product-title" data-i18n="product.p3.name">Service</span><span class="product-spec" data-i18n="product.p3.spec">330 ml · Glass</span></div>
+          <p data-i18n="product.p3.desc">Individual service for bar, spa and hotel minibar.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- TRADE / DISTRIBUTOR -->
+  <section class="block" id="trade">
+    <div class="section-head reveal">
+      <div class="eyebrow" data-i18n="trade.eyebrow">03 · Trade</div>
+      <h2 class="h-display" data-i18n-html="trade.hed">Built for the people<br/>who <em>pour it</em>.</h2>
+      <p class="lede" data-i18n="trade.lede">We partner with gyms, hotels, restaurants and distributors who want a premium still water that earns its place on the table without inflating the check.</p>
+    </div>
+    <div class="trade-grid">
+      <div class="trade-card reveal"><span class="n">01</span><h3 data-i18n="trade.c1.h">Wholesale pricing</h3><p data-i18n="trade.c1.p">Tiered by monthly volume with no listing fees.</p></div>
+      <div class="trade-card reveal"><span class="n">02</span><h3 data-i18n="trade.c2.h">Cold-chain delivery</h3><p data-i18n="trade.c2.p">Temperature-controlled routes across five Colombian cities.</p></div>
+      <div class="trade-card reveal"><span class="n">03</span><h3 data-i18n="trade.c3.h">Co-branded service</h3><p data-i18n="trade.c3.p">Custom menu cards and branded carafe service for qualifying partners.</p></div>
+      <div class="trade-card reveal"><span class="n">04</span><h3 data-i18n="trade.c4.h">Net-30 terms</h3><p data-i18n="trade.c4.p">30-day invoicing available after the first order cycle.</p></div>
+    </div>
+    <div class="trade-cta reveal">
+      <a class="pill pill-solid lg" href="#contact" data-i18n="trade.ctaDist">Become a distributor →</a>
+      <a class="pill pill-ghost lg" href="https://wa.me/573000000000" target="_blank" rel="noopener" data-i18n="trade.ctaWA">WhatsApp us</a>
+    </div>
+  </section>
+
+  <!-- IMPACT -->
+  <section class="block" id="impact">
+    <div class="section-head reveal">
+      <div class="eyebrow" data-i18n="impact.eyebrow">04 · Impact</div>
+      <h2 class="h-display" data-i18n-html="impact.hed">One liter in,<br/>one liter <em>forward</em>.</h2>
+      <p class="lede" data-i18n="impact.lede">For every case sold we fund one day of clean water access for a family in rural Colombia. It's the reason we exist.</p>
+    </div>
+    <div class="stats reveal">
+      <div><em>412k</em><span data-i18n="impact.s1">Liters funded</span></div>
+      <div><em>23</em><span data-i18n="impact.s2">Communities served</span></div>
+      <div><em>1:1</em><span data-i18n="impact.s3">Liter match / case</span></div>
+      <div><em>100%</em><span data-i18n="impact.s4">Audited yearly</span></div>
+    </div>
+    <div class="programs reveal">
+      <div><em data-i18n="impact.p1.t">Chocó · Bahía Solano</em><p data-i18n="impact.p1.d">Rainwater catchment and filtration for three Pacific coast communities.</p></div>
+      <div><em data-i18n="impact.p2.t">La Guajira · Wayúu</em><p data-i18n="impact.p2.d">Well rehabilitation and solar pumping with the Wayúu council.</p></div>
+      <div><em data-i18n="impact.p3.t">Cauca · Tierradentro</em><p data-i18n="impact.p3.d">Household ceramic filters and training, co-managed with local schools.</p></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="block" id="contact">
+    <div class="contact-grid">
+      <div class="reveal">
+        <div class="eyebrow" data-i18n="contact.eyebrow">05 · Become a distributor</div>
+        <h2 class="h-display" data-i18n-html="contact.hed">Tell us where<br/>you <em>pour</em>.</h2>
+        <p class="lede" data-i18n="contact.lede">Fill in the form and our trade team will come back within one business day. If you'd rather speak now, WhatsApp is the fastest channel.</p>
+        <div class="direct">
+          <div><span data-i18n="contact.d1.k">Trade</span><em>trade@premiumwater.co</em></div>
+          <div><span data-i18n="contact.d2.k">WhatsApp</span><em>+57 300 000 0000</em></div>
+          <div><span data-i18n="contact.d3.k">Office</span><em data-i18n="contact.d3.v">Carrera 11 · Bogotá, CO</em></div>
+        </div>
+      </div>
+      <form class="form-card reveal" id="leadForm">
+        <div class="form-head" data-i18n="form.head">Inquiry form</div>
+        <div class="field"><label data-i18n="form.business">Business name</label><input name="business" required></div>
+        <div class="field-row">
+          <div class="field"><label data-i18n="form.name">Contact name</label><input name="name" required></div>
+          <div class="field"><label data-i18n="form.city">City</label><input name="city"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label data-i18n="form.email">Work email</label><input name="email" type="email" required></div>
+          <div class="field"><label data-i18n="form.whatsapp">WhatsApp</label><input name="phone" placeholder="+57"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label data-i18n="form.type">Business type</label>
+            <select name="type" id="selType"></select>
+          </div>
+          <div class="field"><label data-i18n="form.volume">Monthly volume</label>
+            <select name="volume" id="selVolume"></select>
+          </div>
+        </div>
+        <div class="field"><label data-i18n="form.notes">Anything we should know</label><textarea name="notes"></textarea></div>
+        <div class="form-foot">
+          <small data-i18n="form.reply">We reply within 1 business day.</small>
+          <button type="submit" class="pill pill-solid" data-i18n="form.submit">Submit →</button>
+        </div>
+        <div class="form-success" id="formSuccess" hidden>
+          <div class="form-success-head" data-i18n="form.successHead">Thank you — we'll be in touch within one business day.</div>
+          <a class="pill pill-ghost" href="https://wa.me/573000000000" target="_blank" rel="noopener" data-i18n="form.successWA">Prefer to chat now? WhatsApp us →</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-brand">
+        <span class="brand-dot"></span>
+        <span>premium<i>water</i></span>
+      </div>
+      <div class="foot-tag" data-i18n="foot.tag">Luxury water for the people. Bottled in Colombia since 2024.</div>
+      <div class="foot-meta" data-i18n="foot.meta">© 2026 · Bogotá, CO</div>
+    </div>
+  </footer>
+</main>
+
+<!-- sprite defs for mini bottle reuse -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="mini-bottle" viewBox="0 0 200 460">
+      <rect x="82" y="0" width="36" height="26" rx="3" fill="#C6A25B"/>
+      <rect x="76" y="24" width="48" height="8" rx="1.5" fill="#8A6F3A"/>
+      <path d="M78 32 L78 60 Q78 74 70 84 L54 104 Q40 122 40 148 L40 420 Q40 444 66 444 L134 444 Q160 444 160 420 L160 148 Q160 122 146 104 L130 84 Q122 74 122 60 L122 32 Z"
+            fill="rgba(255,255,255,0.06)" stroke="rgba(198,162,91,0.45)" stroke-width="1.2"/>
+      <rect x="56" y="220" width="88" height="120" fill="#0B0B0C" opacity=".92" stroke="#C6A25B" stroke-width="0.6" stroke-opacity=".6"/>
+      <text x="100" y="262" text-anchor="middle" font-family="Instrument Serif, serif" font-size="20" fill="#F7F3EA">Premium</text>
+      <text x="100" y="286" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="20" fill="#C6A25B">Water</text>
+      <line x1="72" y1="300" x2="128" y2="300" stroke="#C6A25B" stroke-opacity=".7" stroke-width="0.6"/>
+      <text x="100" y="316" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" letter-spacing="2" fill="#D8D1BE" opacity=".8">COLOMBIA</text>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- WhatsApp FAB -->
+<a class="fab" href="https://wa.me/573000000000" target="_blank" rel="noopener">
+  <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12.04 2.5c-5.25 0-9.5 4.25-9.5 9.5 0 1.67.44 3.3 1.27 4.75L2.5 21.5l4.9-1.28a9.48 9.48 0 0 0 4.64 1.19c5.25 0 9.5-4.25 9.5-9.5s-4.25-9.41-9.5-9.41zm5.55 13.45c-.24.67-1.39 1.28-1.93 1.32-.5.03-1.13.05-1.82-.11-.42-.1-.96-.27-1.65-.57-2.9-1.26-4.8-4.18-4.95-4.38-.14-.2-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.43.26-.3.58-.37.77-.37l.55.01c.18 0 .42-.07.65.5.24.59.81 2.03.88 2.18.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.18-.32.4-.45.54-.15.15-.31.31-.13.6.18.3.79 1.3 1.7 2.1 1.17 1.04 2.15 1.37 2.44 1.52.3.15.47.13.64-.08.18-.2.74-.86.94-1.16.2-.3.4-.25.67-.15.27.1 1.72.81 2.01.96.3.15.5.22.57.35.07.13.07.77-.17 1.44z"/></svg>
+</a>
+
+<script src="app.js?v=8"></script>
+</body>
+</html>

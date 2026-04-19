@@ -1,0 +1,28 @@
+.DS_Store
+node_modules/
+.env
+.env.*
+*.log
+
+# Local preview artifacts
+.claude/
+/tmp/
+
+# Source handoff zip & intermediate uploads — the site only needs site-v3/
+*.zip
+b2b-lead-generation-site-for-a-premium-brand/project/uploads/
+b2b-lead-generation-site-for-a-premium-brand/project/screenshots/
+b2b-lead-generation-site-for-a-premium-brand/project/site/
+b2b-lead-generation-site-for-a-premium-brand/project/site-v2/
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/canvastest.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/clean.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/final-hero.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/final-video.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/hero-new.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/probe.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/seek.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/seek2.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/v2.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/01-final.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/02-final.png
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/03-final.png

@@ -1,0 +1,22 @@
+{
+	auto_https off
+	admin off
+}
+
+:{$PORT:80} {
+	root * /srv
+	encode zstd gzip
+	file_server
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Cache-Control "public, max-age=3600"
+	}
+	@video path *.mp4
+	header @video Cache-Control "public, max-age=2592000"
+	@fonts path *.woff2 *.woff *.ttf
+	header @fonts Cache-Control "public, max-age=2592000"
+	@images path *.jpg *.jpeg *.png *.webp *.avif *.svg
+	header @images Cache-Control "public, max-age=2592000"
+}

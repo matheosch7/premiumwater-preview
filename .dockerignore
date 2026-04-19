@@ -1,0 +1,11 @@
+.DS_Store
+.git/
+.claude/
+node_modules/
+*.log
+*.zip
+b2b-lead-generation-site-for-a-premium-brand/README.md
+b2b-lead-generation-site-for-a-premium-brand/project/site/
+b2b-lead-generation-site-for-a-premium-brand/project/site-v2/
+b2b-lead-generation-site-for-a-premium-brand/project/screenshots/
+b2b-lead-generation-site-for-a-premium-brand/project/uploads/
