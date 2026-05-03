@@ -32,6 +32,25 @@
     document.querySelectorAll('[data-wa]').forEach(el => { el.href = url; });
   }
 
+  // ---------- analytics (GA4) ----------
+  // Loads gtag only when CONFIG.GA4_ID is set, so dev/preview never hits GA.
+  function initAnalytics() {
+    if (!CONFIG.GA4_ID) return;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(CONFIG.GA4_ID);
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', CONFIG.GA4_ID);
+  }
+  function track(event, params) {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', event, params || {});
+    }
+  }
+
   // ---------- brand mode (calm | bold) ----------
   // Wiring is in place; "bold" visuals are intentionally minimal placeholders
   // until the client's artist supplies product/visual material.
@@ -46,7 +65,10 @@
     });
   }
   document.querySelectorAll('.brand-pill button').forEach(b => {
-    b.addEventListener('click', () => applyBrand(b.dataset.brand));
+    b.addEventListener('click', () => {
+      applyBrand(b.dataset.brand);
+      track('brand_toggle', { brand_mode: b.dataset.brand });
+    });
   });
 
   // ---------- mobile drawer ----------
@@ -123,6 +145,7 @@
       'form.type': 'Business type', 'form.volume': 'Monthly volume',
       'form.notes': 'Anything we should know',
       'form.reply': 'We reply within 1 business day.', 'form.submit': 'Submit →',
+      'form.privacy': 'We use your details only to reply to this inquiry. Never shared.',
       'form.successHead': 'Thank you — we\'ll be in touch within one business day.',
       'form.successWA': 'Prefer to chat now? WhatsApp us →',
       'foot.tag': 'Luxury water for the people. Bottled in Colombia since 2024.',
@@ -184,6 +207,7 @@
       'form.type': 'Tipo de negocio', 'form.volume': 'Volumen mensual',
       'form.notes': 'Algo que debamos saber',
       'form.reply': 'Respondemos en 1 día hábil.', 'form.submit': 'Enviar →',
+      'form.privacy': 'Usamos tus datos solo para responder esta solicitud. Nunca se comparten.',
       'form.successHead': 'Gracias — te contactamos en un día hábil.',
       'form.successWA': '¿Prefieres hablar ahora? Escríbenos por WhatsApp →',
       'foot.tag': 'Agua de lujo, para la gente. Embotellada en Colombia desde 2024.',
@@ -384,15 +408,28 @@
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      // Honeypot: real users never see/fill `company_website`. Bots do — drop silently.
+      const honeypot = form.querySelector('[name="company_website"]');
+      if (honeypot && honeypot.value) {
+        const s = document.getElementById('formSuccess');
+        if (s) s.hidden = false;
+        return;
+      }
       const payload = buildLeadPayload(form);
+      delete payload.company_website;
       const fields = form.querySelectorAll('input, select, textarea, button');
       fields.forEach(el => el.disabled = true);
       const result = await submitLead(payload);
       const s = document.getElementById('formSuccess');
       if (result.ok) {
         if (s) s.hidden = false;
+        track('form_submit', {
+          brand_mode: payload.brand_mode,
+          language: payload.language,
+          business_type: payload.type || '',
+          monthly_volume: payload.volume || ''
+        });
       } else {
-        // surface a basic failure state without breaking the UI
         fields.forEach(el => el.disabled = false);
         alert('Sorry — we could not submit just now. Please try WhatsApp.');
       }
@@ -412,10 +449,22 @@
     });
   });
 
+  // ---------- mobile sticky CTA bar ----------
+  // Hides itself when the contact form is on screen so it doesn't double up.
+  const stickyBar = document.querySelector('.mobile-sticky-cta');
+  const contactSection = document.getElementById('contact');
+  if (stickyBar && contactSection && 'IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(en => stickyBar.classList.toggle('hidden', en.isIntersecting));
+    }, { threshold: 0.15 });
+    obs.observe(contactSection);
+  }
+
   // ---------- init ----------
   applyLang(currentLang);
   applyBrand(currentBrand);
   applyWhatsApp();
+  initAnalytics();
   setupReveal();
   updateCine();
 })();

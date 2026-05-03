@@ -719,6 +719,54 @@ footer { padding: 80px 56px 40px; background: rgba(10, 5, 25, 0.9); color: var(-
 }
 .fab:hover { transform: translateY(-2px); }
 
+/* honeypot — visually + assistively hidden, but reachable to bots */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
+
+/* privacy reassurance under form */
+.form-privacy {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  line-height: 1.5;
+}
+
+/* mobile sticky CTA bar — desktop hidden, shown only on small screens */
+.mobile-sticky-cta { display: none; }
+@media (max-width: 900px) {
+  .mobile-sticky-cta {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 55;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(11, 11, 12, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--glass-line);
+    transform: translateY(0);
+    transition: transform 320ms cubic-bezier(.2,.8,.2,1);
+  }
+  .mobile-sticky-cta.hidden { transform: translateY(110%); }
+  .mobile-sticky-cta .pill {
+    justify-content: center;
+    padding: 13px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  /* lift the WA FAB so it doesn't collide with the sticky bar */
+  .fab { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+}
+
 /* Tweaks panel */
 .tweaks {
   position: fixed; right: 22px; top: 84px; z-index: 80;
