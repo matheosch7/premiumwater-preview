@@ -10,7 +10,7 @@
     // Leave empty string to fall back to console-only demo behavior.
     WEBHOOK_URL: '',
     // GA4 measurement ID, e.g. 'G-XXXXXXXX'. Empty = analytics disabled.
-    GA4_ID: ''
+    GA4_ID: 'G-3TPNPFHF07'
   };
 
   const root = document.documentElement;
