@@ -789,8 +789,8 @@ body.legal-page { background: var(--bg-d); }
 .legal-shell hr { border: 0; border-top: 1px solid var(--line); margin: 48px 0; }
 .legal-shell .es-section { color: rgba(255, 255, 255, 0.72); }
 
-/* cookie banner */
-.cookie-banner {
+/* privacy notice — class/id names avoid blocklist patterns (no "cookie-banner") */
+.pw-notice {
   position: fixed;
   left: 16px; right: 16px; bottom: 16px;
   z-index: 70;
@@ -806,8 +806,8 @@ body.legal-page { background: var(--bg-d); }
   transition: opacity 320ms ease, transform 320ms cubic-bezier(.2,.8,.2,1);
   pointer-events: none;
 }
-.cookie-banner.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-.cookie-banner-inner {
+.pw-notice.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.pw-notice-inner {
   max-width: 1100px;
   margin: 0 auto;
   padding: 18px 22px;
@@ -816,27 +816,27 @@ body.legal-page { background: var(--bg-d); }
   gap: 24px;
   align-items: center;
 }
-.cookie-banner-text strong {
+.pw-notice-text strong {
   display: block;
   font-family: var(--serif);
   font-size: 16px;
   font-weight: 400;
   margin-bottom: 4px;
 }
-.cookie-banner-text p {
+.pw-notice-text p {
   font-size: 13px;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.8);
 }
-.cookie-banner-text a { color: var(--accent); text-decoration: underline; }
-.cookie-banner-cta { display: inline-flex; gap: 8px; flex-wrap: wrap; }
-.cookie-banner-cta .pill { padding: 10px 16px; font-size: 13px; }
+.pw-notice-text a { color: var(--accent); text-decoration: underline; }
+.pw-notice-cta { display: inline-flex; gap: 8px; flex-wrap: wrap; }
+.pw-notice-cta .pill { padding: 10px 16px; font-size: 13px; }
 
 @media (max-width: 700px) {
-  .cookie-banner { left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-  .cookie-banner-inner { grid-template-columns: 1fr; padding: 16px; gap: 14px; }
-  .cookie-banner-cta { display: grid; grid-template-columns: 1fr 1fr; }
-  .cookie-banner-cta .pill { justify-content: center; }
+  .pw-notice { left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .pw-notice-inner { grid-template-columns: 1fr; padding: 16px; gap: 14px; }
+  .pw-notice-cta { display: grid; grid-template-columns: 1fr 1fr; }
+  .pw-notice-cta .pill { justify-content: center; }
 }
 
 /* WhatsApp FAB */

@@ -66,18 +66,21 @@
     }
   }
 
-  // ---------- cookie banner ----------
+  // ---------- privacy notice ----------
+  // Element ids/classes are namespaced (`pwNotice`, `.pw-notice`) so that
+  // ad/tracker blocklists (Brave Shields, uBlock, EasyList Cookie) which
+  // hide common selectors like `.cookie-banner` / `#cookieBanner` don't
+  // strip our consent prompt — without it we can't lawfully load GA4.
   function setupConsentBanner() {
-    const banner = document.getElementById('cookieBanner');
-    const acceptBtn = document.getElementById('cookieAccept');
-    const rejectBtn = document.getElementById('cookieReject');
-    const reopenBtn = document.getElementById('cookieReopen');
+    const banner = document.getElementById('pwNotice');
+    const acceptBtn = document.getElementById('pwNoticeAccept');
+    const rejectBtn = document.getElementById('pwNoticeReject');
+    const reopenBtn = document.getElementById('pwNoticeReopen');
     console.log('[pw] consent banner init', { banner: !!banner, consent: getConsent() });
     if (!banner) return;
     const show = () => {
       banner.removeAttribute('hidden');
       banner.hidden = false;
-      // Force a layout pass before adding `.show` so the opacity transition fires.
       void banner.offsetWidth;
       banner.classList.add('show');
     };
