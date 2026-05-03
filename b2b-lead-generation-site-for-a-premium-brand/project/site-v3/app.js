@@ -25,11 +25,22 @@
   };
 
   // ---------- WhatsApp wiring ----------
+  // Formats a digits-only international number into a human-readable string.
+  // Colombia (+57) mobile: "573001234567" → "+57 300 123 4567"
+  // Falls back to "+<digits>" for other lengths so it stays sensible.
+  function formatWhatsAppDisplay(digits) {
+    if (digits.length === 12 && digits.startsWith('57')) {
+      return '+' + digits.slice(0, 2) + ' ' + digits.slice(2, 5) + ' ' + digits.slice(5, 8) + ' ' + digits.slice(8);
+    }
+    return '+' + digits;
+  }
   function applyWhatsApp() {
     const digits = (CONFIG.WHATSAPP_NUMBER || '').replace(/\D/g, '');
     if (!digits) return;
     const url = 'https://wa.me/' + digits;
+    const display = formatWhatsAppDisplay(digits);
     document.querySelectorAll('[data-wa]').forEach(el => { el.href = url; });
+    document.querySelectorAll('[data-wa-display]').forEach(el => { el.textContent = display; });
   }
 
   // ---------- consent (Habeas Data / Ley 1581) ----------
