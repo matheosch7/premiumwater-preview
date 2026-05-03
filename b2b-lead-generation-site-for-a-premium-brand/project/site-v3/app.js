@@ -72,8 +72,15 @@
     const acceptBtn = document.getElementById('cookieAccept');
     const rejectBtn = document.getElementById('cookieReject');
     const reopenBtn = document.getElementById('cookieReopen');
+    console.log('[pw] consent banner init', { banner: !!banner, consent: getConsent() });
     if (!banner) return;
-    const show = () => { banner.hidden = false; requestAnimationFrame(() => banner.classList.add('show')); };
+    const show = () => {
+      banner.removeAttribute('hidden');
+      banner.hidden = false;
+      // Force a layout pass before adding `.show` so the opacity transition fires.
+      void banner.offsetWidth;
+      banner.classList.add('show');
+    };
     const hide = () => { banner.classList.remove('show'); setTimeout(() => { banner.hidden = true; }, 320); };
     if (!getConsent()) setTimeout(show, 1200);
     if (acceptBtn) acceptBtn.addEventListener('click', () => { setConsent('analytics'); hide(); });
