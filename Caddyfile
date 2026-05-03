@@ -19,4 +19,8 @@
 	header @fonts Cache-Control "public, max-age=2592000"
 	@images path *.jpg *.jpeg *.png *.webp *.avif *.svg
 	header @images Cache-Control "public, max-age=2592000"
+	# HTML is the entry point that references versioned assets — always
+	# revalidate so code pushes go live immediately for returning visitors.
+	@html path / *.html
+	header @html Cache-Control "no-cache, must-revalidate"
 }
