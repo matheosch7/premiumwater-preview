@@ -696,8 +696,12 @@ main { position: relative; z-index: 5; padding-right: 56px; }
   background: rgba(198, 162, 91, 0.08);
   border-radius: 14px;
   color: var(--ink);
-  display: flex; flex-direction: column; gap: 14px; align-items: flex-start;
+  flex-direction: column; gap: 14px; align-items: flex-start;
 }
+/* Only show as flex when NOT hidden — the unqualified `display: flex`
+   was overriding the [hidden] UA rule, so the success state appeared on
+   first load before any submission. */
+.form-success:not([hidden]) { display: flex; }
 .form-success-head { font-family: var(--serif); font-size: 22px; line-height: 1.25; color: #fff; }
 .form-success .pill { align-self: flex-start; }
 
