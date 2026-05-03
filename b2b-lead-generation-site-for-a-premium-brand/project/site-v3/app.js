@@ -1,5 +1,18 @@
-// site-v3 — scroll-scrubbed pour video, EN/ES i18n, reveals, form stub
+// site-v3 — scroll-scrubbed pour video, EN/ES i18n, brand modes, lead form
 (function () {
+  // ---------- CONFIG ----------
+  // Drop-in values the client/operator owns. Leave empty to keep demo fallbacks.
+  const CONFIG = {
+    // WhatsApp number in international format, digits only (e.g. '573001234567').
+    // TODO: replace with the real client number once provided.
+    WHATSAPP_NUMBER: '573000000000',
+    // POST endpoint for lead submissions (Formspree / Resend / n8n / Zapier / direct CRM).
+    // Leave empty string to fall back to console-only demo behavior.
+    WEBHOOK_URL: '',
+    // GA4 measurement ID, e.g. 'G-XXXXXXXX'. Empty = analytics disabled.
+    GA4_ID: ''
+  };
+
   const root = document.documentElement;
   root.setAttribute('data-theme', 'deep');
   root.setAttribute('data-motion', 'full');
@@ -11,6 +24,48 @@
     return t * t * (3 - 2 * t);
   };
 
+  // ---------- WhatsApp wiring ----------
+  function applyWhatsApp() {
+    const digits = (CONFIG.WHATSAPP_NUMBER || '').replace(/\D/g, '');
+    if (!digits) return;
+    const url = 'https://wa.me/' + digits;
+    document.querySelectorAll('[data-wa]').forEach(el => { el.href = url; });
+  }
+
+  // ---------- brand mode (calm | bold) ----------
+  // Wiring is in place; "bold" visuals are intentionally minimal placeholders
+  // until the client's artist supplies product/visual material.
+  let currentBrand = localStorage.getItem('pw:brand') || 'calm';
+  function applyBrand(mode) {
+    if (mode !== 'calm' && mode !== 'bold') mode = 'calm';
+    currentBrand = mode;
+    root.setAttribute('data-brand', mode);
+    localStorage.setItem('pw:brand', mode);
+    document.querySelectorAll('.brand-pill button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.brand === mode ? 'true' : 'false');
+    });
+  }
+  document.querySelectorAll('.brand-pill button').forEach(b => {
+    b.addEventListener('click', () => applyBrand(b.dataset.brand));
+  });
+
+  // ---------- mobile drawer ----------
+  const burger = document.getElementById('navBurger');
+  const drawer = document.getElementById('navDrawer');
+  function setDrawer(open) {
+    if (!burger || !drawer) return;
+    drawer.classList.toggle('open', open);
+    burger.classList.toggle('is-open', open);
+    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  if (burger && drawer) {
+    burger.addEventListener('click', () => setDrawer(!drawer.classList.contains('open')));
+    drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setDrawer(false)));
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') setDrawer(false); });
+  }
+
   // ---------- i18n dictionary ----------
   // Placeholder English translated into believable Spanish. Real client copy
   // replaces both sides after signature.
@@ -18,6 +73,7 @@
     en: {
       'nav.product': 'Product', 'nav.story': 'Story', 'nav.trade': 'Trade', 'nav.impact': 'Impact',
       'nav.talk': 'Talk to us', 'nav.become': 'Become a distributor',
+      'brand.calm': 'Calm', 'brand.bold': 'Bold',
       'badge.bottom': 'Est 2024 · Andes',
       'river.label': 'FLOW',
       'scroll.label': 'Scroll down', 'scroll.sub': '& pour in',
@@ -78,6 +134,7 @@
     es: {
       'nav.product': 'Producto', 'nav.story': 'Historia', 'nav.trade': 'Mayoreo', 'nav.impact': 'Impacto',
       'nav.talk': 'Hablemos', 'nav.become': 'Ser distribuidor',
+      'brand.calm': 'Calmo', 'brand.bold': 'Audaz',
       'badge.bottom': 'Fund. 2024 · Andes',
       'river.label': 'CAUDAL',
       'scroll.label': 'Desliza', 'scroll.sub': 'y sírvete',
@@ -263,6 +320,12 @@
     if (scrollCard) scrollCard.classList.toggle('hide', window.scrollY > 120);
   }
 
+  // On small / likely-mobile viewports, defer the 6.8MB pour video until needed.
+  // The poster (cine-static) covers the gap so first paint stays fast.
+  if (cineVideo && window.innerWidth <= 900) {
+    cineVideo.preload = 'metadata';
+  }
+
   if (cineVideo && !reducedMotion) {
     cineVideo.autoplay = false;
     cineVideo.loop = false;
@@ -281,16 +344,58 @@
   window.addEventListener('scroll', updateCine, { passive: true });
   window.addEventListener('resize', updateCine);
 
-  // ---------- lead form (demo stub) ----------
+  // ---------- lead form ----------
+  // Posts an enriched payload (form fields + brand_mode + language + UTM source)
+  // to CONFIG.WEBHOOK_URL. With no webhook configured, falls back to console
+  // logging so the UX still flows during demo / development.
+  function buildLeadPayload(form) {
+    const data = Object.fromEntries(new FormData(form));
+    const params = new URLSearchParams(window.location.search);
+    return {
+      ...data,
+      brand_mode: currentBrand,
+      language: currentLang,
+      source: document.referrer || 'direct',
+      utm_source: params.get('utm_source') || '',
+      utm_medium: params.get('utm_medium') || '',
+      utm_campaign: params.get('utm_campaign') || '',
+      page_url: window.location.href,
+      submitted_at: new Date().toISOString()
+    };
+  }
+  async function submitLead(payload) {
+    if (!CONFIG.WEBHOOK_URL) {
+      console.log('[lead] no webhook configured — demo payload:', payload);
+      return { ok: true, demo: true };
+    }
+    try {
+      const res = await fetch(CONFIG.WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      return { ok: res.ok };
+    } catch (err) {
+      console.error('[lead] submit error:', err);
+      return { ok: false, error: err.message };
+    }
+  }
   const form = document.getElementById('leadForm');
   if (form) {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const data = Object.fromEntries(new FormData(form));
-      console.log('Lead submitted (demo):', data);
-      form.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+      const payload = buildLeadPayload(form);
+      const fields = form.querySelectorAll('input, select, textarea, button');
+      fields.forEach(el => el.disabled = true);
+      const result = await submitLead(payload);
       const s = document.getElementById('formSuccess');
-      if (s) s.hidden = false;
+      if (result.ok) {
+        if (s) s.hidden = false;
+      } else {
+        // surface a basic failure state without breaking the UI
+        fields.forEach(el => el.disabled = false);
+        alert('Sorry — we could not submit just now. Please try WhatsApp.');
+      }
     });
   }
 
@@ -309,6 +414,8 @@
 
   // ---------- init ----------
   applyLang(currentLang);
+  applyBrand(currentBrand);
+  applyWhatsApp();
   setupReveal();
   updateCine();
 })();

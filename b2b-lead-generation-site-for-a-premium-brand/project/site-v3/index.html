@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=9" />
+  <link rel="stylesheet" href="styles.css?v=10" />
 </head>
 <body>
 
@@ -99,15 +99,36 @@
       <a href="#impact" data-i18n="nav.impact">Impact</a>
     </nav>
     <div class="nav-right">
+      <div class="brand-pill" role="group" aria-label="Brand mode">
+        <button data-brand="calm" aria-pressed="true" data-i18n="brand.calm">Calm</button>
+        <button data-brand="bold" aria-pressed="false" data-i18n="brand.bold">Bold</button>
+      </div>
       <div class="lang-pill" role="group" aria-label="Language">
         <button data-lang="en" aria-pressed="true">EN</button>
         <button data-lang="es" aria-pressed="false">ES</button>
       </div>
-      <a class="pill pill-ghost" href="https://wa.me/573000000000" target="_blank" rel="noopener" data-i18n="nav.talk">Talk to us</a>
+      <a class="pill pill-ghost" data-wa target="_blank" rel="noopener" data-i18n="nav.talk">Talk to us</a>
       <a class="pill pill-solid" href="#contact" data-i18n="nav.become">Become a distributor</a>
+      <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
 </header>
+
+<!-- ============ mobile drawer ============ -->
+<div class="nav-drawer" id="navDrawer" aria-hidden="true">
+  <nav class="drawer-nav" aria-label="Mobile">
+    <a href="#product" data-i18n="nav.product">Product</a>
+    <a href="#story" data-i18n="nav.story">Story</a>
+    <a href="#trade" data-i18n="nav.trade">Trade</a>
+    <a href="#impact" data-i18n="nav.impact">Impact</a>
+  </nav>
+  <div class="drawer-cta">
+    <a class="pill pill-ghost lg" data-wa target="_blank" rel="noopener" data-i18n="nav.talk">Talk to us</a>
+    <a class="pill pill-solid lg" href="#contact" data-i18n="nav.become">Become a distributor</a>
+  </div>
+</div>
 
 <!-- ============ vertical side badge ============ -->
 <aside class="side-badge" aria-hidden="true">
@@ -181,7 +202,7 @@
       </h1>
       <p class="hero-lede" data-i18n="hero.lede">A Colombian table water bottled for restaurants, hotels and brands that treat hospitality as craft — poured with the same care as the meal it accompanies.</p>
       <div class="hero-actions">
-        <a class="pill pill-ghost" href="https://wa.me/573000000000" target="_blank" rel="noopener" data-i18n="nav.talk">Talk to us</a>
+        <a class="pill pill-ghost" data-wa target="_blank" rel="noopener" data-i18n="nav.talk">Talk to us</a>
         <a class="pill pill-solid" href="#contact" data-i18n="hero.cta">Get started →</a>
       </div>
     </div>
@@ -270,7 +291,7 @@
     </div>
     <div class="trade-cta reveal">
       <a class="pill pill-solid lg" href="#contact" data-i18n="trade.ctaDist">Become a distributor →</a>
-      <a class="pill pill-ghost lg" href="https://wa.me/573000000000" target="_blank" rel="noopener" data-i18n="trade.ctaWA">WhatsApp us</a>
+      <a class="pill pill-ghost lg" data-wa target="_blank" rel="noopener" data-i18n="trade.ctaWA">WhatsApp us</a>
     </div>
   </section>
 
@@ -333,7 +354,7 @@
         </div>
         <div class="form-success" id="formSuccess" hidden>
           <div class="form-success-head" data-i18n="form.successHead">Thank you — we'll be in touch within one business day.</div>
-          <a class="pill pill-ghost" href="https://wa.me/573000000000" target="_blank" rel="noopener" data-i18n="form.successWA">Prefer to chat now? WhatsApp us →</a>
+          <a class="pill pill-ghost" data-wa target="_blank" rel="noopener" data-i18n="form.successWA">Prefer to chat now? WhatsApp us →</a>
         </div>
       </form>
     </div>
@@ -369,10 +390,10 @@
 </svg>
 
 <!-- WhatsApp FAB -->
-<a class="fab" href="https://wa.me/573000000000" target="_blank" rel="noopener">
+<a class="fab" data-wa target="_blank" rel="noopener" aria-label="WhatsApp">
   <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12.04 2.5c-5.25 0-9.5 4.25-9.5 9.5 0 1.67.44 3.3 1.27 4.75L2.5 21.5l4.9-1.28a9.48 9.48 0 0 0 4.64 1.19c5.25 0 9.5-4.25 9.5-9.5s-4.25-9.41-9.5-9.41zm5.55 13.45c-.24.67-1.39 1.28-1.93 1.32-.5.03-1.13.05-1.82-.11-.42-.1-.96-.27-1.65-.57-2.9-1.26-4.8-4.18-4.95-4.38-.14-.2-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.43.26-.3.58-.37.77-.37l.55.01c.18 0 .42-.07.65.5.24.59.81 2.03.88 2.18.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.18-.32.4-.45.54-.15.15-.31.31-.13.6.18.3.79 1.3 1.7 2.1 1.17 1.04 2.15 1.37 2.44 1.52.3.15.47.13.64-.08.18-.2.74-.86.94-1.16.2-.3.4-.25.67-.15.27.1 1.72.81 2.01.96.3.15.5.22.57.35.07.13.07.77-.17 1.44z"/></svg>
 </a>
 
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
