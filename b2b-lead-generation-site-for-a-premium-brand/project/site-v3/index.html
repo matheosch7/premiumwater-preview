@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="styles.css?v=20" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -122,14 +122,119 @@
 <div class="bold-stage" id="boldStage" aria-hidden="true">
   <div class="bold-bg"></div>
   <div class="bold-grid"></div>
+  <div class="bold-scanlines"></div>
   <div class="bold-glow"></div>
   <div class="bold-floor"></div>
-  <div class="bold-model-mount" id="boldModelMount"></div>
-  <div class="bold-grain"></div>
   <!-- big background lockup -->
   <div class="bold-lockup" aria-hidden="true">
     <span class="bold-lockup-line">DRINK</span>
     <span class="bold-lockup-line">LOUD</span>
+  </div>
+
+  <!-- water-trail SVG (reveals via stroke-dashoffset, follows bottle sway) -->
+  <svg class="bold-trail" viewBox="0 0 1200 1200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="boldTrailGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0"   stop-color="rgba(230,57,70,0)"/>
+        <stop offset="0.25" stop-color="rgba(230,57,70,0.55)"/>
+        <stop offset="0.7"  stop-color="rgba(230,57,70,0.85)"/>
+        <stop offset="1"   stop-color="rgba(230,57,70,0)"/>
+      </linearGradient>
+    </defs>
+    <path id="boldTrailPath"
+          d="M 600 320 Q 540 460 600 600 T 700 880 Q 720 1000 600 1180"
+          stroke="url(#boldTrailGrad)" stroke-width="6" fill="none"
+          stroke-linecap="round"/>
+  </svg>
+
+  <!-- reaching hand silhouette (slides in from right during story act) -->
+  <svg class="bold-hand" viewBox="0 0 320 240" aria-hidden="true">
+    <path d="M 320 110
+             L 220 110
+             Q 200 110 192 102
+             L 168 78
+             Q 160 70 154 76
+             Q 148 82 154 92
+             L 170 116
+             L 110 116
+             Q 92 116 84 110
+             L 60 92
+             Q 52 86 46 92
+             Q 40 98 46 106
+             L 78 132
+             L 60 138
+             Q 48 142 50 152
+             Q 52 162 64 160
+             L 178 152
+             Q 200 152 214 158
+             L 320 168 Z"
+          fill="rgba(255,255,255,0.04)"
+          stroke="rgba(255,255,255,0.55)" stroke-width="1.6"
+          stroke-linejoin="round"/>
+  </svg>
+
+  <!-- second bottle (cheers act) — uses the same render as a static cheers prop -->
+  <div class="bold-bottle-cheers" aria-hidden="true">
+    <img src="assets/bottle-bold-poster.png" alt="" />
+  </div>
+
+  <!-- "clink" spark burst at cheers moment -->
+  <div class="bold-clink" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- model mount: scroll-driven camera + sway -->
+  <div class="bold-model-mount" id="boldModelMount"></div>
+
+  <!-- targeting reticle that tracks the bottle's screen position -->
+  <svg class="bold-reticle" viewBox="0 0 200 200" aria-hidden="true">
+    <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(230,57,70,0.45)" stroke-width="0.8" stroke-dasharray="3 4"/>
+    <circle cx="100" cy="100" r="58" fill="none" stroke="rgba(230,57,70,0.30)" stroke-width="0.6"/>
+    <line x1="100" y1="0"  x2="100" y2="22" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
+    <line x1="100" y1="178" x2="100" y2="200" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
+    <line x1="0"   y1="100" x2="22" y2="100"  stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
+    <line x1="178" y1="100" x2="200" y2="100" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
+    <text x="120" y="98" fill="rgba(230,57,70,0.7)" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="2">TARGET</text>
+  </svg>
+
+  <!-- terminal-style data strip ticking specs (left side, vertical) -->
+  <div class="bold-data" id="boldData" aria-hidden="true">
+    <div class="bold-data-row"><i></i> <em>SOURCE</em> <span>Páramo · Andes</span></div>
+    <div class="bold-data-row"><i></i> <em>ALT</em>    <span>3,600 m</span></div>
+    <div class="bold-data-row"><i></i> <em>TDS</em>    <span>280 ppm</span></div>
+    <div class="bold-data-row"><i></i> <em>pH</em>     <span>7.4</span></div>
+    <div class="bold-data-row"><i></i> <em>BPM</em>    <span id="boldBpm">130</span></div>
+    <div class="bold-data-row"><i></i> <em>STATUS</em> <span class="bold-data-blink">READY · POUR</span></div>
+  </div>
+
+  <!-- crimson "flood" rises from the bottom over the back half of the scroll -->
+  <div class="bold-flood" id="boldFlood" aria-hidden="true">
+    <svg class="bold-flood-wave" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
+      <path id="boldFloodWave"
+            d="M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V60 H0 Z"
+            fill="rgba(230,57,70,0.92)"/>
+    </svg>
+    <div class="bold-flood-fill"></div>
+  </div>
+  <div class="bold-grain"></div>
+  <!-- per-act caption strip -->
+  <div class="bold-captions" id="boldCaptions" aria-hidden="true">
+    <div class="bold-caption" data-act="1">
+      <div class="bold-kicker">01 — Incoming</div>
+      <h2 class="bold-hed">Bottle inbound.</h2>
+    </div>
+    <div class="bold-caption" data-act="2">
+      <div class="bold-kicker">02 — Spinning up</div>
+      <h2 class="bold-hed">2,400 RPM.</h2>
+    </div>
+    <div class="bold-caption" data-act="3">
+      <div class="bold-kicker">03 — In hand</div>
+      <h2 class="bold-hed">Locked on.</h2>
+    </div>
+    <div class="bold-caption" data-act="4">
+      <div class="bold-kicker">04 — Ready to pour</div>
+      <h2 class="bold-hed"><em>Drink it.</em></h2>
+    </div>
   </div>
 </div>
 
@@ -267,7 +372,7 @@
   </section>
 
   <!-- STORY / ORIGIN -->
-  <section class="block" id="story">
+  <section class="block" id="story" data-bold-lockup="MOUNTAIN">
     <div class="grid-2">
       <div class="reveal">
         <div class="eyebrow" data-i18n="story.eyebrow">01 · The source</div>
@@ -287,7 +392,7 @@
   </section>
 
   <!-- PRODUCT -->
-  <section class="block" id="product">
+  <section class="block" id="product" data-bold-lockup="THREE · SIZES · ONE · VOLUME">
     <div class="section-head reveal">
       <div class="eyebrow" data-i18n="product.eyebrow">02 · The range</div>
       <h2 class="h-display" data-i18n-html="product.hed">A small,<br/><em>considered</em> range.</h2>
@@ -325,7 +430,7 @@
   </section>
 
   <!-- TRADE / DISTRIBUTOR -->
-  <section class="block" id="trade">
+  <section class="block" id="trade" data-bold-lockup="VENUES · BARS · GYMS · CLUBS">
     <div class="section-head reveal">
       <div class="eyebrow" data-i18n="trade.eyebrow">03 · Trade</div>
       <h2 class="h-display" data-i18n-html="trade.hed">Built for the people<br/>who <em>pour it</em>.</h2>
@@ -344,7 +449,7 @@
   </section>
 
   <!-- IMPACT -->
-  <section class="block" id="impact">
+  <section class="block" id="impact" data-bold-lockup="ONE · FOR · ONE">
     <div class="section-head reveal">
       <div class="eyebrow" data-i18n="impact.eyebrow">04 · Impact</div>
       <h2 class="h-display" data-i18n-html="impact.hed">One liter in,<br/>one liter <em>forward</em>.</h2>
@@ -364,7 +469,7 @@
   </section>
 
   <!-- CONTACT -->
-  <section class="block" id="contact">
+  <section class="block" id="contact" data-bold-lockup="POUR · IT · LOUD">
     <div class="contact-grid">
       <div class="reveal">
         <div class="eyebrow" data-i18n="contact.eyebrow">05 · Become a distributor</div>

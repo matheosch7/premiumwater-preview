@@ -1237,7 +1237,7 @@ main#top { position: relative; z-index: 2; }
 }
 [data-brand="bold"] .cine-stage { display: none; }
 [data-brand="bold"] .bold-stage { display: block; }
-[data-brand="bold"] html,
+html[data-brand="bold"],
 [data-brand="bold"] body { background: #050507 !important; }
 
 .bold-bg {
@@ -1319,7 +1319,7 @@ main#top { position: relative; z-index: 2; }
 }
 .bold-lockup-line { display: block; }
 
-/* mounted model-viewer (centered, 3D bottle) */
+/* mounted model-viewer (centered, 3D bottle) — translateX is driven by JS scroll progress */
 .bold-model-mount {
   position: absolute;
   inset: 0;
@@ -1328,6 +1328,8 @@ main#top { position: relative; z-index: 2; }
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  will-change: transform;
+  transition: transform 60ms linear;
 }
 .bold-model-mount model-viewer {
   width: clamp(360px, 52vw, 720px);
@@ -1340,6 +1342,91 @@ main#top { position: relative; z-index: 2; }
           drop-shadow(0 0 80px rgba(230,57,70,0.25));
 }
 .bold-model-mount model-viewer::part(default-progress-bar) { display: none; }
+
+/* ----- crimson flood that rises from the bottom of the stage ----- */
+.bold-flood {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: var(--flood, 0%);
+  pointer-events: none;
+  z-index: 3;
+  transition: height 80ms linear;
+  will-change: height;
+}
+.bold-flood-fill {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(230,57,70,0.25) 0%,
+    rgba(230,57,70,0.55) 35%,
+    rgba(180,30,40,0.85) 75%,
+    rgba(120,15,25,0.95) 100%
+  );
+  mix-blend-mode: multiply;
+}
+/* wavy crimson edge sitting just above the fill */
+.bold-flood-wave {
+  position: absolute;
+  left: 0; right: 0; top: -34px;
+  width: 100%; height: 60px;
+  display: block;
+  filter: drop-shadow(0 -8px 18px rgba(230,57,70,0.55));
+  animation: floodSlide 6s linear infinite;
+  will-change: transform;
+}
+@keyframes floodSlide {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-1200px); }
+}
+/* render the wave doubled so it tiles seamlessly during the slide animation */
+.bold-flood-wave::after {
+  content: "";
+  position: absolute;
+  left: 100%; top: 0;
+  width: 100%; height: 100%;
+  background: inherit;
+}
+
+/* ----- bold-mode scroll captions (mirror cine-captions positioning) ----- */
+.bold-captions {
+  position: absolute;
+  left: 6vw; bottom: 14vh;
+  max-width: 460px;
+  color: var(--ink, #fff);
+  pointer-events: none;
+  z-index: 4;
+}
+.bold-caption {
+  position: absolute;
+  bottom: 0; left: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 600ms ease, transform 600ms cubic-bezier(.2,.7,.2,1);
+  will-change: opacity, transform;
+}
+.bold-caption.is-active { opacity: 1; transform: translateY(0); }
+.bold-kicker {
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent, #E63946);
+  margin-bottom: 16px;
+}
+.bold-hed {
+  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: clamp(40px, 5.5vw, 88px);
+  line-height: 0.94;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.bold-hed em { font-style: normal; color: var(--accent, #E63946); }
+@media (max-width: 720px) {
+  .bold-captions { left: 6vw; right: 6vw; bottom: 18vh; max-width: none; }
+  .bold-hed { font-size: clamp(32px, 9vw, 56px); }
+}
 
 /* loading shimmer placeholder while the GLB downloads */
 .bold-model-loading {
@@ -1373,6 +1460,14 @@ main#top { position: relative; z-index: 2; }
 }
 [data-brand="bold"] .hero-title em,
 [data-brand="bold"] .h-display em {
+  font-family: inherit;
+  font-style: normal;
+  font-weight: inherit;
+  color: var(--accent);
+}
+/* keep the brand wordmark consistent with bold typography (no italic 'water') */
+[data-brand="bold"] .brand i {
+  font-family: inherit;
   font-style: normal;
   color: var(--accent);
 }
@@ -1424,4 +1519,281 @@ main#top { position: relative; z-index: 2; }
     width: 92vw;
     height: 70vh;
   }
+}
+
+/* ============ BOLD-MODE FULL-PAGE FLOW =================================
+   In bold mode the whole page is one continuous cinematic stage. Subsequent
+   sections become transparent so the fixed bold-stage (3D bottle, glow,
+   grid, flood) reads through behind every section. Each section also gets
+   a huge stroked parallax lockup that translateX-es with scroll. */
+
+[data-brand="bold"] #product,
+[data-brand="bold"] #trade,
+[data-brand="bold"] #impact,
+[data-brand="bold"] #contact,
+[data-brand="bold"] footer {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+[data-brand="bold"] #product::before { display: none !important; }
+
+/* per-section parallax lockup (data-bold-lockup attribute on section) */
+[data-brand="bold"] [data-bold-lockup] { position: relative; isolation: isolate; }
+[data-brand="bold"] [data-bold-lockup]::before {
+  content: attr(data-bold-lockup);
+  position: absolute;
+  left: -10vw; right: -10vw; top: 50%;
+  transform: translate3d(var(--lockup-x, 0px), -50%, 0);
+  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
+  font-size: clamp(140px, 26vw, 360px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255,255,255,0.06);
+          text-stroke: 1.5px rgba(255,255,255,0.06);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: -1;
+  user-select: none;
+  will-change: transform;
+}
+
+/* fade alternating sections to a subtly different ambient tint
+   so the page reads as multi-act, not one flat slab */
+[data-brand="bold"] #story::after,
+[data-brand="bold"] #product::after,
+[data-brand="bold"] #trade::after,
+[data-brand="bold"] #impact::after,
+[data-brand="bold"] #contact::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -2;
+  background: radial-gradient(ellipse 60% 40% at var(--blob-x, 50%) var(--blob-y, 50%),
+              rgba(230,57,70,0.12) 0%, transparent 70%);
+  transition: --blob-x 200ms linear, --blob-y 200ms linear;
+}
+
+/* punchier reveals on bold-mode cards: longer travel, crimson edge as they enter */
+[data-brand="bold"] .reveal {
+  transform: translate3d(0, 40px, 0) scale(0.98);
+  transition: transform 700ms cubic-bezier(.2,.7,.2,1), opacity 600ms ease;
+}
+[data-brand="bold"] .reveal.in {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+[data-brand="bold"] .trade-card {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(8,8,10,0.32);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color 300ms ease, transform 600ms cubic-bezier(.2,.7,.2,1);
+}
+[data-brand="bold"] .trade-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+}
+[data-brand="bold"] .trade-card .n { color: var(--accent); }
+
+[data-brand="bold"] .product {
+  background: rgba(8,8,10,0.32);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Bold-mode contact form: glassy so the label-zoom reads through */
+[data-brand="bold"] .form-card,
+[data-brand="bold"] form.lead-form {
+  background: rgba(8,8,10,0.42) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+[data-brand="bold"] .stats em {
+  font-family: 'Anton', sans-serif;
+  color: var(--accent);
+}
+
+/* spec-list keys/values in bold should be crimson */
+[data-brand="bold"] .spec-list em { color: var(--ink, #fff); }
+[data-brand="bold"] .spec-list span { color: var(--accent); }
+
+/* keep the flood from accumulating its tiny baseline sliver at p=0 by
+   hiding the wave when --flood is at exactly 0% */
+.bold-flood[style*="--flood: 0%"] .bold-flood-wave { opacity: 0; }
+
+/* ============ FUTURISTIC STORYBOARD ELEMENTS =================== */
+
+/* Scan lines: subtle horizontal bands that pulse, monitor-like */
+.bold-scanlines {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255,255,255,0) 0,
+    rgba(255,255,255,0) 2px,
+    rgba(255,255,255,0.025) 3px,
+    rgba(255,255,255,0) 4px
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+  animation: scanShift 9s linear infinite;
+  z-index: 1;
+}
+@keyframes scanShift { from { background-position: 0 0; } to { background-position: 0 60px; } }
+
+/* Water trail SVG — full-stage canvas, JS controls --trail-progress (0..1)
+   and --trail-x (vw offset) so it tracks the bottle's sway. */
+.bold-trail {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  transform: translateX(var(--trail-x, 0));
+  transition: transform 80ms linear;
+  filter: drop-shadow(0 0 12px rgba(230,57,70,0.5));
+}
+#boldTrailPath {
+  stroke-dasharray: var(--trail-len, 1600);
+  stroke-dashoffset: calc(var(--trail-len, 1600) * (1 - var(--trail-p, 0)));
+  transition: stroke-dashoffset 100ms linear;
+}
+
+/* Reaching hand — slides in from right during act 2 */
+.bold-hand {
+  position: absolute;
+  right: 0; top: 50%;
+  width: clamp(220px, 26vw, 380px);
+  height: auto;
+  transform: translate3d(var(--hand-x, 110%), -50%, 0) rotate(-6deg);
+  transition: transform 120ms linear, opacity 200ms ease;
+  opacity: var(--hand-o, 0);
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 0 18px rgba(230,57,70,0.4));
+}
+
+/* Cheers — second bottle slides in from right during trade act, tilts */
+.bold-bottle-cheers {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: clamp(180px, 24vw, 360px);
+  transform: translate3d(var(--cheers-x, 130%), -50%, 0) rotate(var(--cheers-r, -28deg));
+  transition: transform 120ms linear, opacity 200ms ease;
+  opacity: var(--cheers-o, 0);
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 30px 40px rgba(0,0,0,0.55))
+          drop-shadow(0 0 60px rgba(230,57,70,0.35));
+}
+.bold-bottle-cheers img {
+  width: 100%; height: auto; display: block;
+  /* poster has black bg — knock it out via blend so only the bottle reads */
+  mix-blend-mode: screen;
+}
+
+/* Clink burst sparks at the meeting point */
+.bold-clink {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 1px; height: 1px;
+  pointer-events: none;
+  z-index: 4;
+  opacity: var(--clink-o, 0);
+  transition: opacity 120ms ease;
+}
+.bold-clink span {
+  position: absolute;
+  left: 0; top: 0;
+  width: 4px; height: 4px;
+  background: var(--accent, #E63946);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(230,57,70,0.9);
+  animation: clinkBurst 1.4s ease-out infinite;
+}
+.bold-clink span:nth-child(1) { --ang:   0deg; animation-delay: 0.0s; }
+.bold-clink span:nth-child(2) { --ang:  45deg; animation-delay: 0.05s; }
+.bold-clink span:nth-child(3) { --ang:  90deg; animation-delay: 0.1s; }
+.bold-clink span:nth-child(4) { --ang: 135deg; animation-delay: 0.15s; }
+.bold-clink span:nth-child(5) { --ang: 180deg; animation-delay: 0.2s; }
+.bold-clink span:nth-child(6) { --ang: 225deg; animation-delay: 0.25s; }
+.bold-clink span:nth-child(7) { --ang: 270deg; animation-delay: 0.3s; }
+.bold-clink span:nth-child(8) { --ang: 315deg; animation-delay: 0.35s; }
+@keyframes clinkBurst {
+  0%   { transform: rotate(var(--ang)) translateX(0)   scale(1);   opacity: 1; }
+  60%  { opacity: 1; }
+  100% { transform: rotate(var(--ang)) translateX(80px) scale(0.4); opacity: 0; }
+}
+
+/* Reticle that frames the bottle */
+.bold-reticle {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: clamp(220px, 28vw, 420px);
+  height: clamp(220px, 28vw, 420px);
+  transform: translate3d(calc(-50% + var(--reticle-x, 0)), -50%, 0) rotate(var(--reticle-r, 0deg));
+  pointer-events: none;
+  z-index: 3;
+  opacity: var(--reticle-o, 0.7);
+  animation: reticleSpin 14s linear infinite;
+}
+@keyframes reticleSpin { to { transform: translate3d(calc(-50% + var(--reticle-x, 0)), -50%, 0) rotate(360deg); } }
+
+/* Terminal-style data strip on the left */
+.bold-data {
+  position: absolute;
+  left: clamp(12px, 2vw, 28px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  pointer-events: none;
+  z-index: 4;
+  display: grid;
+  gap: 10px;
+  opacity: var(--data-o, 0.85);
+}
+.bold-data-row {
+  display: grid;
+  grid-template-columns: 10px 60px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.bold-data-row i {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--accent, #E63946);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(230,57,70,0.85);
+  animation: dataTick 1.6s ease-in-out infinite;
+}
+.bold-data-row:nth-child(2) i { animation-delay: 0.1s; }
+.bold-data-row:nth-child(3) i { animation-delay: 0.2s; }
+.bold-data-row:nth-child(4) i { animation-delay: 0.3s; }
+.bold-data-row:nth-child(5) i { animation-delay: 0.4s; }
+.bold-data-row:nth-child(6) i { animation-delay: 0.5s; }
+@keyframes dataTick { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+.bold-data-row em {
+  font-style: normal;
+  color: var(--accent, #E63946);
+  letter-spacing: 0.24em;
+}
+.bold-data-row span { color: rgba(255,255,255,0.85); }
+.bold-data-blink { animation: dataBlink 1.4s steps(2) infinite; }
+@keyframes dataBlink { 50% { opacity: 0; } }
+
+/* on small screens, hide the data strip — it would crowd the hero */
+@media (max-width: 720px) {
+  .bold-data { display: none; }
+  .bold-hand { width: 60vw; }
+  .bold-bottle-cheers { width: 56vw; }
+  .bold-reticle { width: 70vw; height: 70vw; }
 }
