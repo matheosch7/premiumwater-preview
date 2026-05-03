@@ -32,10 +32,25 @@
     document.querySelectorAll('[data-wa]').forEach(el => { el.href = url; });
   }
 
+  // ---------- consent (Habeas Data / Ley 1581) ----------
+  // Tri-state stored in localStorage:
+  //   null         → no choice yet (banner shows)
+  //   'analytics'  → user accepted analytics + essential
+  //   'essential'  → user declined analytics
+  function getConsent() { return localStorage.getItem('pw:consent'); }
+  function setConsent(value) {
+    localStorage.setItem('pw:consent', value);
+    if (value === 'analytics' && CONFIG.GA4_ID && !window.gtag) initAnalytics();
+  }
+
   // ---------- analytics (GA4) ----------
-  // Loads gtag only when CONFIG.GA4_ID is set, so dev/preview never hits GA.
+  // Loads gtag only when CONFIG.GA4_ID is set AND the visitor has accepted
+  // analytics cookies. This keeps dev/preview clean and stays compliant with
+  // Colombian Habeas Data + GDPR-style opt-in expectations.
   function initAnalytics() {
     if (!CONFIG.GA4_ID) return;
+    if (getConsent() !== 'analytics') return;
+    if (window.gtag) return; // already initialized
     const s = document.createElement('script');
     s.async = true;
     s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(CONFIG.GA4_ID);
@@ -49,6 +64,21 @@
     if (typeof window.gtag === 'function') {
       window.gtag('event', event, params || {});
     }
+  }
+
+  // ---------- cookie banner ----------
+  function setupConsentBanner() {
+    const banner = document.getElementById('cookieBanner');
+    const acceptBtn = document.getElementById('cookieAccept');
+    const rejectBtn = document.getElementById('cookieReject');
+    const reopenBtn = document.getElementById('cookieReopen');
+    if (!banner) return;
+    const show = () => { banner.hidden = false; requestAnimationFrame(() => banner.classList.add('show')); };
+    const hide = () => { banner.classList.remove('show'); setTimeout(() => { banner.hidden = true; }, 320); };
+    if (!getConsent()) setTimeout(show, 1200);
+    if (acceptBtn) acceptBtn.addEventListener('click', () => { setConsent('analytics'); hide(); });
+    if (rejectBtn) rejectBtn.addEventListener('click', () => { setConsent('essential'); hide(); });
+    if (reopenBtn) reopenBtn.addEventListener('click', (e) => { e.preventDefault(); show(); });
   }
 
   // ---------- brand mode (calm | bold) ----------
@@ -150,6 +180,10 @@
       'form.successWA': 'Prefer to chat now? WhatsApp us →',
       'foot.tag': 'Luxury water for the people. Bottled in Colombia since 2024.',
       'foot.meta': '© 2026 · Bogotá, CO',
+      'foot.privacy': 'Privacy', 'foot.terms': 'Terms', 'foot.cookies': 'Cookies', 'foot.cookieReopen': 'Cookie preferences',
+      'cookie.title': 'Cookies & analytics',
+      'cookie.body': 'We use a small amount of data to understand how this site is used and improve it. You can accept analytics cookies, or keep things essential-only. Your choice is remembered.',
+      'cookie.accept': 'Accept analytics', 'cookie.reject': 'Essential only',
       'select.type': ['Restaurant','Hotel','Gym / Wellness','Retail','Distributor','Event / Catering','Other'],
       'select.volume': ['< 10 cases','10–49 cases','50–249 cases','250+ cases','Not sure yet'],
       'marquee': ['Colombian owned','Bottled at source','Glass first','Wholesale ready','Cold-chain delivery','Bogotá · Medellín · Cartagena']
@@ -212,6 +246,10 @@
       'form.successWA': '¿Prefieres hablar ahora? Escríbenos por WhatsApp →',
       'foot.tag': 'Agua de lujo, para la gente. Embotellada en Colombia desde 2024.',
       'foot.meta': '© 2026 · Bogotá, CO',
+      'foot.privacy': 'Privacidad', 'foot.terms': 'Términos', 'foot.cookies': 'Cookies', 'foot.cookieReopen': 'Preferencias de cookies',
+      'cookie.title': 'Cookies y analítica',
+      'cookie.body': 'Usamos algunos datos para entender cómo se usa el sitio y mejorarlo. Puedes aceptar las cookies de analítica, o mantener solo las esenciales. Recordamos tu elección.',
+      'cookie.accept': 'Aceptar analítica', 'cookie.reject': 'Solo esenciales',
       'select.type': ['Restaurante','Hotel','Gimnasio / Bienestar','Retail','Distribuidor','Evento / Catering','Otro'],
       'select.volume': ['< 10 cajas','10–49 cajas','50–249 cajas','250+ cajas','Aún no lo sé'],
       'marquee': ['Propiedad colombiana','Embotellada en la fuente','Vidrio primero','Lista para mayoreo','Entrega en frío','Bogotá · Medellín · Cartagena']
@@ -344,10 +382,21 @@
     if (scrollCard) scrollCard.classList.toggle('hide', window.scrollY > 120);
   }
 
-  // On small / likely-mobile viewports, defer the 6.8MB pour video until needed.
-  // The poster (cine-static) covers the gap so first paint stays fast.
+  // On small / likely-mobile viewports, defer the 6.8MB pour video until the
+  // user actually starts scrolling. Until then, the poster (cine-static) handles
+  // first paint with zero network cost. As soon as scroll begins, we upgrade
+  // preload to 'metadata' so scrubbing engages without a long wait.
   if (cineVideo && window.innerWidth <= 900) {
-    cineVideo.preload = 'metadata';
+    cineVideo.preload = 'none';
+    let upgraded = false;
+    const upgradePreload = () => {
+      if (upgraded || window.scrollY < 80) return;
+      upgraded = true;
+      cineVideo.preload = 'metadata';
+      try { cineVideo.load(); } catch (e) {}
+      window.removeEventListener('scroll', upgradePreload);
+    };
+    window.addEventListener('scroll', upgradePreload, { passive: true });
   }
 
   if (cineVideo && !reducedMotion) {
@@ -464,6 +513,7 @@
   applyLang(currentLang);
   applyBrand(currentBrand);
   applyWhatsApp();
+  setupConsentBanner();
   initAnalytics();
   setupReveal();
   updateCine();

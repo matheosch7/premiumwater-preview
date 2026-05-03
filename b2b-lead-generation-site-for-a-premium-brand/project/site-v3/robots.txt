@@ -1,0 +1,7 @@
+# premiumwater — robots policy
+# TODO: replace the Sitemap URL once the production domain is confirmed.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://premiumwater.co/sitemap.xml
