@@ -1241,14 +1241,17 @@ html[data-brand="bold"],
 [data-brand="bold"] body { background: #050507 !important; }
 
 .bold-bg {
-  position: absolute; inset: 0;
+  position: absolute; inset: -10% -10% -10% -10%;  /* extra width so parallax-x doesn't expose edges */
   background:
     radial-gradient(ellipse 70% 60% at 50% 60%, rgba(230,57,70,0.22) 0%, transparent 60%),
     radial-gradient(ellipse 110% 60% at 50% 100%, #000 30%, transparent 100%),
     linear-gradient(180deg, #050507 0%, #0a0a0d 50%, #000 100%);
+  transform: translateX(var(--bg-parallax-x, 0));
+  transition: transform 80ms linear;
+  will-change: transform;
 }
 .bold-grid {
-  position: absolute; inset: 0;
+  position: absolute; inset: -10% -10% -10% -10%;
   background-image:
     linear-gradient(to right,  rgba(255,255,255,0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
@@ -1256,6 +1259,9 @@ html[data-brand="bold"],
   -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, black 25%, transparent 80%);
           mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, black 25%, transparent 80%);
   opacity: .85;
+  transform: translateX(calc(var(--bg-parallax-x, 0) * -0.6));
+  transition: transform 80ms linear;
+  will-change: transform;
 }
 .bold-glow {
   position: absolute;
@@ -1695,18 +1701,41 @@ html[data-brand="bold"],
   to   { transform: scaleX(1.15); opacity: 0.75; }
 }
 
-/* Reaching hand — slides in from right during act 2 */
+/* Reaching hand — Meshy-rendered photographic hand. Slides in from right
+   during Act 3. scaleX(-1) flips it so palm/fingers face LEFT toward the
+   bottle. mix-blend-mode: screen knocks out the black studio bg.
+   --hand-x is the inline-style translate, set per-frame by updateBold. */
 .bold-hand {
   position: absolute;
-  right: 0; top: 50%;
-  width: clamp(220px, 26vw, 380px);
+  right: -8vw; top: 50%;
+  width: clamp(280px, 38vw, 540px);
   height: auto;
-  transform: translate3d(var(--hand-x, 110%), -50%, 0) rotate(-6deg);
-  transition: transform 120ms linear, opacity 200ms ease;
+  transform: translate3d(var(--hand-x, 130%), -50%, 0) scaleX(-1) rotate(-8deg);
+  transform-origin: center;
+  transition: transform 140ms linear, opacity 220ms ease;
   opacity: var(--hand-o, 0);
   z-index: 3;
   pointer-events: none;
-  filter: drop-shadow(0 0 18px rgba(230,57,70,0.4));
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 22px rgba(230,57,70,0.55))
+          drop-shadow(0 12px 28px rgba(0,0,0,0.55));
+}
+
+/* ACT 4 cheers SWOOSH: horizontal streak that draws as the green bottle
+   sweeps in from the left. Sits behind the green bottle, full-stage width. */
+.bold-cheers-swoosh {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: clamp(120px, 18vh, 220px);
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 0 18px rgba(120,255,80,0.55));
+  mix-blend-mode: screen;
+  transition: opacity 200ms ease;
 }
 
 /* Cheers — second bottle (lime-green 3D model). Slides in from right during

@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=26" />
+  <link rel="stylesheet" href="styles.css?v=28" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -134,51 +134,24 @@
   <!-- legacy trail kept for compat (no visual) -->
   <svg class="bold-trail" viewBox="0 0 1200 1200" aria-hidden="true" style="display:none"><path id="boldTrailPath" d="M0 0"/></svg>
 
-  <!-- Reaching hand (Scene 2): a recognisable grasping right-hand silhouette,
-       fingers curled around an invisible bottle. Slides in from right.
-       Drawn in profile so the grasp gesture reads at a glance. -->
-  <svg class="bold-hand" viewBox="0 0 360 380" aria-hidden="true">
+  <!-- Reaching hand (Scene 2): photographic 3D-rendered hand from Meshy with
+       crimson rim lighting on a black studio background. Slides in from
+       right; CSS flips it horizontally so palm faces toward the bottle. -->
+  <img class="bold-hand" src="assets/hand-grab.png" alt="" aria-hidden="true" />
+
+  <!-- ACT 4 cheers SWOOSH trail: horizontal streak that emerges as the green
+       bottle sweeps in from the left. JS sets opacity. -->
+  <svg class="bold-cheers-swoosh" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true">
     <defs>
-      <linearGradient id="boldHandGrad" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0"   stop-color="rgba(255,255,255,0.0)"/>
-        <stop offset="0.35" stop-color="rgba(255,255,255,0.10)"/>
-        <stop offset="1"   stop-color="rgba(255,255,255,0.18)"/>
+      <linearGradient id="boldSwooshGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0"   stop-color="rgba(120,255,80,0)"/>
+        <stop offset="0.25" stop-color="rgba(120,255,80,0.55)"/>
+        <stop offset="0.6"  stop-color="rgba(180,255,120,0.85)"/>
+        <stop offset="1"   stop-color="rgba(255,255,255,0)"/>
       </linearGradient>
     </defs>
-    <!-- forearm + palm + curled fingers, gripping pose, profile view -->
-    <path d="
-        M 360 220
-        L 240 220
-        Q 218 220 206 210
-        Q 192 198 188 178
-        L 184 152
-        Q 182 134 170 128
-        Q 158 124 152 138
-        L 150 168
-        L 138 158
-        Q 128 150 120 158
-        Q 114 166 122 178
-        L 142 200
-        L 130 196
-        Q 116 192 110 202
-        Q 104 212 116 220
-        L 142 232
-        L 124 230
-        Q 110 230 108 240
-        Q 108 250 122 252
-        L 156 254
-        Q 184 256 204 248
-        L 360 248
-        Z"
-      fill="url(#boldHandGrad)"
-      stroke="rgba(255,255,255,0.65)" stroke-width="1.8" stroke-linejoin="round"/>
-    <!-- thumb wrapping around -->
-    <path d="M 220 198 Q 200 188 196 200 Q 196 218 218 220"
-          fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.6" stroke-linecap="round"/>
-    <!-- knuckle highlights -->
-    <circle cx="158" cy="170" r="3" fill="rgba(230,57,70,0.7)"/>
-    <circle cx="138" cy="190" r="2.5" fill="rgba(230,57,70,0.6)"/>
-    <circle cx="124" cy="210" r="2" fill="rgba(230,57,70,0.5)"/>
+    <path d="M 50 110 Q 400 80 800 100 Q 1200 120 1500 100" stroke="url(#boldSwooshGrad)" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path d="M 80 130 Q 420 120 820 130 Q 1220 140 1480 120" stroke="url(#boldSwooshGrad)" stroke-width="6"  fill="none" stroke-linecap="round" opacity="0.65"/>
   </svg>
 
   <!-- second bottle (cheers act) — a real model-viewer of the lime-green

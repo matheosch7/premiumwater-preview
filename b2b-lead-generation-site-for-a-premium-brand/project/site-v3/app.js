@@ -594,6 +594,7 @@
   const boldData       = document.getElementById('boldData');
   const boldBpm        = document.getElementById('boldBpm');
   const boldLabelCallout = document.getElementById('boldLabelCallout');
+  const boldCheersSwoosh = document.querySelector('.bold-cheers-swoosh');
 
   function easeInOutCubic(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; }
   function fullScrollEnd() {
@@ -602,135 +603,176 @@
 
   function updateBold() {
     if (!boldStage || currentBrand !== 'bold') return;
-    // p spans the WHOLE page now (not just the hero zone).
     const p = clamp(window.scrollY / fullScrollEnd(), 0, 1);
-    const e = easeInOutCubic(p);
 
-    // STORYBOARD ACTS (mapped to user's reMarkable sketches):
-    //   1. Entry  (0.00–0.18) — bottle slides in from left, spinning, water trail reveals
-    //   2. Story  (0.18–0.35) — hand reaches in from the right
-    //   3. Lineup (0.35–0.50) — bottle dims, product cards take focus
-    //   4. Cheers (0.50–0.70) — second bottle slides in from right, both clink
-    //   5. Impact (0.66–0.86) — second flood peak rises
-    //   6. Label  (0.86–1.00) — camera pushes to label, radius collapses to ~1.2m
+    // STORYBOARD v3 ACTS (per user reMarkable sketches + plan):
+    //   1 ENTRY       0.00–0.13  bottle slides in from off-screen LEFT, tilted, pouring
+    //   2 INSPECTION  0.13–0.27  bottle holds centre, parallax does the work
+    //   3 HAND GRAB   0.27–0.45  hand sweeps in from RIGHT, contacts bottle (jolt)
+    //   4 CHEERS      0.45–0.65  green bottle sweeps in from LEFT, clinks, both held
+    //   5 APPROACH    0.65–0.85  green exits LEFT, camera dollies in toward black
+    //   6 LABEL ZOOM  0.85–1.00  label fills frame, callout panel reveals
 
-    // ----- camera orbit / FOV -----
-    // Default arc: spin to 1080°, gentle phi wave, radius 8 → 3.
-    // Final 14% (label zoom): theta locks to a multiple of 360° (front),
-    // radius collapses to 1.2m, FOV narrows for a sharp close-up.
+    // ----- background parallax (counter-phase to subject sway) -----
+    const bgParallaxX = Math.sin(p * Math.PI * 2) * 18;
+    boldStage.style.setProperty('--bg-parallax-x', bgParallaxX.toFixed(1) + 'vw');
+
+    // ----- camera (always running) -----
     let theta, phi, radius, fov;
-    if (p < 0.86) {
-      const ep = easeInOutCubic(p / 0.86);
+    if (p < 0.85) {
+      const ep = easeInOutCubic(p / 0.85);
       theta  = ep * 1080;
       phi    = 80 - Math.sin(p * Math.PI * 2) * 8 - ep * 6;
       radius = 8 - ep * 5;
       fov    = 24 + ep * 10;
     } else {
-      const lp = easeInOutCubic((p - 0.86) / 0.14);   // 0..1 inside label-zoom
-      theta  = 1080;                                   // lock to front-face
-      phi    = 90 - lp * 8;                            // 90° → 82° (eye-level)
-      radius = 3 - lp * 1.8;                           // 3m → 1.2m
-      fov    = 34 - lp * 6;                            // 34° → 28°
+      const lp = easeInOutCubic((p - 0.85) / 0.15);
+      theta  = 1080;
+      phi    = 90 - lp * 8;
+      radius = 3 - lp * 1.8;
+      fov    = 34 - lp * 6;
     }
     if (boldModelEl) {
       boldModelEl.setAttribute('camera-orbit',  `${theta.toFixed(2)}deg ${phi.toFixed(2)}deg ${radius.toFixed(3)}m`);
       boldModelEl.setAttribute('field-of-view', `${fov.toFixed(2)}deg`);
-      // Pull camera-target down toward the label (label sits ~30% up from bottom).
-      const targetY = -0.05 - clamp((p - 0.86) / 0.14, 0, 1) * 0.35;
+      const targetY = -0.05 - clamp((p - 0.85) / 0.15, 0, 1) * 0.35;
       boldModelEl.setAttribute('camera-target', `0m ${targetY.toFixed(2)}m 0m`);
     }
 
-    // ----- lateral sway + tilt-and-pour entry -----
-    // Scene 1 (per user storyboard): bottle ENTERS from upper-left, TILTED
-    // ~70° so it's pouring water out. Across p ∈ [0.04, 0.18] it slides to
-    // center AND rights itself to vertical. After 0.18 the regular sway/
-    // drift takes over.
-    let swayX, tilt;
+    // ===== MAIN BOTTLE: per-act sway + tilt =====
+    let swayX, tilt = 0, joltTilt = 0;
     if (p < 0.02) {
-      // page-load: bottle just appearing top-left of viewport, fully tilted
-      swayX = -22;
-      tilt  = -68;
-    } else if (p < 0.18) {
-      const ep = easeInOutCubic((p - 0.02) / 0.16);
-      swayX = -22 + ep * 22;          // -22vw → 0 (visible from start)
-      tilt  = -68 + ep * 68;          // -68° → 0°
+      swayX = -55; tilt = -75;
+    } else if (p < 0.13) {
+      // ACT 1 ENTRY: slide from off-screen-LEFT (-55vw) to centre, righten -75°→0
+      const ep = easeInOutCubic((p - 0.02) / 0.11);
+      swayX = -55 + ep * 55;
+      tilt  = -75 + ep * 75;
+    } else if (p < 0.27) {
+      // ACT 2 INSPECTION: hold centre with subtle wobble (parallax does the work)
+      swayX = Math.sin((p - 0.13) * Math.PI / 0.14) * 3;
+      tilt  = Math.sin((p - 0.13) * Math.PI * 3) * 1.2;
+    } else if (p < 0.45) {
+      // ACT 3 HAND GRAB: bottle held, jolts on contact (p≈0.36)
+      swayX = -1;
+      tilt  = 0;
+      const contactDist = Math.abs(p - 0.36);
+      if (contactDist < 0.04) {
+        joltTilt = (1 - contactDist / 0.04) * 6;  // up to +6° at contact
+      }
+    } else if (p < 0.65) {
+      // ACT 4 CHEERS: black bottle drifts slightly RIGHT to make space for green
+      const lp = (p - 0.45) / 0.20;
+      swayX = 4 + Math.sin(lp * Math.PI) * 4;  // 4 → 8 → 4 vw
+      tilt  = -2 + Math.sin(lp * Math.PI * 2) * 1;
+    } else if (p < 0.85) {
+      // ACT 5 APPROACH: returns to centre as camera dollies in
+      const lp = easeInOutCubic((p - 0.65) / 0.20);
+      swayX = 4 - lp * 4;
+      tilt  = 0;
     } else {
-      const swayAmp = 14 * Math.sin(p * Math.PI);
-      swayX = Math.sin(p * Math.PI * 6) * swayAmp;
-      tilt  = Math.sin(p * Math.PI * 4) * 2;  // tiny lifelike wobble
+      // ACT 6 LABEL ZOOM: dead-centre, no sway
+      swayX = 0; tilt = 0;
     }
-    const driftY = Math.sin(p * Math.PI * 2) * 4;
+    const driftY = Math.sin(p * Math.PI * 2) * 3;
     if (boldModelMount) {
       boldModelMount.style.setProperty('--mount-x',    swayX.toFixed(2) + 'vw');
       boldModelMount.style.setProperty('--mount-y',    driftY.toFixed(2) + 'vh');
-      boldModelMount.style.setProperty('--mount-tilt', tilt.toFixed(2) + 'deg');
+      boldModelMount.style.setProperty('--mount-tilt', (tilt + joltTilt).toFixed(2) + 'deg');
     }
 
-    // ----- water pour (Scene 1): peaks while bottle is tilted (p≈0.06–0.14),
-    // fades out as bottle reaches vertical at p=0.18 -----
+    // ----- ACT 1 water pour: peaks while bottle is tilted -----
     if (boldPour) {
-      const pourIn  = clamp((p - 0.01) / 0.05, 0, 1);   // 0.01..0.06: ramp up
-      const pourOut = clamp((p - 0.14) / 0.04, 0, 1);   // 0.14..0.18: ramp down
+      const pourIn  = clamp((p - 0.01) / 0.04, 0, 1);
+      const pourOut = clamp((p - 0.10) / 0.03, 0, 1);
       const pourO   = pourIn * (1 - pourOut);
-      // Set opacity directly (not via CSS var) — vars + mix-blend-mode on
-      // SVG elements have inconsistent computed-style behavior.
       boldPour.style.opacity = pourO.toFixed(3);
     }
 
-    // ----- reaching hand (act 2): slides in from right, holds, slides out -----
+    // ----- ACT 3 reaching hand: 0.27→0.45, contact at 0.36, exit RIGHT by 0.45 -----
     if (boldHand) {
-      const handIn  = clamp((p - 0.20) / (0.28 - 0.20), 0, 1);
-      const handOut = clamp((p - 0.42) / (0.50 - 0.42), 0, 1);
+      const handIn  = clamp((p - 0.27) / 0.07, 0, 1);   // 0.27..0.34 enter
+      const handOut = clamp((p - 0.40) / 0.05, 0, 1);   // 0.40..0.45 exit
       const handAt  = handIn * (1 - handOut);
-      boldHand.style.setProperty('--hand-x', (110 - handAt * 90).toFixed(1) + '%');
+      // X path: 130% off-right → -5% (across the bottle) → 130% off-right
+      let handX;
+      if (p < 0.34)      handX = 130 - handIn * 135;     // entering (130 → -5)
+      else if (p < 0.40) handX = -5;                      // holding at -5%
+      else               handX = -5 + handOut * 135;      // exiting (-5 → 130)
+      boldHand.style.setProperty('--hand-x', handX.toFixed(1) + '%');
       boldHand.style.setProperty('--hand-o', handAt.toFixed(2));
     }
 
-    // ----- cheers second bottle (act 4): slides in from right, tilts toward main bottle -----
+    // ----- ACT 4 CHEERS green bottle: 0.45→0.65 in from LEFT, hold, exit-LEFT 0.65→0.78 -----
     if (boldCheers) {
-      const cIn  = clamp((p - 0.50) / (0.58 - 0.50), 0, 1);
-      const cOut = clamp((p - 0.66) / (0.74 - 0.66), 0, 1);
-      const cAt  = cIn * (1 - cOut);
-      // travels from off-screen-right (130%) to next-to-main-bottle (-12%)
-      const cx = 130 - cAt * 142;
-      const cr = -28 + cAt * 18; // -28° → -10° (tilts upright toward main)
+      let cx, cr, cAt;
+      if (p < 0.45) { cx = -140; cr = -55; cAt = 0; }
+      else if (p < 0.55) {
+        // entering from off-screen-LEFT (-140%) to next-to-main (-8%), tilts upright
+        const lp = easeInOutCubic((p - 0.45) / 0.10);
+        cx  = -140 + lp * 132;
+        cr  = -55 + lp * 47;
+        cAt = lp;
+      } else if (p < 0.65) {
+        // hold with tiny clink wobble
+        const w = Math.sin((p - 0.55) * Math.PI * 6);
+        cx  = -8 + w * 1;
+        cr  = -8 + w * 1.5;
+        cAt = 1;
+      } else if (p < 0.78) {
+        // exits LEFT (-8 → -140%) so by Act 6 only black bottle remains
+        const lp = easeInOutCubic((p - 0.65) / 0.13);
+        cx  = -8 - lp * 132;
+        cr  = -8 - lp * 30;
+        cAt = 1 - lp;
+      } else { cx = -140; cr = -38; cAt = 0; }
       boldCheers.style.setProperty('--cheers-x', cx.toFixed(1) + '%');
       boldCheers.style.setProperty('--cheers-r', cr.toFixed(1) + 'deg');
       boldCheers.style.setProperty('--cheers-o', cAt.toFixed(2));
-      // clink burst at the meeting moment (peak around p=0.60)
-      const clinkAt = Math.max(0, 1 - Math.abs(p - 0.60) / 0.04);
+      // spark burst at meeting moment (p≈0.55)
+      const clinkAt = Math.max(0, 1 - Math.abs(p - 0.55) / 0.03);
       if (boldClink) boldClink.style.setProperty('--clink-o', clinkAt.toFixed(2));
     }
 
-    // ----- reticle: bright while bottle is the focus, fades during cheers/cards -----
+    // ----- ACT 4 cheers SWOOSH trail: fades in during entry, out after landing -----
+    if (boldCheersSwoosh) {
+      const sIn  = clamp((p - 0.45) / 0.06, 0, 1);
+      const sOut = clamp((p - 0.55) / 0.04, 0, 1);
+      const sAt  = sIn * (1 - sOut);
+      boldCheersSwoosh.style.opacity = sAt.toFixed(2);
+    }
+
+    // ----- reticle: bright in entry/inspect, dim during hand+cheers, brightens for label -----
     if (boldReticle) {
-      const focus = (p < 0.20) ? p / 0.20 :
-                    (p < 0.50) ? 1 - clamp((p - 0.30) / 0.20, 0, 1) * 0.5 :
-                    (p < 0.74) ? 0.4 :
-                    Math.min(0.9, 0.4 + (p - 0.74) / 0.26 * 0.5);
+      const focus = (p < 0.13) ? Math.min(1, p / 0.05) :
+                    (p < 0.27) ? 1 :
+                    (p < 0.45) ? 1 - (p - 0.27) / 0.18 * 0.7 :
+                    (p < 0.65) ? 0.3 :
+                    (p < 0.85) ? 0.3 + (p - 0.65) / 0.20 * 0.5 :
+                                 Math.min(0.95, 0.8 + (p - 0.85) / 0.15 * 0.15);
       boldReticle.style.setProperty('--reticle-o', focus.toFixed(2));
       boldReticle.style.setProperty('--reticle-x', swayX.toFixed(1) + 'vw');
     }
 
-    // ----- data strip: visible only when bottle is the visual focus -----
+    // ----- data strip: visible when bottle is the focus -----
     if (boldData) {
-      const dataAt = (p < 0.5) ? Math.min(1, p / 0.05) * (1 - clamp((p - 0.42) / 0.08, 0, 1) * 0.6) :
-                                 0.4 + clamp((p - 0.78) / 0.10, 0, 1) * 0.5;
+      const dataAt = (p < 0.27) ? Math.min(1, p / 0.05) :
+                     (p < 0.45) ? 1 - (p - 0.27) / 0.18 * 0.6 :
+                     (p < 0.65) ? 0.4 :
+                                  0.4 + clamp((p - 0.78) / 0.10, 0, 1) * 0.5;
       boldData.style.setProperty('--data-o', dataAt.toFixed(2));
     }
-    // BPM ticks fast during cheers, slows during label
     if (boldBpm) {
       const bpm = Math.round(110 + Math.sin(p * Math.PI * 8) * 25);
       boldBpm.textContent = bpm;
     }
 
-    // ----- label callout (Scene 4): slides in once label-zoom begins -----
+    // ----- ACT 6 LABEL ZOOM callout: slides in once label-zoom begins -----
     if (boldLabelCallout) {
-      const labelOn = p >= 0.86 ? 1 : 0;
-      const calloutIn = clamp((p - 0.86) / 0.06, 0, 1);
+      const labelOn = p >= 0.85 ? 1 : 0;
+      const calloutIn = clamp((p - 0.85) / 0.06, 0, 1);
       boldLabelCallout.style.opacity = calloutIn.toFixed(2);
       boldLabelCallout.style.setProperty('--callout-y', ((1 - calloutIn) * -40).toFixed(0) + 'px');
-      // toggle data-on so the row stagger animation fires once
       const wantOn = labelOn ? '1' : '0';
       if (boldLabelCallout.dataset.on !== wantOn) boldLabelCallout.dataset.on = wantOn;
     }
@@ -754,7 +796,7 @@
       // 1 when section has fully passed the viewport top.
       const sp = clamp(1 - (r.top + r.height) / (vh + r.height), 0, 1);
       const dir = i % 2 === 0 ? -1 : 1;
-      const x = (sp - 0.5) * 80 * dir; // -40vw to +40vw
+      const x = (sp - 0.5) * 120 * dir; // bumped: -60vw to +60vw for stronger parallax
       el.style.setProperty('--lockup-x', x.toFixed(2) + 'vw');
       // also drift the ambient blob (::after) per-section
       el.style.setProperty('--blob-x', (50 + Math.sin(sp * Math.PI * 2) * 25 * dir).toFixed(0) + '%');
