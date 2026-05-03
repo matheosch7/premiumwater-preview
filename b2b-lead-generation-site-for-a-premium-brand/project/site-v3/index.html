@@ -48,8 +48,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=15" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=16" />
+  <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
 
@@ -111,6 +112,24 @@
   <!-- vertical scroll progress indicator (subtle) -->
   <div class="cine-progress" aria-hidden="true">
     <div class="cine-progress-fill" id="cineProgressFill"></div>
+  </div>
+</div>
+
+<!-- ============ bold-mode 3D stage (party identity) ============ -->
+<!-- Sibling to .cine-stage; CSS swaps which is visible based on [data-brand].
+     The <model-viewer> element is injected by app.js the first time bold mode
+     is activated, so calm-only visitors never download the runtime or the GLB. -->
+<div class="bold-stage" id="boldStage" aria-hidden="true">
+  <div class="bold-bg"></div>
+  <div class="bold-grid"></div>
+  <div class="bold-glow"></div>
+  <div class="bold-floor"></div>
+  <div class="bold-model-mount" id="boldModelMount"></div>
+  <div class="bold-grain"></div>
+  <!-- big background lockup -->
+  <div class="bold-lockup" aria-hidden="true">
+    <span class="bold-lockup-line">DRINK</span>
+    <span class="bold-lockup-line">LOUD</span>
   </div>
 </div>
 

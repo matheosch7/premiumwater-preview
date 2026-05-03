@@ -103,9 +103,50 @@
   }
 
   // ---------- brand mode (calm | bold) ----------
-  // Wiring is in place; "bold" visuals are intentionally minimal placeholders
-  // until the client's artist supplies product/visual material.
+  // Calm = sandpaper/gold páramo identity (default).
+  // Bold = Liquid-Death-leaning party identity (3D bottle hero, crimson palette).
+  // Both modes share copy bundles below — bold-only overrides live in COPY[lang].bold.
   let currentBrand = localStorage.getItem('pw:brand') || 'calm';
+  let modelViewerLoaded = false;
+
+  // Lazy-load Google's <model-viewer> module the first time bold mode activates,
+  // so calm-only visitors never download the runtime or the 5 MB GLB.
+  function ensureModelViewer() {
+    if (modelViewerLoaded) return;
+    modelViewerLoaded = true;
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
+    document.head.appendChild(s);
+    mountBoldModel();
+  }
+
+  function mountBoldModel() {
+    const mount = document.getElementById('boldModelMount');
+    if (!mount || mount.dataset.mounted) return;
+    mount.dataset.mounted = '1';
+    const mv = document.createElement('model-viewer');
+    mv.setAttribute('src', 'assets/bottle-bold.glb');
+    mv.setAttribute('poster', 'assets/bottle-bold-poster.png');
+    mv.setAttribute('alt', 'premiumwater bold edition');
+    mv.setAttribute('camera-controls', '');
+    mv.setAttribute('auto-rotate', '');
+    mv.setAttribute('auto-rotate-delay', '0');
+    mv.setAttribute('rotation-per-second', '24deg');
+    mv.setAttribute('interaction-prompt', 'none');
+    mv.setAttribute('disable-pan', '');
+    mv.setAttribute('disable-tap', '');
+    mv.setAttribute('shadow-intensity', '1.4');
+    mv.setAttribute('shadow-softness', '0.7');
+    mv.setAttribute('exposure', '1.05');
+    mv.setAttribute('environment-image', 'neutral');
+    mv.setAttribute('camera-orbit', '15deg 78deg 1.4m');
+    mv.setAttribute('min-camera-orbit', 'auto 60deg 1.0m');
+    mv.setAttribute('max-camera-orbit', 'auto 100deg 1.8m');
+    mv.setAttribute('field-of-view', '24deg');
+    mount.appendChild(mv);
+  }
+
   function applyBrand(mode) {
     if (mode !== 'calm' && mode !== 'bold') mode = 'calm';
     currentBrand = mode;
@@ -114,6 +155,9 @@
     document.querySelectorAll('.brand-pill button').forEach(b => {
       b.setAttribute('aria-pressed', b.dataset.brand === mode ? 'true' : 'false');
     });
+    if (mode === 'bold') ensureModelViewer();
+    // re-render i18n so bold-mode copy overrides take effect
+    if (typeof applyLang === 'function') applyLang(currentLang);
   }
   document.querySelectorAll('.brand-pill button').forEach(b => {
     b.addEventListener('click', () => {
@@ -277,12 +321,71 @@
     }
   };
 
+  // Bold-mode copy overrides — only the keys that *change* tone in party identity.
+  // Anything not listed here falls through to the calm dictionary above.
+  const BOLD_COPY = {
+    en: {
+      'hero.eyebrow': 'Hydration · Loud edition',
+      'hero.line1': 'Drink water',
+      'hero.line2': 'like you',
+      'hero.line3': '<em>mean it.</em>',
+      'hero.lede': "Same Andean source, louder personality. A premium still water for gyms, nightclubs and venues that don't apologize for their volume.",
+      'hero.cta': 'Stock the bar →',
+      'story.eyebrow': '01 · The source',
+      'story.hed': 'Mountain water,<br/><em>no apologies.</em>',
+      'story.lede': 'Same volcanic páramo, same forty-kilometer haul, same zero re-mineralization — but bottled for venues that move at 130 BPM. The mountain doesn\'t care about your dress code.',
+      'product.eyebrow': '02 · The lineup',
+      'product.hed': 'Three sizes,<br/><em>one volume.</em>',
+      'product.lede': 'Sized for the bar rail, the gym floor and the green room. Specify by setting; we keep your fridge stocked.',
+      'trade.eyebrow': '03 · For venues',
+      'trade.hed': 'Built for the floor,<br/><em>not the lobby.</em>',
+      'trade.lede': 'Gyms, nightclubs, festivals, fight nights. We serve venues where water has to keep up with the room.',
+      'impact.eyebrow': '04 · One for one',
+      'impact.hed': 'Loud here,<br/><em>useful there.</em>',
+      'impact.lede': 'Every case poured at your bar funds one day of clean water for a Colombian family. The mountain pays it forward.',
+      'contact.eyebrow': '05 · Get on the list',
+      'contact.hed': 'Tell us where<br/>you <em>pour it loud.</em>',
+      'contact.lede': "Drop your venue and we'll be in touch within a business day. WhatsApp is faster.",
+      'foot.tag': 'Loud water for loud rooms. Bottled in Colombia since 2024.',
+      'marquee': ['Drink loud','Bottled at source','Colombian owned','Built for venues','Cold-chain delivery','Same liquid · zero apologies']
+    },
+    es: {
+      'hero.eyebrow': 'Hidratación · Edición fuerte',
+      'hero.line1': 'Toma agua',
+      'hero.line2': 'como si',
+      'hero.line3': '<em>te importara.</em>',
+      'hero.lede': 'Misma fuente andina, mayor volumen. Agua sin gas premium para gimnasios, discotecas y locales que no piden disculpas por su intensidad.',
+      'hero.cta': 'Surte la barra →',
+      'story.eyebrow': '01 · El origen',
+      'story.hed': 'Agua de la montaña,<br/><em>sin disculpas.</em>',
+      'story.lede': 'Mismo páramo volcánico, mismos cuarenta kilómetros, cero remineralización — embotellada para locales que viven a 130 BPM. A la montaña le da igual el código de vestimenta.',
+      'product.eyebrow': '02 · La línea',
+      'product.hed': 'Tres tamaños,<br/><em>un volumen.</em>',
+      'product.lede': 'Pensados para la barra, el piso del gym y el camerino. Especifica el escenario; nosotros mantenemos la nevera llena.',
+      'trade.eyebrow': '03 · Para locales',
+      'trade.hed': 'Hecha para la pista,<br/><em>no el lobby.</em>',
+      'trade.lede': 'Gimnasios, discotecas, festivales, peleas. Servimos a los locales donde el agua tiene que seguirle el ritmo al cuarto.',
+      'impact.eyebrow': '04 · Uno a uno',
+      'impact.hed': 'Fuerte aquí,<br/><em>útil allá.</em>',
+      'impact.lede': 'Cada caja servida en tu barra financia un día de agua potable para una familia colombiana. La montaña paga el favor.',
+      'contact.eyebrow': '05 · Únete',
+      'contact.hed': 'Cuéntanos dónde<br/>la <em>sirves fuerte.</em>',
+      'contact.lede': 'Déjanos tu local y te respondemos en un día hábil. WhatsApp es más rápido.',
+      'foot.tag': 'Agua fuerte para cuartos ruidosos. Embotellada en Colombia desde 2024.',
+      'marquee': ['Sírvela fuerte','Embotellada en la fuente','Propiedad colombiana','Hecha para locales','Entrega en frío','Mismo líquido · cero disculpas']
+    }
+  };
+
   let currentLang = localStorage.getItem('pw:lang') || 'en';
 
   function applyLang(lang) {
     if (!COPY[lang]) lang = 'en';
     currentLang = lang;
-    const dict = COPY[lang];
+    // Merge bold overrides on top of calm dict when in bold mode.
+    const base = COPY[lang];
+    const dict = currentBrand === 'bold' && BOLD_COPY[lang]
+      ? Object.assign({}, base, BOLD_COPY[lang])
+      : base;
     root.setAttribute('lang', lang);
     localStorage.setItem('pw:lang', lang);
 

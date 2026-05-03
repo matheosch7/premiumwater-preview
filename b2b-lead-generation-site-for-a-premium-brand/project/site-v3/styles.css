@@ -48,14 +48,24 @@
 
 /* ============ brand modes (visitor-selectable: calm | bold) ============ */
 /* `data-brand="calm"` is the default sandpaper/gold identity above.
-   `data-brand="bold"` is scaffolding for a louder, party-leaning identity
-   for the gym/nightlife cluster. Visuals here are PLACEHOLDER only — the
-   final palette/typography for the bold mode is awaiting the client's
-   artist materials. The toggle UI and persistence are wired up so we can
-   drop the real theme in with a single block of variable overrides. */
+   `data-brand="bold"` is the loud, Liquid-Death-leaning identity for the
+   gym / nightlife cluster — same liquid, different story. */
 [data-brand="bold"] {
-  --accent: #E63946;       /* placeholder bold accent */
-  --accent-2: #FF8C8C;
+  --ink: #FFFFFF;
+  --ink-2: #E8E8EA;
+  --mute: #8A8A92;
+  --accent: #E63946;
+  --accent-2: #FF6E78;
+  --pill-ink: #0A0A0B;
+  --pill-bg: #FFFFFF;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-line: rgba(255, 255, 255, 0.12);
+  --line: rgba(255, 255, 255, 0.10);
+  --bg-a: #050507;
+  --bg-b: #0B0B0E;
+  --bg-c: #15080A;
+  --bg-d: #000000;
+  --display: 'Anton', 'Schibsted Grotesk', ui-sans-serif, sans-serif;
 }
 
 [data-motion="calm"] * { animation-duration: 2.5s !important; }
@@ -1212,3 +1222,206 @@ main#top { position: relative; z-index: 2; }
   z-index: -1;
 }
 #trade, #impact, #contact, footer { background: var(--bg-d, #0E0C08); }
+
+/* ============ BOLD STAGE (party-mode) ============================ */
+/* Sibling to .cine-stage; hidden by default. When [data-brand="bold"] is
+   active on <html>, the cine-stage hides and this one takes over. */
+.bold-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: #050507;
+  display: none;
+}
+[data-brand="bold"] .cine-stage { display: none; }
+[data-brand="bold"] .bold-stage { display: block; }
+[data-brand="bold"] html,
+[data-brand="bold"] body { background: #050507 !important; }
+
+.bold-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 60%, rgba(230,57,70,0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 110% 60% at 50% 100%, #000 30%, transparent 100%),
+    linear-gradient(180deg, #050507 0%, #0a0a0d 50%, #000 100%);
+}
+.bold-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right,  rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, black 25%, transparent 80%);
+          mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, black 25%, transparent 80%);
+  opacity: .85;
+}
+.bold-glow {
+  position: absolute;
+  left: 50%; top: 58%;
+  transform: translate(-50%, -50%);
+  width: clamp(420px, 80vw, 980px);
+  height: clamp(420px, 80vw, 980px);
+  background: radial-gradient(circle,
+                rgba(230,57,70,0.55) 0%,
+                rgba(230,57,70,0.18) 30%,
+                rgba(230,57,70,0.04) 55%,
+                transparent 70%);
+  filter: blur(48px);
+  animation: boldPulse 4.2s ease-in-out infinite alternate;
+}
+@keyframes boldPulse {
+  0%   { opacity: .65; transform: translate(-50%,-50%) scale(0.96); }
+  100% { opacity: 1;   transform: translate(-50%,-50%) scale(1.06); }
+}
+/* faint elliptical floor reflection under the bottle */
+.bold-floor {
+  position: absolute;
+  left: 50%; bottom: 8vh;
+  transform: translateX(-50%);
+  width: clamp(220px, 32vw, 460px);
+  height: 28px;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,255,255,0.18), transparent 70%);
+  filter: blur(8px);
+  opacity: .5;
+}
+.bold-grain {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  background-image:
+    radial-gradient(rgba(255,255,255,.7) 1px, transparent 1px),
+    radial-gradient(rgba(0,0,0,.5) 1px, transparent 1px);
+  background-size: 3px 3px, 4px 4px;
+  background-position: 0 0, 1px 2px;
+  mix-blend-mode: overlay;
+}
+
+/* huge typographic lockup behind the bottle — Liquid-Death-style */
+.bold-lockup {
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: clamp(110px, 22vw, 320px);
+  line-height: 0.86;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255,255,255,0.10);
+          text-stroke: 2px rgba(255,255,255,0.10);
+  user-select: none;
+  pointer-events: none;
+  z-index: 1;
+}
+.bold-lockup-line { display: block; }
+
+/* mounted model-viewer (centered, 3D bottle) */
+.bold-model-mount {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.bold-model-mount model-viewer {
+  width: clamp(360px, 52vw, 720px);
+  height: clamp(540px, 78vh, 880px);
+  --poster-color: transparent;
+  background: transparent;
+  pointer-events: auto;
+  outline: none;
+  filter: drop-shadow(0 50px 60px rgba(0,0,0,0.55))
+          drop-shadow(0 0 80px rgba(230,57,70,0.25));
+}
+.bold-model-mount model-viewer::part(default-progress-bar) { display: none; }
+
+/* loading shimmer placeholder while the GLB downloads */
+.bold-model-loading {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+
+/* Bold-mode hero: re-tone copy and pull it leftward so the 3D bottle owns the right.
+   In calm mode the cinematic captions sit on the right; in bold the bottle does. */
+[data-brand="bold"] .hero { padding-top: clamp(80px, 16vh, 180px); }
+[data-brand="bold"] .hero-eyebrow {
+  color: var(--accent);
+  font-family: var(--mono);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+[data-brand="bold"] .hero-title,
+[data-brand="bold"] .h-display {
+  font-family: 'Anton', 'Schibsted Grotesk', sans-serif !important;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+}
+[data-brand="bold"] .hero-title em,
+[data-brand="bold"] .h-display em {
+  font-style: normal;
+  color: var(--accent);
+}
+[data-brand="bold"] .hero-lede,
+[data-brand="bold"] .lede { color: var(--ink-2); }
+
+/* Bold-mode pill restyle: sharp corners, hard edges */
+[data-brand="bold"] .pill {
+  border-radius: 4px;
+  font-family: var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+[data-brand="bold"] .pill-solid {
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+}
+[data-brand="bold"] .pill-solid:hover { background: #FF4858; }
+[data-brand="bold"] .pill-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+[data-brand="bold"] .pill-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Bold-mode brand-pill (the calm/bold toggle): make the active state crimson */
+[data-brand="bold"] .brand-pill button[aria-pressed="true"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Hide the calm river / scroll prompt in bold mode — they belong to the calm story */
+[data-brand="bold"] .river,
+[data-brand="bold"] .scroll-card,
+[data-brand="bold"] .side-badge { opacity: 0; pointer-events: none; }
+
+/* Marquee tone in bold mode */
+[data-brand="bold"] .marquee-band {
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.35)) !important;
+  border-top: 1px solid rgba(230,57,70,0.4);
+  border-bottom: 1px solid rgba(230,57,70,0.4);
+}
+
+/* Mobile: shrink the lockup so it doesn't overwhelm a 375px screen */
+@media (max-width: 720px) {
+  .bold-lockup { font-size: clamp(80px, 24vw, 140px); }
+  .bold-model-mount model-viewer {
+    width: 92vw;
+    height: 70vh;
+  }
+}
