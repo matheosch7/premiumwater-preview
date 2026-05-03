@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20" />
+  <link rel="stylesheet" href="styles.css?v=26" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -131,60 +131,96 @@
     <span class="bold-lockup-line">LOUD</span>
   </div>
 
-  <!-- water-trail SVG (reveals via stroke-dashoffset, follows bottle sway) -->
-  <svg class="bold-trail" viewBox="0 0 1200 1200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <!-- legacy trail kept for compat (no visual) -->
+  <svg class="bold-trail" viewBox="0 0 1200 1200" aria-hidden="true" style="display:none"><path id="boldTrailPath" d="M0 0"/></svg>
+
+  <!-- Reaching hand (Scene 2): a recognisable grasping right-hand silhouette,
+       fingers curled around an invisible bottle. Slides in from right.
+       Drawn in profile so the grasp gesture reads at a glance. -->
+  <svg class="bold-hand" viewBox="0 0 360 380" aria-hidden="true">
     <defs>
-      <linearGradient id="boldTrailGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0"   stop-color="rgba(230,57,70,0)"/>
-        <stop offset="0.25" stop-color="rgba(230,57,70,0.55)"/>
-        <stop offset="0.7"  stop-color="rgba(230,57,70,0.85)"/>
-        <stop offset="1"   stop-color="rgba(230,57,70,0)"/>
+      <linearGradient id="boldHandGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0"   stop-color="rgba(255,255,255,0.0)"/>
+        <stop offset="0.35" stop-color="rgba(255,255,255,0.10)"/>
+        <stop offset="1"   stop-color="rgba(255,255,255,0.18)"/>
       </linearGradient>
     </defs>
-    <path id="boldTrailPath"
-          d="M 600 320 Q 540 460 600 600 T 700 880 Q 720 1000 600 1180"
-          stroke="url(#boldTrailGrad)" stroke-width="6" fill="none"
-          stroke-linecap="round"/>
+    <!-- forearm + palm + curled fingers, gripping pose, profile view -->
+    <path d="
+        M 360 220
+        L 240 220
+        Q 218 220 206 210
+        Q 192 198 188 178
+        L 184 152
+        Q 182 134 170 128
+        Q 158 124 152 138
+        L 150 168
+        L 138 158
+        Q 128 150 120 158
+        Q 114 166 122 178
+        L 142 200
+        L 130 196
+        Q 116 192 110 202
+        Q 104 212 116 220
+        L 142 232
+        L 124 230
+        Q 110 230 108 240
+        Q 108 250 122 252
+        L 156 254
+        Q 184 256 204 248
+        L 360 248
+        Z"
+      fill="url(#boldHandGrad)"
+      stroke="rgba(255,255,255,0.65)" stroke-width="1.8" stroke-linejoin="round"/>
+    <!-- thumb wrapping around -->
+    <path d="M 220 198 Q 200 188 196 200 Q 196 218 218 220"
+          fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.6" stroke-linecap="round"/>
+    <!-- knuckle highlights -->
+    <circle cx="158" cy="170" r="3" fill="rgba(230,57,70,0.7)"/>
+    <circle cx="138" cy="190" r="2.5" fill="rgba(230,57,70,0.6)"/>
+    <circle cx="124" cy="210" r="2" fill="rgba(230,57,70,0.5)"/>
   </svg>
 
-  <!-- reaching hand silhouette (slides in from right during story act) -->
-  <svg class="bold-hand" viewBox="0 0 320 240" aria-hidden="true">
-    <path d="M 320 110
-             L 220 110
-             Q 200 110 192 102
-             L 168 78
-             Q 160 70 154 76
-             Q 148 82 154 92
-             L 170 116
-             L 110 116
-             Q 92 116 84 110
-             L 60 92
-             Q 52 86 46 92
-             Q 40 98 46 106
-             L 78 132
-             L 60 138
-             Q 48 142 50 152
-             Q 52 162 64 160
-             L 178 152
-             Q 200 152 214 158
-             L 320 168 Z"
-          fill="rgba(255,255,255,0.04)"
-          stroke="rgba(255,255,255,0.55)" stroke-width="1.6"
-          stroke-linejoin="round"/>
-  </svg>
-
-  <!-- second bottle (cheers act) — uses the same render as a static cheers prop -->
-  <div class="bold-bottle-cheers" aria-hidden="true">
-    <img src="assets/bottle-bold-poster.png" alt="" />
-  </div>
+  <!-- second bottle (cheers act) — a real model-viewer of the lime-green
+       Meshy variant; mounted lazily by app.js when bold mode is activated. -->
+  <div class="bold-bottle-cheers" id="boldBottleCheers" aria-hidden="true"></div>
 
   <!-- "clink" spark burst at cheers moment -->
   <div class="bold-clink" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
   </div>
 
-  <!-- model mount: scroll-driven camera + sway -->
+  <!-- model mount: scroll-driven camera + sway/tilt -->
   <div class="bold-model-mount" id="boldModelMount"></div>
+
+  <!-- WATER POUR (Scene 1): viewport-fixed cascade, sits where the bottle's
+       cap lands when partially-entered (upper-left third of viewport). JS
+       sets --pour-o (opacity). The cascade runs continuously while visible. -->
+  <svg class="bold-pour" viewBox="0 0 600 900" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="boldPourGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+        <stop offset="0"   stop-color="rgba(255,80,95,1)"/>
+        <stop offset="0.4" stop-color="rgba(230,57,70,0.85)"/>
+        <stop offset="1"   stop-color="rgba(230,57,70,0)"/>
+      </linearGradient>
+      <radialGradient id="boldDropGrad" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="rgba(255,140,150,1)"/>
+        <stop offset="1" stop-color="rgba(230,57,70,0)"/>
+      </radialGradient>
+    </defs>
+    <!-- three crimson streams cascading down -->
+    <path class="bold-pour-stream s1" d="M 300 40 Q 270 240 320 460 T 360 880" stroke="url(#boldPourGrad)" stroke-width="16" fill="none" stroke-linecap="round"/>
+    <path class="bold-pour-stream s2" d="M 320 60 Q 300 280 350 500 T 380 880" stroke="url(#boldPourGrad)" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.75"/>
+    <path class="bold-pour-stream s3" d="M 280 50 Q 250 260 300 480 T 340 880" stroke="url(#boldPourGrad)" stroke-width="6"  fill="none" stroke-linecap="round" opacity="0.55"/>
+    <!-- falling droplets -->
+    <circle class="bold-pour-drop" cx="310" cy="220" r="14" fill="url(#boldDropGrad)"/>
+    <circle class="bold-pour-drop" cx="335" cy="380" r="10" fill="url(#boldDropGrad)" style="animation-delay: -0.5s;"/>
+    <circle class="bold-pour-drop" cx="290" cy="540" r="16" fill="url(#boldDropGrad)" style="animation-delay: -1.0s;"/>
+    <circle class="bold-pour-drop" cx="345" cy="680" r="8"  fill="url(#boldDropGrad)" style="animation-delay: -0.3s;"/>
+    <circle class="bold-pour-drop" cx="320" cy="820" r="12" fill="url(#boldDropGrad)" style="animation-delay: -0.8s;"/>
+    <!-- splash puddle at the bottom -->
+    <ellipse class="bold-pour-puddle" cx="330" cy="870" rx="120" ry="14" fill="url(#boldPourGrad)" opacity="0.7"/>
+  </svg>
 
   <!-- targeting reticle that tracks the bottle's screen position -->
   <svg class="bold-reticle" viewBox="0 0 200 200" aria-hidden="true">
@@ -196,6 +232,26 @@
     <line x1="178" y1="100" x2="200" y2="100" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
     <text x="120" y="98" fill="rgba(230,57,70,0.7)" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="2">TARGET</text>
   </svg>
+
+  <!-- LABEL CALLOUT (Scene 4): pinned to the top-left of viewport during
+       label-zoom finale (p ≥ 0.86). Spec lines reveal one by one. Arrow
+       sweeps from the panel down toward the label area. -->
+  <div class="bold-label-callout" id="boldLabelCallout" aria-hidden="true">
+    <div class="bold-label-panel">
+      <div class="bold-label-panel-kicker">▸ LABEL ZOOM · MATTE BLACK · 500ML</div>
+      <div class="bold-label-panel-row" style="--d: 0s"><em>pH</em><span>7.4</span></div>
+      <div class="bold-label-panel-row" style="--d: 0.08s"><em>TDS</em><span>280 ppm</span></div>
+      <div class="bold-label-panel-row" style="--d: 0.16s"><em>SOURCE</em><span>Andean páramo</span></div>
+      <div class="bold-label-panel-row" style="--d: 0.24s"><em>ALT</em><span>3,600 m</span></div>
+      <div class="bold-label-panel-row" style="--d: 0.32s"><em>BOTTLED</em><span>Cartagena, CO</span></div>
+      <div class="bold-label-panel-row" style="--d: 0.40s"><em>VINTAGE</em><span>2026</span></div>
+      <div class="bold-label-panel-foot">— PREMIUMWATER · LOUD EDITION —</div>
+    </div>
+    <svg class="bold-label-arrow" viewBox="0 0 80 220" preserveAspectRatio="xMidYMin meet">
+      <path d="M 40 0 L 40 160 L 56 144" stroke="rgba(230,57,70,0.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="56" cy="144" r="4" fill="rgba(230,57,70,1)"/>
+    </svg>
+  </div>
 
   <!-- terminal-style data strip ticking specs (left side, vertical) -->
   <div class="bold-data" id="boldData" aria-hidden="true">

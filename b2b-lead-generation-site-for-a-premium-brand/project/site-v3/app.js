@@ -145,6 +145,31 @@
     mount.appendChild(mv);
     boldModelEl = mv;
     mv.addEventListener('load', () => updateBold(), { once: true });
+    // Mount the lime-green Cheers companion bottle in parallel.
+    mountCheersModel();
+  }
+
+  let cheersModelEl = null;
+  function mountCheersModel() {
+    const mount = document.getElementById('boldBottleCheers');
+    if (!mount || mount.dataset.mounted) return;
+    mount.dataset.mounted = '1';
+    const mv = document.createElement('model-viewer');
+    mv.setAttribute('src', 'assets/bottle-green.glb');
+    mv.setAttribute('poster', 'assets/bottle-green-poster.png');
+    mv.setAttribute('alt', 'cheers companion bottle');
+    mv.setAttribute('interaction-prompt', 'none');
+    mv.setAttribute('disable-pan', '');
+    mv.setAttribute('disable-tap', '');
+    mv.setAttribute('disable-zoom', '');
+    mv.setAttribute('shadow-intensity', '1.0');
+    mv.setAttribute('shadow-softness', '0.7');
+    mv.setAttribute('exposure', '1.05');
+    mv.setAttribute('environment-image', 'neutral');
+    mv.setAttribute('camera-orbit', '20deg 78deg 6m');
+    mv.setAttribute('field-of-view', '28deg');
+    mount.appendChild(mv);
+    cheersModelEl = mv;
   }
 
   function applyBrand(mode) {
@@ -561,12 +586,14 @@
   const boldCaptionEls = Array.from(document.querySelectorAll('.bold-caption'));
   const boldLockupEls  = Array.from(document.querySelectorAll('[data-bold-lockup]'));
   const boldTrail      = document.querySelector('.bold-trail');
+  const boldPour       = document.querySelector('.bold-pour');
   const boldHand       = document.querySelector('.bold-hand');
   const boldCheers     = document.querySelector('.bold-bottle-cheers');
   const boldClink      = document.querySelector('.bold-clink');
   const boldReticle    = document.querySelector('.bold-reticle');
   const boldData       = document.getElementById('boldData');
   const boldBpm        = document.getElementById('boldBpm');
+  const boldLabelCallout = document.getElementById('boldLabelCallout');
 
   function easeInOutCubic(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; }
   function fullScrollEnd() {
@@ -613,29 +640,41 @@
       boldModelEl.setAttribute('camera-target', `0m ${targetY.toFixed(2)}m 0m`);
     }
 
-    // ----- lateral sway + entry slide -----
-    // Act 1 entry: bottle starts at -45vw (off-screen left) and slides to 0
-    // across p ∈ [0, 0.06]. After that, the regular sway takes over.
-    let swayX;
-    if (p < 0.06) {
-      const ep = easeInOutCubic(p / 0.06);
-      swayX = -45 + ep * 45;
+    // ----- lateral sway + tilt-and-pour entry -----
+    // Scene 1 (per user storyboard): bottle ENTERS from upper-left, TILTED
+    // ~70° so it's pouring water out. Across p ∈ [0.04, 0.18] it slides to
+    // center AND rights itself to vertical. After 0.18 the regular sway/
+    // drift takes over.
+    let swayX, tilt;
+    if (p < 0.02) {
+      // page-load: bottle just appearing top-left of viewport, fully tilted
+      swayX = -22;
+      tilt  = -68;
+    } else if (p < 0.18) {
+      const ep = easeInOutCubic((p - 0.02) / 0.16);
+      swayX = -22 + ep * 22;          // -22vw → 0 (visible from start)
+      tilt  = -68 + ep * 68;          // -68° → 0°
     } else {
       const swayAmp = 14 * Math.sin(p * Math.PI);
       swayX = Math.sin(p * Math.PI * 6) * swayAmp;
+      tilt  = Math.sin(p * Math.PI * 4) * 2;  // tiny lifelike wobble
     }
     const driftY = Math.sin(p * Math.PI * 2) * 4;
-    if (boldModelMount) boldModelMount.style.transform =
-      `translate3d(${swayX.toFixed(2)}vw, ${driftY.toFixed(2)}vh, 0)`;
+    if (boldModelMount) {
+      boldModelMount.style.setProperty('--mount-x',    swayX.toFixed(2) + 'vw');
+      boldModelMount.style.setProperty('--mount-y',    driftY.toFixed(2) + 'vh');
+      boldModelMount.style.setProperty('--mount-tilt', tilt.toFixed(2) + 'deg');
+    }
 
-    // ----- water trail (act 1): reveals as bottle enters, fades after p=0.20 -----
-    if (boldTrail) {
-      const trailIn  = clamp((p - 0.02) / (0.18 - 0.02), 0, 1);
-      const trailOut = clamp((p - 0.20) / (0.30 - 0.20), 0, 1);
-      const trailP   = trailIn * (1 - trailOut);
-      boldTrail.style.setProperty('--trail-p', trailP.toFixed(3));
-      boldTrail.style.setProperty('--trail-x', swayX.toFixed(2) + 'vw');
-      boldTrail.style.opacity = trailP > 0.02 ? '1' : '0';
+    // ----- water pour (Scene 1): peaks while bottle is tilted (p≈0.06–0.14),
+    // fades out as bottle reaches vertical at p=0.18 -----
+    if (boldPour) {
+      const pourIn  = clamp((p - 0.01) / 0.05, 0, 1);   // 0.01..0.06: ramp up
+      const pourOut = clamp((p - 0.14) / 0.04, 0, 1);   // 0.14..0.18: ramp down
+      const pourO   = pourIn * (1 - pourOut);
+      // Set opacity directly (not via CSS var) — vars + mix-blend-mode on
+      // SVG elements have inconsistent computed-style behavior.
+      boldPour.style.opacity = pourO.toFixed(3);
     }
 
     // ----- reaching hand (act 2): slides in from right, holds, slides out -----
@@ -683,6 +722,17 @@
     if (boldBpm) {
       const bpm = Math.round(110 + Math.sin(p * Math.PI * 8) * 25);
       boldBpm.textContent = bpm;
+    }
+
+    // ----- label callout (Scene 4): slides in once label-zoom begins -----
+    if (boldLabelCallout) {
+      const labelOn = p >= 0.86 ? 1 : 0;
+      const calloutIn = clamp((p - 0.86) / 0.06, 0, 1);
+      boldLabelCallout.style.opacity = calloutIn.toFixed(2);
+      boldLabelCallout.style.setProperty('--callout-y', ((1 - calloutIn) * -40).toFixed(0) + 'px');
+      // toggle data-on so the row stagger animation fires once
+      const wantOn = labelOn ? '1' : '0';
+      if (boldLabelCallout.dataset.on !== wantOn) boldLabelCallout.dataset.on = wantOn;
     }
 
     // TWO flood peaks: one in the hero (p≈0.18) capped at 35% so it doesn't

@@ -1319,7 +1319,10 @@ html[data-brand="bold"],
 }
 .bold-lockup-line { display: block; }
 
-/* mounted model-viewer (centered, 3D bottle) — translateX is driven by JS scroll progress */
+/* mounted model-viewer (centered, 3D bottle).
+   Translate (sway/drift) AND rotate (tilt/pour pose) are both driven by
+   JS-set CSS vars so we can compose them cleanly. transform-origin sits
+   below the bottle so the tilt feels like the base is pinned. */
 .bold-model-mount {
   position: absolute;
   inset: 0;
@@ -1329,7 +1332,9 @@ html[data-brand="bold"],
   justify-content: center;
   pointer-events: none;
   will-change: transform;
-  transition: transform 60ms linear;
+  transition: transform 80ms linear;
+  transform-origin: 50% 70%;
+  transform: translate3d(var(--mount-x, 0), var(--mount-y, 0), 0) rotate(var(--mount-tilt, 0deg));
 }
 .bold-model-mount model-viewer {
   width: clamp(360px, 52vw, 720px);
@@ -1646,22 +1651,48 @@ html[data-brand="bold"],
 }
 @keyframes scanShift { from { background-position: 0 0; } to { background-position: 0 60px; } }
 
-/* Water trail SVG — full-stage canvas, JS controls --trail-progress (0..1)
-   and --trail-x (vw offset) so it tracks the bottle's sway. */
-.bold-trail {
+/* WATER POUR (Scene 1): lives INSIDE .bold-model-mount so it inherits the
+   bottle's translate+rotate transform — water emerges from the cap at the
+   top of the bottle, regardless of tilt. JS sets --pour-o (opacity). */
+/* Pour cascade — viewport-fixed in upper-left third where the entering
+   bottle's cap lands. Always renders at the same screen position so it's
+   guaranteed visible regardless of bottle translate/rotate. */
+.bold-pour {
   position: absolute;
-  left: 0; right: 0; top: 0; bottom: 0;
-  width: 100%; height: 100%;
+  left: clamp(-40px, 12vw, 220px);
+  top: clamp(-20px, 4vh, 60px);
+  width: clamp(280px, 36vw, 480px);
+  height: clamp(360px, 70vh, 720px);
   pointer-events: none;
-  z-index: 2;
-  transform: translateX(var(--trail-x, 0));
-  transition: transform 80ms linear;
-  filter: drop-shadow(0 0 12px rgba(230,57,70,0.5));
+  z-index: 3;
+  opacity: var(--pour-o, 0);
+  transition: opacity 250ms ease;
+  filter: drop-shadow(0 0 16px rgba(230,57,70,0.7));
+  mix-blend-mode: screen;
 }
-#boldTrailPath {
-  stroke-dasharray: var(--trail-len, 1600);
-  stroke-dashoffset: calc(var(--trail-len, 1600) * (1 - var(--trail-p, 0)));
-  transition: stroke-dashoffset 100ms linear;
+.bold-model-mount model-viewer { z-index: 2; position: relative; }
+.bold-pour-stream {
+  stroke-dasharray: 30 22;
+  animation: pourFlow 1.0s linear infinite;
+}
+.bold-pour-stream.s2 { animation-duration: 0.8s; }
+.bold-pour-stream.s3 { animation-duration: 1.2s; }
+@keyframes pourFlow { to { stroke-dashoffset: -52; } }
+
+.bold-pour-drop {
+  animation: pourFall 1.4s cubic-bezier(.45,.05,.7,.4) infinite;
+  transform-origin: center;
+}
+@keyframes pourFall {
+  0%   { transform: translate(0, -200px) scale(0.4); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translate(50px, 200px) scale(1.1); opacity: 0; }
+}
+.bold-pour-puddle { animation: pourPuddle 1.4s ease-in-out infinite alternate; transform-origin: center; }
+@keyframes pourPuddle {
+  from { transform: scaleX(0.85); opacity: 0.4; }
+  to   { transform: scaleX(1.15); opacity: 0.75; }
 }
 
 /* Reaching hand — slides in from right during act 2 */
@@ -1678,23 +1709,28 @@ html[data-brand="bold"],
   filter: drop-shadow(0 0 18px rgba(230,57,70,0.4));
 }
 
-/* Cheers — second bottle slides in from right during trade act, tilts */
+/* Cheers — second bottle (lime-green 3D model). Slides in from right during
+   trade act, tilts toward main bottle. Same model-viewer treatment as the
+   primary, just mirrored / smaller. */
 .bold-bottle-cheers {
   position: absolute;
   left: 50%; top: 50%;
-  width: clamp(180px, 24vw, 360px);
+  width: clamp(280px, 36vw, 540px);
+  height: clamp(420px, 60vh, 760px);
   transform: translate3d(var(--cheers-x, 130%), -50%, 0) rotate(var(--cheers-r, -28deg));
+  transform-origin: 50% 70%;
   transition: transform 120ms linear, opacity 200ms ease;
   opacity: var(--cheers-o, 0);
   z-index: 2;
   pointer-events: none;
   filter: drop-shadow(0 30px 40px rgba(0,0,0,0.55))
-          drop-shadow(0 0 60px rgba(230,57,70,0.35));
+          drop-shadow(0 0 60px rgba(120,255,80,0.35));
 }
-.bold-bottle-cheers img {
-  width: 100%; height: auto; display: block;
-  /* poster has black bg — knock it out via blend so only the bottle reads */
-  mix-blend-mode: screen;
+.bold-bottle-cheers model-viewer {
+  width: 100%; height: 100%;
+  --poster-color: transparent;
+  background: transparent;
+  pointer-events: none;
 }
 
 /* Clink burst sparks at the meeting point */
@@ -1796,4 +1832,85 @@ html[data-brand="bold"],
   .bold-hand { width: 60vw; }
   .bold-bottle-cheers { width: 56vw; }
   .bold-reticle { width: 70vw; height: 70vw; }
+}
+
+/* ----- LABEL CALLOUT (Scene 4): top-left pin, arrow points down ----- */
+.bold-label-callout {
+  position: absolute;
+  left: clamp(12px, 3vw, 60px);
+  top: clamp(80px, 12vh, 140px);
+  transform: translate3d(0, var(--callout-y, -40px), 0);
+  opacity: var(--callout-o, 0);
+  transition: opacity 350ms ease, transform 500ms cubic-bezier(.2,.7,.2,1);
+  z-index: 5;
+  pointer-events: none;
+  display: grid;
+  grid-template-rows: auto 90px;
+  gap: 4px;
+  filter: drop-shadow(0 0 24px rgba(230,57,70,0.35));
+}
+.bold-label-arrow {
+  width: 80px; height: 90px;
+  display: block;
+  margin-left: 30px;
+}
+.bold-label-panel {
+  background: rgba(8,8,10,0.78);
+  border: 1px solid rgba(230,57,70,0.35);
+  border-radius: 6px;
+  padding: 18px 22px;
+  min-width: 240px;
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.bold-label-panel-kicker {
+  font-size: 9px;
+  color: var(--accent, #E63946);
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(230,57,70,0.25);
+  padding-bottom: 8px;
+}
+.bold-label-panel-row {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 12px;
+  font-size: 11px;
+  padding: 5px 0;
+  opacity: 0;
+  transform: translateX(8px);
+}
+.bold-label-callout[data-on="1"] .bold-label-panel-row {
+  animation: labelRowIn 420ms cubic-bezier(.2,.7,.2,1) forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes labelRowIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+.bold-label-panel-row em {
+  font-style: normal;
+  color: var(--accent, #E63946);
+}
+.bold-label-panel-row span {
+  color: rgba(255,255,255,0.95);
+}
+.bold-label-panel-foot {
+  margin-top: 14px;
+  font-size: 8px;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.32em;
+}
+
+@media (max-width: 720px) {
+  .bold-label-callout {
+    right: 12px; left: 12px; top: auto; bottom: 8vh;
+    transform: translate3d(0, var(--callout-x, 60px), 0);
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .bold-label-arrow { display: none; }
+  .bold-label-panel { min-width: 0; }
 }
