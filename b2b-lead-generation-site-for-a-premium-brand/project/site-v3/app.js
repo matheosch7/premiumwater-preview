@@ -106,7 +106,12 @@
   // Calm = sandpaper/gold páramo identity (default).
   // Bold = Liquid-Death-leaning party identity (3D bottle hero, crimson palette).
   // Both modes share copy bundles below — bold-only overrides live in COPY[lang].bold.
-  let currentBrand = localStorage.getItem('pw:brand') || 'calm';
+  // Frame-pose harness: ?frame=N URL param forces bold mode and locks the
+  // visual to FRAMES[N-1] regardless of scroll. (Constants populated below.)
+  const _frameURLOverride = new URLSearchParams(window.location.search).get('frame');
+  let currentBrand = _frameURLOverride
+    ? 'bold'
+    : (localStorage.getItem('pw:brand') || 'calm');
   let modelViewerLoaded = false;
 
   // Lazy-load Google's <model-viewer> module the first time bold mode activates,
@@ -144,7 +149,10 @@
     mv.setAttribute('field-of-view', '24deg');
     mount.appendChild(mv);
     boldModelEl = mv;
-    mv.addEventListener('load', () => updateBold(), { once: true });
+    mv.addEventListener('load', () => {
+      if (isFrameLocked()) applyFrame(FRAMES[FRAME_LOCK_INDEX]);
+      else updateBold();
+    }, { once: true });
     // Mount the lime-green Cheers companion bottle in parallel.
     mountCheersModel();
   }
@@ -182,8 +190,12 @@
     });
     if (mode === 'bold') {
       ensureModelViewer();
-      // Kick the choreography immediately so first paint matches scroll position.
-      if (typeof updateBold === 'function') updateBold();
+      if (isFrameLocked()) {
+        applyFrame(FRAMES[FRAME_LOCK_INDEX]);
+        ensureFrameBadge();
+      } else if (typeof updateBold === 'function') {
+        updateBold();
+      }
     } else if (typeof updateBold === 'function') {
       // Reset the mount transform so a later toggle back doesn't inherit a stale offset.
       const mount = document.getElementById('boldModelMount');
@@ -601,226 +613,258 @@
     return Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
   }
 
+  // ===== FRAME-POSE HARNESS ===========================================
+  // Each entry is the explicit visual state for one of the 10 hero frames.
+  // We iterate each frame in isolation by visiting `?frame=N` (1..10).
+  // When the URL param is set, the scroll-driven choreography is bypassed
+  // and the page is locked to FRAMES[N-1]. Once all 10 frames are dialled
+  // in, the scroll handler can lerp between adjacent frames using `p`.
+  //
+  // State schema (every frame must define every field):
+  //   bottle:  { x: vw, y: vh, tilt: deg }
+  //   camera:  { theta: deg, phi: deg, radius: m, fov: deg, targetY: m, opacity: 0..1 }
+  //   pour:    { o: 0..1 }
+  //   hand:    { x: '%' string, o: 0..1 }
+  //   cheers:  { x: '%' string, rot: deg, o: 0..1 }
+  //   swoosh:  { o: 0..1 }
+  //   clink:   { o: 0..1 }
+  //   callout: { o: 0..1, y: px, on: '0'|'1' }
+  //   flood:   pct (0..100)
+  //   reticle: { o: 0..1, x: vw }
+  //   data:    { o: 0..1 }
+  //   bgParallaxX: vw
+  const FRAMES = [
+    // 1. Cold open — bottle off-screen LEFT, fully tilted, HUD low
+    { name: 'cold-open',
+      bottle:  { x: -55, y: 0,  tilt: -75 },
+      camera:  { theta: 0,    phi: 80, radius: 8, fov: 24, targetY: -0.05, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '130%',  o: 0 },
+      cheers:  { x: '-140%', rot: -55, o: 0 },
+      swoosh:  { o: 0 },
+      clink:   { o: 0 },
+      callout: { o: 0, y: -40, on: '0' },
+      flood:   0,
+      reticle: { o: 0.35, x: -55 },
+      data:    { o: 0.4 },
+      bgParallaxX: 0 },
+
+    // 2. Pour peak — bottle 70% on-screen, tilted -50, water cascades
+    { name: 'pour-peak',
+      bottle:  { x: -25, y: 0,  tilt: -50 },
+      camera:  { theta: 60,   phi: 78, radius: 7.4, fov: 25, targetY: -0.05, opacity: 1 },
+      pour:    { o: 1 },
+      hand:    { x: '130%',  o: 0 },
+      cheers:  { x: '-140%', rot: -55, o: 0 },
+      swoosh:  { o: 0 },
+      clink:   { o: 0 },
+      callout: { o: 0, y: -40, on: '0' },
+      flood:   18,
+      reticle: { o: 0.6, x: -25 },
+      data:    { o: 0.85 },
+      bgParallaxX: 6 },
+
+    // 3. Landed — bottle vertical centre, the hero shot
+    { name: 'landed',
+      bottle:  { x: 0, y: 0, tilt: 0 },
+      camera:  { theta: 140,  phi: 76, radius: 7.0, fov: 26, targetY: -0.05, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '130%',  o: 0 },
+      cheers:  { x: '-140%', rot: -55, o: 0 },
+      swoosh:  { o: 0 },
+      clink:   { o: 0 },
+      callout: { o: 0, y: -40, on: '0' },
+      flood:   8,
+      reticle: { o: 1, x: 0 },
+      data:    { o: 1 },
+      bgParallaxX: 12 },
+
+    // 4. Inspection — slow rotation, parallax in the back
+    { name: 'inspection',
+      bottle:  { x: 2, y: -2, tilt: 1 },
+      camera:  { theta: 280,  phi: 72, radius: 6.4, fov: 27, targetY: -0.05, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '130%',  o: 0 },
+      cheers:  { x: '-140%', rot: -55, o: 0 },
+      swoosh:  { o: 0 },
+      clink:   { o: 0 },
+      callout: { o: 0, y: -40, on: '0' },
+      flood:   0,
+      reticle: { o: 1, x: 2 },
+      data:    { o: 1 },
+      bgParallaxX: 18 },
+
+    // 5. Hand inbound — fingers visibly reaching in from the right edge.
+    //    translateX is element-width-relative; -8vw overhang means the
+    //    hand's resting box is already past the viewport, so we need NEGATIVE
+    //    translateX values to bring it visibly into the screen.
+    { name: 'hand-inbound',
+      bottle:  { x: -1, y: 0, tilt: 0 },
+      camera:  { theta: 460,  phi: 74, radius: 5.6, fov: 28, targetY: -0.05, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '-30%',  o: 0.9 },
+      cheers:  { x: '-140%', rot: -55, o: 0 },
+      swoosh:  { o: 0 },
+      clink:   { o: 0 },
+      callout: { o: 0, y: -40, on: '0' },
+      flood:   0,
+      reticle: { o: 0.5, x: -1 },
+      data:    { o: 0.7 },
+      bgParallaxX: 6 },
+
+    // 6. Contact / jolt — fingers gripping the bottle, jolt visible
+    { name: 'contact-jolt',
+      bottle:  { x: -1, y: 0, tilt: 6 },
+      camera:  { theta: 520,  phi: 73, radius: 5.0, fov: 28, targetY: -0.05, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '-85%',  o: 1 },
+      cheers:  { x: '-140%', rot: -55, o: 0 },
+      swoosh:  { o: 0 },
+      clink:   { o: 0 },
+      callout: { o: 0, y: -40, on: '0' },
+      flood:   0,
+      reticle: { o: 0.3, x: -1 },
+      data:    { o: 0.5 },
+      bgParallaxX: -4 },
+
+    // 7. Green inbound — bottle sweeping in from LEFT with swoosh
+    { name: 'green-inbound',
+      bottle:  { x: 8, y: 0, tilt: -2 },
+      camera:  { theta: 720,  phi: 73, radius: 4.6, fov: 30, targetY: -0.05, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '130%',  o: 0 },
+      cheers:  { x: '-50%',  rot: -28, o: 0.85 },
+      swoosh:  { o: 0.9 },
+      clink:   { o: 0 },
+      callout: { o: 0, y: -40, on: '0' },
+      flood:   0,
+      reticle: { o: 0.3, x: 8 },
+      data:    { o: 0.5 },
+      bgParallaxX: -14 },
+
+    // 8. Clink — both bottles touching centre, spark burst
+    { name: 'clink',
+      bottle:  { x: 8, y: 0, tilt: -2 },
+      camera:  { theta: 800,  phi: 72, radius: 4.2, fov: 31, targetY: -0.05, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '130%',  o: 0 },
+      cheers:  { x: '-8%',   rot: -8,  o: 1 },
+      swoosh:  { o: 0.4 },
+      clink:   { o: 1 },
+      callout: { o: 0, y: -40, on: '0' },
+      flood:   0,
+      reticle: { o: 0.3, x: 8 },
+      data:    { o: 0.5 },
+      bgParallaxX: -18 },
+
+    // 9. Approach — green gone, camera dollies in toward black
+    { name: 'approach',
+      bottle:  { x: 0, y: 0, tilt: 0 },
+      camera:  { theta: 1080, phi: 86, radius: 2.4, fov: 32, targetY: -0.18, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '130%',  o: 0 },
+      cheers:  { x: '-140%', rot: -38, o: 0 },
+      swoosh:  { o: 0 },
+      clink:   { o: 0 },
+      callout: { o: 0.35, y: -20, on: '1' },
+      flood:   45,
+      reticle: { o: 0.7, x: 0 },
+      data:    { o: 0.7 },
+      bgParallaxX: 0 },
+
+    // 10. Label finale — close-up + callout fully revealed
+    { name: 'label-finale',
+      bottle:  { x: 0, y: 0, tilt: 0 },
+      camera:  { theta: 1080, phi: 82, radius: 1.2, fov: 28, targetY: -0.40, opacity: 1 },
+      pour:    { o: 0 },
+      hand:    { x: '130%',  o: 0 },
+      cheers:  { x: '-140%', rot: -38, o: 0 },
+      swoosh:  { o: 0 },
+      clink:   { o: 0 },
+      callout: { o: 1, y: 0, on: '1' },
+      flood:   65,
+      reticle: { o: 0.95, x: 0 },
+      data:    { o: 0.95 },
+      bgParallaxX: 6 },
+  ];
+
+  function applyFrame(s) {
+    if (!s) return;
+    if (boldStage) boldStage.style.setProperty('--bg-parallax-x', s.bgParallaxX.toFixed(1) + 'vw');
+    if (boldModelEl) {
+      boldModelEl.setAttribute('camera-orbit',  `${s.camera.theta}deg ${s.camera.phi}deg ${s.camera.radius}m`);
+      boldModelEl.setAttribute('field-of-view', `${s.camera.fov}deg`);
+      boldModelEl.setAttribute('camera-target', `0m ${s.camera.targetY}m 0m`);
+      boldModelEl.style.opacity = String(s.camera.opacity);
+    }
+    if (boldModelMount) {
+      boldModelMount.style.setProperty('--mount-x',    s.bottle.x.toFixed(2) + 'vw');
+      boldModelMount.style.setProperty('--mount-y',    s.bottle.y.toFixed(2) + 'vh');
+      boldModelMount.style.setProperty('--mount-tilt', s.bottle.tilt.toFixed(2) + 'deg');
+    }
+    if (boldPour)         boldPour.style.opacity = String(s.pour.o);
+    if (boldHand) {
+      boldHand.style.setProperty('--hand-x', s.hand.x);
+      boldHand.style.setProperty('--hand-o', String(s.hand.o));
+    }
+    if (boldCheers) {
+      boldCheers.style.setProperty('--cheers-x', s.cheers.x);
+      boldCheers.style.setProperty('--cheers-r', s.cheers.rot + 'deg');
+      boldCheers.style.setProperty('--cheers-o', String(s.cheers.o));
+    }
+    if (boldCheersSwoosh) boldCheersSwoosh.style.opacity = String(s.swoosh.o);
+    if (boldClink)        boldClink.style.setProperty('--clink-o', String(s.clink.o));
+    if (boldLabelCallout) {
+      boldLabelCallout.style.opacity = String(s.callout.o);
+      boldLabelCallout.style.setProperty('--callout-y', s.callout.y + 'px');
+      boldLabelCallout.dataset.on = s.callout.on;
+    }
+    if (boldFlood)   boldFlood.style.setProperty('--flood', s.flood + '%');
+    if (boldReticle) {
+      boldReticle.style.setProperty('--reticle-o', String(s.reticle.o));
+      boldReticle.style.setProperty('--reticle-x', s.reticle.x + 'vw');
+    }
+    if (boldData)    boldData.style.setProperty('--data-o', String(s.data.o));
+  }
+
+  // URL param `?frame=N` (1..10) locks the page to FRAMES[N-1]
+  const _frameParam = parseInt(new URLSearchParams(window.location.search).get('frame'), 10);
+  const FRAME_LOCK_INDEX = (Number.isFinite(_frameParam) && _frameParam >= 1 && _frameParam <= FRAMES.length)
+    ? _frameParam - 1 : -1;
+  const isFrameLocked = () => FRAME_LOCK_INDEX >= 0;
+
+  // Floating debug badge so we can see which frame is active
+  function ensureFrameBadge() {
+    if (!isFrameLocked()) return;
+    if (document.getElementById('frameBadge')) return;
+    const b = document.createElement('div');
+    b.id = 'frameBadge';
+    const f = FRAMES[FRAME_LOCK_INDEX];
+    b.innerHTML = `<strong>Frame ${FRAME_LOCK_INDEX + 1}</strong> · ${f.name}`;
+    b.style.cssText = `
+      position:fixed; left:16px; bottom:16px; z-index:99999;
+      padding:8px 14px; background:#E63946; color:#fff;
+      font:600 12px/1 'JetBrains Mono', monospace; letter-spacing:.16em;
+      text-transform:uppercase; border-radius:4px;
+      box-shadow:0 4px 18px rgba(230,57,70,.45);
+    `;
+    document.body.appendChild(b);
+  }
+
+  // Bold-mode cinematic is a pre-rendered MP4 from the bold-cinematic
+  // hyperframes project. Scroll position drives video.currentTime —
+  // exact same pattern as calm mode's pour-scrub.mp4. All the SVG/img/
+  // model-viewer choreography is gone; the video IS the choreography.
+  const boldScrubVideo = document.getElementById('boldScrubVideo');
+
   function updateBold() {
     if (!boldStage || currentBrand !== 'bold') return;
+    if (isFrameLocked()) return;
     const p = clamp(window.scrollY / fullScrollEnd(), 0, 1);
-
-    // STORYBOARD v3 ACTS (per user reMarkable sketches + plan):
-    //   1 ENTRY       0.00–0.13  bottle slides in from off-screen LEFT, tilted, pouring
-    //   2 INSPECTION  0.13–0.27  bottle holds centre, parallax does the work
-    //   3 HAND GRAB   0.27–0.45  hand sweeps in from RIGHT, contacts bottle (jolt)
-    //   4 CHEERS      0.45–0.65  green bottle sweeps in from LEFT, clinks, both held
-    //   5 APPROACH    0.65–0.85  green exits LEFT, camera dollies in toward black
-    //   6 LABEL ZOOM  0.85–1.00  label fills frame, callout panel reveals
-
-    // ----- background parallax (counter-phase to subject sway) -----
-    const bgParallaxX = Math.sin(p * Math.PI * 2) * 18;
-    boldStage.style.setProperty('--bg-parallax-x', bgParallaxX.toFixed(1) + 'vw');
-
-    // ----- camera (always running) -----
-    let theta, phi, radius, fov;
-    if (p < 0.85) {
-      const ep = easeInOutCubic(p / 0.85);
-      theta  = ep * 1080;
-      phi    = 80 - Math.sin(p * Math.PI * 2) * 8 - ep * 6;
-      radius = 8 - ep * 5;
-      fov    = 24 + ep * 10;
-    } else {
-      const lp = easeInOutCubic((p - 0.85) / 0.15);
-      theta  = 1080;
-      phi    = 90 - lp * 8;
-      radius = 3 - lp * 1.8;
-      fov    = 34 - lp * 6;
+    if (boldScrubVideo && isFinite(boldScrubVideo.duration) && boldScrubVideo.duration > 0) {
+      try { boldScrubVideo.currentTime = p * boldScrubVideo.duration; } catch (e) {}
     }
-    if (boldModelEl) {
-      boldModelEl.setAttribute('camera-orbit',  `${theta.toFixed(2)}deg ${phi.toFixed(2)}deg ${radius.toFixed(3)}m`);
-      boldModelEl.setAttribute('field-of-view', `${fov.toFixed(2)}deg`);
-      const targetY = -0.05 - clamp((p - 0.85) / 0.15, 0, 1) * 0.35;
-      boldModelEl.setAttribute('camera-target', `0m ${targetY.toFixed(2)}m 0m`);
-    }
-
-    // ===== MAIN BOTTLE: per-act sway + tilt =====
-    let swayX, tilt = 0, joltTilt = 0;
-    if (p < 0.02) {
-      swayX = -55; tilt = -75;
-    } else if (p < 0.13) {
-      // ACT 1 ENTRY: slide from off-screen-LEFT (-55vw) to centre, righten -75°→0
-      const ep = easeInOutCubic((p - 0.02) / 0.11);
-      swayX = -55 + ep * 55;
-      tilt  = -75 + ep * 75;
-    } else if (p < 0.27) {
-      // ACT 2 INSPECTION: hold centre with subtle wobble (parallax does the work)
-      swayX = Math.sin((p - 0.13) * Math.PI / 0.14) * 3;
-      tilt  = Math.sin((p - 0.13) * Math.PI * 3) * 1.2;
-    } else if (p < 0.45) {
-      // ACT 3 HAND GRAB: bottle held, jolts on contact (p≈0.36)
-      swayX = -1;
-      tilt  = 0;
-      const contactDist = Math.abs(p - 0.36);
-      if (contactDist < 0.04) {
-        joltTilt = (1 - contactDist / 0.04) * 6;  // up to +6° at contact
-      }
-    } else if (p < 0.65) {
-      // ACT 4 CHEERS: black bottle drifts slightly RIGHT to make space for green
-      const lp = (p - 0.45) / 0.20;
-      swayX = 4 + Math.sin(lp * Math.PI) * 4;  // 4 → 8 → 4 vw
-      tilt  = -2 + Math.sin(lp * Math.PI * 2) * 1;
-    } else if (p < 0.85) {
-      // ACT 5 APPROACH: returns to centre as camera dollies in
-      const lp = easeInOutCubic((p - 0.65) / 0.20);
-      swayX = 4 - lp * 4;
-      tilt  = 0;
-    } else {
-      // ACT 6 LABEL ZOOM: dead-centre, no sway
-      swayX = 0; tilt = 0;
-    }
-    const driftY = Math.sin(p * Math.PI * 2) * 3;
-    if (boldModelMount) {
-      boldModelMount.style.setProperty('--mount-x',    swayX.toFixed(2) + 'vw');
-      boldModelMount.style.setProperty('--mount-y',    driftY.toFixed(2) + 'vh');
-      boldModelMount.style.setProperty('--mount-tilt', (tilt + joltTilt).toFixed(2) + 'deg');
-    }
-
-    // ----- ACT 1 water pour: peaks while bottle is tilted -----
-    if (boldPour) {
-      const pourIn  = clamp((p - 0.01) / 0.04, 0, 1);
-      const pourOut = clamp((p - 0.10) / 0.03, 0, 1);
-      const pourO   = pourIn * (1 - pourOut);
-      boldPour.style.opacity = pourO.toFixed(3);
-    }
-
-    // ----- ACT 3 reaching hand: 0.27→0.45, contact at 0.36, exit RIGHT by 0.45 -----
-    if (boldHand) {
-      const handIn  = clamp((p - 0.27) / 0.07, 0, 1);   // 0.27..0.34 enter
-      const handOut = clamp((p - 0.40) / 0.05, 0, 1);   // 0.40..0.45 exit
-      const handAt  = handIn * (1 - handOut);
-      // X path: 130% off-right → -5% (across the bottle) → 130% off-right
-      let handX;
-      if (p < 0.34)      handX = 130 - handIn * 135;     // entering (130 → -5)
-      else if (p < 0.40) handX = -5;                      // holding at -5%
-      else               handX = -5 + handOut * 135;      // exiting (-5 → 130)
-      boldHand.style.setProperty('--hand-x', handX.toFixed(1) + '%');
-      boldHand.style.setProperty('--hand-o', handAt.toFixed(2));
-    }
-
-    // ----- ACT 4 CHEERS green bottle: 0.45→0.65 in from LEFT, hold, exit-LEFT 0.65→0.78 -----
-    if (boldCheers) {
-      let cx, cr, cAt;
-      if (p < 0.45) { cx = -140; cr = -55; cAt = 0; }
-      else if (p < 0.55) {
-        // entering from off-screen-LEFT (-140%) to next-to-main (-8%), tilts upright
-        const lp = easeInOutCubic((p - 0.45) / 0.10);
-        cx  = -140 + lp * 132;
-        cr  = -55 + lp * 47;
-        cAt = lp;
-      } else if (p < 0.65) {
-        // hold with tiny clink wobble
-        const w = Math.sin((p - 0.55) * Math.PI * 6);
-        cx  = -8 + w * 1;
-        cr  = -8 + w * 1.5;
-        cAt = 1;
-      } else if (p < 0.78) {
-        // exits LEFT (-8 → -140%) so by Act 6 only black bottle remains
-        const lp = easeInOutCubic((p - 0.65) / 0.13);
-        cx  = -8 - lp * 132;
-        cr  = -8 - lp * 30;
-        cAt = 1 - lp;
-      } else { cx = -140; cr = -38; cAt = 0; }
-      boldCheers.style.setProperty('--cheers-x', cx.toFixed(1) + '%');
-      boldCheers.style.setProperty('--cheers-r', cr.toFixed(1) + 'deg');
-      boldCheers.style.setProperty('--cheers-o', cAt.toFixed(2));
-      // spark burst at meeting moment (p≈0.55)
-      const clinkAt = Math.max(0, 1 - Math.abs(p - 0.55) / 0.03);
-      if (boldClink) boldClink.style.setProperty('--clink-o', clinkAt.toFixed(2));
-    }
-
-    // ----- ACT 4 cheers SWOOSH trail: fades in during entry, out after landing -----
-    if (boldCheersSwoosh) {
-      const sIn  = clamp((p - 0.45) / 0.06, 0, 1);
-      const sOut = clamp((p - 0.55) / 0.04, 0, 1);
-      const sAt  = sIn * (1 - sOut);
-      boldCheersSwoosh.style.opacity = sAt.toFixed(2);
-    }
-
-    // ----- reticle: bright in entry/inspect, dim during hand+cheers, brightens for label -----
-    if (boldReticle) {
-      const focus = (p < 0.13) ? Math.min(1, p / 0.05) :
-                    (p < 0.27) ? 1 :
-                    (p < 0.45) ? 1 - (p - 0.27) / 0.18 * 0.7 :
-                    (p < 0.65) ? 0.3 :
-                    (p < 0.85) ? 0.3 + (p - 0.65) / 0.20 * 0.5 :
-                                 Math.min(0.95, 0.8 + (p - 0.85) / 0.15 * 0.15);
-      boldReticle.style.setProperty('--reticle-o', focus.toFixed(2));
-      boldReticle.style.setProperty('--reticle-x', swayX.toFixed(1) + 'vw');
-    }
-
-    // ----- data strip: visible when bottle is the focus -----
-    if (boldData) {
-      const dataAt = (p < 0.27) ? Math.min(1, p / 0.05) :
-                     (p < 0.45) ? 1 - (p - 0.27) / 0.18 * 0.6 :
-                     (p < 0.65) ? 0.4 :
-                                  0.4 + clamp((p - 0.78) / 0.10, 0, 1) * 0.5;
-      boldData.style.setProperty('--data-o', dataAt.toFixed(2));
-    }
-    if (boldBpm) {
-      const bpm = Math.round(110 + Math.sin(p * Math.PI * 8) * 25);
-      boldBpm.textContent = bpm;
-    }
-
-    // ----- ACT 6 LABEL ZOOM callout: slides in once label-zoom begins -----
-    if (boldLabelCallout) {
-      const labelOn = p >= 0.85 ? 1 : 0;
-      const calloutIn = clamp((p - 0.85) / 0.06, 0, 1);
-      boldLabelCallout.style.opacity = calloutIn.toFixed(2);
-      boldLabelCallout.style.setProperty('--callout-y', ((1 - calloutIn) * -40).toFixed(0) + 'px');
-      const wantOn = labelOn ? '1' : '0';
-      if (boldLabelCallout.dataset.on !== wantOn) boldLabelCallout.dataset.on = wantOn;
-    }
-
-    // TWO flood peaks: one in the hero (p≈0.18) capped at 35% so it doesn't
-    // drown the story section, one bigger one in #impact at 65%.
-    const flood1raw = clamp((p - 0.05) / (0.18 - 0.05), 0, 1) - clamp((p - 0.20) / (0.32 - 0.20), 0, 1);
-    const flood2raw = clamp((p - 0.68) / (0.84 - 0.68), 0, 1) - clamp((p - 0.92) / (0.99 - 0.92), 0, 1);
-    const flood1 = flood1raw * 35; // peaks at 35% viewport height
-    const flood2 = flood2raw * 65; // peaks at 65% viewport height
-    const floodPct = Math.max(flood1, flood2);
-    if (boldFlood) boldFlood.style.setProperty('--flood', floodPct.toFixed(1) + '%');
-
-    // Per-section parallax lockup: each section's giant stroked text slides
-    // horizontally as the section enters/exits the viewport. Direction
-    // alternates so adjacent sections don't move in lockstep.
-    const vh = window.innerHeight;
-    boldLockupEls.forEach((el, i) => {
-      const r = el.getBoundingClientRect();
-      // section progress: 0 when section just enters viewport bottom,
-      // 1 when section has fully passed the viewport top.
-      const sp = clamp(1 - (r.top + r.height) / (vh + r.height), 0, 1);
-      const dir = i % 2 === 0 ? -1 : 1;
-      const x = (sp - 0.5) * 120 * dir; // bumped: -60vw to +60vw for stronger parallax
-      el.style.setProperty('--lockup-x', x.toFixed(2) + 'vw');
-      // also drift the ambient blob (::after) per-section
-      el.style.setProperty('--blob-x', (50 + Math.sin(sp * Math.PI * 2) * 25 * dir).toFixed(0) + '%');
-      el.style.setProperty('--blob-y', (50 + Math.cos(sp * Math.PI) * 20).toFixed(0) + '%');
-    });
-
-    // Caption acts only fire over the hero zone (first ~14% of total scroll).
-    const heroP = clamp(p / 0.14, 0, 1);
-    let activeAct = 0;
-    if (heroP >= 0.05 && heroP < 0.30)      activeAct = 1;
-    else if (heroP >= 0.30 && heroP < 0.55) activeAct = 2;
-    else if (heroP >= 0.55 && heroP < 0.82) activeAct = 3;
-    else if (heroP >= 0.82 && heroP < 1.0)  activeAct = 4;
-    boldCaptionEls.forEach(el => {
-      el.classList.toggle('is-active', parseInt(el.dataset.act, 10) === activeAct);
-    });
-
-    // Bottle dims slightly through the middle sections so section content
-    // gets focus, then re-brightens for the impact climax.
-    const bottleOpacity = 0.55 + 0.45 * (Math.cos(p * Math.PI * 2) * 0.5 + 0.5);
-    if (boldModelEl) boldModelEl.style.opacity = bottleOpacity.toFixed(2);
-
-    // Stage stays fully opaque to the very bottom now.
-    boldStage.style.opacity = 1;
+    boldStage.style.opacity = 1 - smoothstep(0.97, 1.0, p);
   }
 
   window.addEventListener('scroll', updateBold, { passive: true });

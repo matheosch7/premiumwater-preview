@@ -1225,7 +1225,9 @@ main#top { position: relative; z-index: 2; }
 
 /* ============ BOLD STAGE (party-mode) ============================ */
 /* Sibling to .cine-stage; hidden by default. When [data-brand="bold"] is
-   active on <html>, the cine-stage hides and this one takes over. */
+   active on <html>, the cine-stage hides and this one takes over.
+   v4: contents are a single <video> scroll-scrubbed from the rendered
+   bold-cinematic.mp4 (built in ../bold-cinematic/ via hyperframes). */
 .bold-stage {
   position: fixed;
   inset: 0;
@@ -1234,6 +1236,17 @@ main#top { position: relative; z-index: 2; }
   overflow: hidden;
   background: #050507;
   display: none;
+}
+.bold-scrub-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  z-index: 1;
+  background: #050507;
 }
 [data-brand="bold"] .cine-stage { display: none; }
 [data-brand="bold"] .bold-stage { display: block; }
@@ -1703,8 +1716,7 @@ html[data-brand="bold"],
 
 /* Reaching hand — Meshy-rendered photographic hand. Slides in from right
    during Act 3. scaleX(-1) flips it so palm/fingers face LEFT toward the
-   bottle. mix-blend-mode: screen knocks out the black studio bg.
-   --hand-x is the inline-style translate, set per-frame by updateBold. */
+   bottle. Soft radial mask + screen blend knocks out the studio bg. */
 .bold-hand {
   position: absolute;
   right: -8vw; top: 50%;
@@ -1717,7 +1729,13 @@ html[data-brand="bold"],
   z-index: 3;
   pointer-events: none;
   mix-blend-mode: screen;
-  filter: drop-shadow(0 0 22px rgba(230,57,70,0.55))
+  /* Tight radial mask cuts the studio backdrop. Hand sits in the centre
+     of the 512x512 PNG so we mask aggressively. */
+  -webkit-mask-image: radial-gradient(ellipse 50% 55% at 50% 48%, #000 30%, rgba(0,0,0,0.55) 55%, transparent 80%);
+          mask-image: radial-gradient(ellipse 50% 55% at 50% 48%, #000 30%, rgba(0,0,0,0.55) 55%, transparent 80%);
+  /* Saturate the crimson rim down so it reads as dramatic light, not gore */
+  filter: saturate(0.65) brightness(1.05)
+          drop-shadow(0 0 22px rgba(230,57,70,0.45))
           drop-shadow(0 12px 28px rgba(0,0,0,0.55));
 }
 

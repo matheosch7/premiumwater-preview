@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=28" />
+  <link rel="stylesheet" href="styles.css?v=31" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -115,156 +115,22 @@
   </div>
 </div>
 
-<!-- ============ bold-mode 3D stage (party identity) ============ -->
-<!-- Sibling to .cine-stage; CSS swaps which is visible based on [data-brand].
-     The <model-viewer> element is injected by app.js the first time bold mode
-     is activated, so calm-only visitors never download the runtime or the GLB. -->
+<!-- ============ bold-mode cinematic stage (scroll-scrubbed video) ============ -->
+<!-- The choreography for bold mode lives in the rendered MP4. Source HTML
+     and GSAP timeline are in ../bold-cinematic/ (HyperFrames project).
+     We mirror the calm-mode pattern: <video> sits position:fixed in viewport,
+     scrollY drives currentTime. -->
 <div class="bold-stage" id="boldStage" aria-hidden="true">
-  <div class="bold-bg"></div>
-  <div class="bold-grid"></div>
-  <div class="bold-scanlines"></div>
-  <div class="bold-glow"></div>
-  <div class="bold-floor"></div>
-  <!-- big background lockup -->
-  <div class="bold-lockup" aria-hidden="true">
-    <span class="bold-lockup-line">DRINK</span>
-    <span class="bold-lockup-line">LOUD</span>
-  </div>
-
-  <!-- legacy trail kept for compat (no visual) -->
-  <svg class="bold-trail" viewBox="0 0 1200 1200" aria-hidden="true" style="display:none"><path id="boldTrailPath" d="M0 0"/></svg>
-
-  <!-- Reaching hand (Scene 2): photographic 3D-rendered hand from Meshy with
-       crimson rim lighting on a black studio background. Slides in from
-       right; CSS flips it horizontally so palm faces toward the bottle. -->
-  <img class="bold-hand" src="assets/hand-grab.png" alt="" aria-hidden="true" />
-
-  <!-- ACT 4 cheers SWOOSH trail: horizontal streak that emerges as the green
-       bottle sweeps in from the left. JS sets opacity. -->
-  <svg class="bold-cheers-swoosh" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true">
-    <defs>
-      <linearGradient id="boldSwooshGrad" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0"   stop-color="rgba(120,255,80,0)"/>
-        <stop offset="0.25" stop-color="rgba(120,255,80,0.55)"/>
-        <stop offset="0.6"  stop-color="rgba(180,255,120,0.85)"/>
-        <stop offset="1"   stop-color="rgba(255,255,255,0)"/>
-      </linearGradient>
-    </defs>
-    <path d="M 50 110 Q 400 80 800 100 Q 1200 120 1500 100" stroke="url(#boldSwooshGrad)" stroke-width="14" fill="none" stroke-linecap="round"/>
-    <path d="M 80 130 Q 420 120 820 130 Q 1220 140 1480 120" stroke="url(#boldSwooshGrad)" stroke-width="6"  fill="none" stroke-linecap="round" opacity="0.65"/>
-  </svg>
-
-  <!-- second bottle (cheers act) — a real model-viewer of the lime-green
-       Meshy variant; mounted lazily by app.js when bold mode is activated. -->
-  <div class="bold-bottle-cheers" id="boldBottleCheers" aria-hidden="true"></div>
-
-  <!-- "clink" spark burst at cheers moment -->
-  <div class="bold-clink" aria-hidden="true">
-    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-  </div>
-
-  <!-- model mount: scroll-driven camera + sway/tilt -->
-  <div class="bold-model-mount" id="boldModelMount"></div>
-
-  <!-- WATER POUR (Scene 1): viewport-fixed cascade, sits where the bottle's
-       cap lands when partially-entered (upper-left third of viewport). JS
-       sets --pour-o (opacity). The cascade runs continuously while visible. -->
-  <svg class="bold-pour" viewBox="0 0 600 900" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-    <defs>
-      <linearGradient id="boldPourGrad" x1="0.5" y1="0" x2="0.5" y2="1">
-        <stop offset="0"   stop-color="rgba(255,80,95,1)"/>
-        <stop offset="0.4" stop-color="rgba(230,57,70,0.85)"/>
-        <stop offset="1"   stop-color="rgba(230,57,70,0)"/>
-      </linearGradient>
-      <radialGradient id="boldDropGrad" cx="0.5" cy="0.5" r="0.5">
-        <stop offset="0" stop-color="rgba(255,140,150,1)"/>
-        <stop offset="1" stop-color="rgba(230,57,70,0)"/>
-      </radialGradient>
-    </defs>
-    <!-- three crimson streams cascading down -->
-    <path class="bold-pour-stream s1" d="M 300 40 Q 270 240 320 460 T 360 880" stroke="url(#boldPourGrad)" stroke-width="16" fill="none" stroke-linecap="round"/>
-    <path class="bold-pour-stream s2" d="M 320 60 Q 300 280 350 500 T 380 880" stroke="url(#boldPourGrad)" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.75"/>
-    <path class="bold-pour-stream s3" d="M 280 50 Q 250 260 300 480 T 340 880" stroke="url(#boldPourGrad)" stroke-width="6"  fill="none" stroke-linecap="round" opacity="0.55"/>
-    <!-- falling droplets -->
-    <circle class="bold-pour-drop" cx="310" cy="220" r="14" fill="url(#boldDropGrad)"/>
-    <circle class="bold-pour-drop" cx="335" cy="380" r="10" fill="url(#boldDropGrad)" style="animation-delay: -0.5s;"/>
-    <circle class="bold-pour-drop" cx="290" cy="540" r="16" fill="url(#boldDropGrad)" style="animation-delay: -1.0s;"/>
-    <circle class="bold-pour-drop" cx="345" cy="680" r="8"  fill="url(#boldDropGrad)" style="animation-delay: -0.3s;"/>
-    <circle class="bold-pour-drop" cx="320" cy="820" r="12" fill="url(#boldDropGrad)" style="animation-delay: -0.8s;"/>
-    <!-- splash puddle at the bottom -->
-    <ellipse class="bold-pour-puddle" cx="330" cy="870" rx="120" ry="14" fill="url(#boldPourGrad)" opacity="0.7"/>
-  </svg>
-
-  <!-- targeting reticle that tracks the bottle's screen position -->
-  <svg class="bold-reticle" viewBox="0 0 200 200" aria-hidden="true">
-    <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(230,57,70,0.45)" stroke-width="0.8" stroke-dasharray="3 4"/>
-    <circle cx="100" cy="100" r="58" fill="none" stroke="rgba(230,57,70,0.30)" stroke-width="0.6"/>
-    <line x1="100" y1="0"  x2="100" y2="22" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
-    <line x1="100" y1="178" x2="100" y2="200" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
-    <line x1="0"   y1="100" x2="22" y2="100"  stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
-    <line x1="178" y1="100" x2="200" y2="100" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
-    <text x="120" y="98" fill="rgba(230,57,70,0.7)" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="2">TARGET</text>
-  </svg>
-
-  <!-- LABEL CALLOUT (Scene 4): pinned to the top-left of viewport during
-       label-zoom finale (p ≥ 0.86). Spec lines reveal one by one. Arrow
-       sweeps from the panel down toward the label area. -->
-  <div class="bold-label-callout" id="boldLabelCallout" aria-hidden="true">
-    <div class="bold-label-panel">
-      <div class="bold-label-panel-kicker">▸ LABEL ZOOM · MATTE BLACK · 500ML</div>
-      <div class="bold-label-panel-row" style="--d: 0s"><em>pH</em><span>7.4</span></div>
-      <div class="bold-label-panel-row" style="--d: 0.08s"><em>TDS</em><span>280 ppm</span></div>
-      <div class="bold-label-panel-row" style="--d: 0.16s"><em>SOURCE</em><span>Andean páramo</span></div>
-      <div class="bold-label-panel-row" style="--d: 0.24s"><em>ALT</em><span>3,600 m</span></div>
-      <div class="bold-label-panel-row" style="--d: 0.32s"><em>BOTTLED</em><span>Cartagena, CO</span></div>
-      <div class="bold-label-panel-row" style="--d: 0.40s"><em>VINTAGE</em><span>2026</span></div>
-      <div class="bold-label-panel-foot">— PREMIUMWATER · LOUD EDITION —</div>
-    </div>
-    <svg class="bold-label-arrow" viewBox="0 0 80 220" preserveAspectRatio="xMidYMin meet">
-      <path d="M 40 0 L 40 160 L 56 144" stroke="rgba(230,57,70,0.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <circle cx="56" cy="144" r="4" fill="rgba(230,57,70,1)"/>
-    </svg>
-  </div>
-
-  <!-- terminal-style data strip ticking specs (left side, vertical) -->
-  <div class="bold-data" id="boldData" aria-hidden="true">
-    <div class="bold-data-row"><i></i> <em>SOURCE</em> <span>Páramo · Andes</span></div>
-    <div class="bold-data-row"><i></i> <em>ALT</em>    <span>3,600 m</span></div>
-    <div class="bold-data-row"><i></i> <em>TDS</em>    <span>280 ppm</span></div>
-    <div class="bold-data-row"><i></i> <em>pH</em>     <span>7.4</span></div>
-    <div class="bold-data-row"><i></i> <em>BPM</em>    <span id="boldBpm">130</span></div>
-    <div class="bold-data-row"><i></i> <em>STATUS</em> <span class="bold-data-blink">READY · POUR</span></div>
-  </div>
-
-  <!-- crimson "flood" rises from the bottom over the back half of the scroll -->
-  <div class="bold-flood" id="boldFlood" aria-hidden="true">
-    <svg class="bold-flood-wave" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
-      <path id="boldFloodWave"
-            d="M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V60 H0 Z"
-            fill="rgba(230,57,70,0.92)"/>
-    </svg>
-    <div class="bold-flood-fill"></div>
-  </div>
+  <video
+    class="bold-scrub-video"
+    id="boldScrubVideo"
+    src="assets/bold-scrub.mp4"
+    muted
+    playsinline
+    preload="auto"
+    disablePictureInPicture
+    aria-hidden="true"></video>
   <div class="bold-grain"></div>
-  <!-- per-act caption strip -->
-  <div class="bold-captions" id="boldCaptions" aria-hidden="true">
-    <div class="bold-caption" data-act="1">
-      <div class="bold-kicker">01 — Incoming</div>
-      <h2 class="bold-hed">Bottle inbound.</h2>
-    </div>
-    <div class="bold-caption" data-act="2">
-      <div class="bold-kicker">02 — Spinning up</div>
-      <h2 class="bold-hed">2,400 RPM.</h2>
-    </div>
-    <div class="bold-caption" data-act="3">
-      <div class="bold-kicker">03 — In hand</div>
-      <h2 class="bold-hed">Locked on.</h2>
-    </div>
-    <div class="bold-caption" data-act="4">
-      <div class="bold-kicker">04 — Ready to pour</div>
-      <h2 class="bold-hed"><em>Drink it.</em></h2>
-    </div>
-  </div>
 </div>
 
 <!-- ============ navigation ============ -->
