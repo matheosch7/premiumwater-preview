@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>bottle preview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#000; height:100%; }
+  body { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:0; height:100vh; }
+  model-viewer {
+    width:100%; height:100%;
+    background:#000;
+    --poster-color:transparent;
+  }
+  .label {
+    position:absolute; bottom:8px; left:50%;
+    transform:translateX(-50%);
+    color:#E63946;
+    font:600 11px/1 'JetBrains Mono', monospace;
+    letter-spacing:.18em; text-transform:uppercase;
+  }
+  .panel { position:relative; }
+</style>
+</head>
+<body>
+  <div class="panel">
+    <model-viewer
+      src="assets/bottle-premium.glb"
+      alt="premium bottle straight-on"
+      camera-controls
+      auto-rotate auto-rotate-delay="0" rotation-per-second="0deg"
+      interaction-prompt="none" disable-pan disable-tap disable-zoom
+      shadow-intensity="1.4" shadow-softness="0.6"
+      exposure="1.0" environment-image="neutral"
+      camera-orbit="0deg 90deg 5m"
+      field-of-view="22deg"
+      camera-target="0m 0m 0m">
+    </model-viewer>
+    <div class="label">Front · 0°</div>
+  </div>
+  <div class="panel">
+    <model-viewer
+      src="assets/bottle-premium.glb"
+      alt="premium bottle 3/4"
+      camera-controls
+      interaction-prompt="none" disable-pan disable-tap disable-zoom
+      shadow-intensity="1.4" shadow-softness="0.6"
+      exposure="1.0" environment-image="neutral"
+      camera-orbit="35deg 85deg 5m"
+      field-of-view="22deg"
+      camera-target="0m 0m 0m">
+    </model-viewer>
+    <div class="label">3/4 · 35°</div>
+  </div>
+  <div class="panel">
+    <model-viewer
+      src="assets/bottle-premium.glb"
+      alt="premium bottle side"
+      camera-controls
+      interaction-prompt="none" disable-pan disable-tap disable-zoom
+      shadow-intensity="1.4" shadow-softness="0.6"
+      exposure="1.0" environment-image="neutral"
+      camera-orbit="90deg 90deg 5m"
+      field-of-view="22deg"
+      camera-target="0m 0m 0m">
+    </model-viewer>
+    <div class="label">Side · 90°</div>
+  </div>
+</body>
+</html>

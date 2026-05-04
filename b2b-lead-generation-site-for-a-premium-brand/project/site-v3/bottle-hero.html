@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>bottle hero — clean reference</title>
+<meta name="viewport" content="width=1080, initial-scale=1" />
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#FFFFFF; height:100%; width:100%; overflow:hidden; }
+  body { display:grid; place-items:center; }
+  model-viewer {
+    width:100vw; height:100vh;
+    background:#FFFFFF;
+    --poster-color:#FFFFFF;
+    /* Soft diffuse studio shadow, no dramatic rim — clean editorial look */
+    filter: drop-shadow(0 30px 50px rgba(0,0,0,0.18))
+            drop-shadow(0 0 60px rgba(230,57,70,0.10));
+  }
+</style>
+</head>
+<body>
+  <model-viewer
+    src="assets/bottle-premium.glb"
+    alt="premium water bottle hero reference"
+    interaction-prompt="none"
+    disable-pan disable-tap disable-zoom
+    shadow-intensity="0"
+    exposure="1.05"
+    environment-image="neutral"
+    bounds="tight"
+    camera-orbit="15deg 88deg auto"
+    min-camera-orbit="auto auto 0.3m"
+    max-camera-orbit="auto auto 10m"
+    field-of-view="32deg"
+    camera-target="auto auto auto">
+  </model-viewer>
+</body>
+</html>

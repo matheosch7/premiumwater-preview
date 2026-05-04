@@ -851,11 +851,19 @@
     document.body.appendChild(b);
   }
 
-  // Bold-mode cinematic is a pre-rendered MP4 from the bold-cinematic
-  // hyperframes project. Scroll position drives video.currentTime —
-  // exact same pattern as calm mode's pour-scrub.mp4. All the SVG/img/
-  // model-viewer choreography is gone; the video IS the choreography.
+  // Bold-mode cinematic is a pre-rendered MP4 (Veo 3 footage of the bottle
+  // reveal + cheers, spliced via FFmpeg crossfade). Scroll drives currentTime
+  // exactly like calm mode's pour-scrub.mp4.
   const boldScrubVideo = document.getElementById('boldScrubVideo');
+  const boldTouches    = Array.from(document.querySelectorAll('.bold-touch'));
+  // Three text-touch windows, expressed as scroll-progress ranges.
+  // Total video is ~15.6s. Spin scene of Clip A spans ~1s..6s of the video,
+  // i.e. ~0.06..0.38 of scroll progress. Three touches divide that span.
+  const TOUCH_RANGES = [
+    [0.07, 0.16],   // 01 Source — appears during first spin
+    [0.17, 0.26],   // 02 Altitude — during dolly-in/out
+    [0.27, 0.36],   // 03 Distance — during last spin
+  ];
 
   function updateBold() {
     if (!boldStage || currentBrand !== 'bold') return;
@@ -864,6 +872,11 @@
     if (boldScrubVideo && isFinite(boldScrubVideo.duration) && boldScrubVideo.duration > 0) {
       try { boldScrubVideo.currentTime = p * boldScrubVideo.duration; } catch (e) {}
     }
+    boldTouches.forEach((el, i) => {
+      const r = TOUCH_RANGES[i];
+      const want = (r && p >= r[0] && p <= r[1]) ? '1' : '0';
+      if (el.dataset.on !== want) el.dataset.on = want;
+    });
     boldStage.style.opacity = 1 - smoothstep(0.97, 1.0, p);
   }
 

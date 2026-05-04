@@ -48,23 +48,24 @@
 
 /* ============ brand modes (visitor-selectable: calm | bold) ============ */
 /* `data-brand="calm"` is the default sandpaper/gold identity above.
-   `data-brand="bold"` is the loud, Liquid-Death-leaning identity for the
-   gym / nightlife cluster — same liquid, different story. */
+   `data-brand="bold"` is the futuristic minimalist identity — pure white
+   stage, dark ink, single crimson accent on the bottle. Apple-product-
+   launch aesthetic with one rebellious moment (the cheers in the video). */
 [data-brand="bold"] {
-  --ink: #FFFFFF;
-  --ink-2: #E8E8EA;
-  --mute: #8A8A92;
-  --accent: #E63946;
+  --ink: #0A0A0C;            /* dark ink reads on white */
+  --ink-2: #2E2E32;
+  --mute: #76767D;
+  --accent: #E63946;          /* crimson stays — matches the bottle's band */
   --accent-2: #FF6E78;
-  --pill-ink: #0A0A0B;
-  --pill-bg: #FFFFFF;
-  --glass: rgba(255, 255, 255, 0.05);
-  --glass-line: rgba(255, 255, 255, 0.12);
-  --line: rgba(255, 255, 255, 0.10);
-  --bg-a: #050507;
-  --bg-b: #0B0B0E;
-  --bg-c: #15080A;
-  --bg-d: #000000;
+  --pill-ink: #FFFFFF;        /* solid pill = crimson bg, white text */
+  --pill-bg: #0A0A0C;
+  --glass: rgba(10, 10, 12, 0.04);
+  --glass-line: rgba(10, 10, 12, 0.10);
+  --line: rgba(10, 10, 12, 0.08);
+  --bg-a: #FFFFFF;
+  --bg-b: #FAFAFB;
+  --bg-c: #F4F4F6;
+  --bg-d: #FFFFFF;
   --display: 'Anton', 'Schibsted Grotesk', ui-sans-serif, sans-serif;
 }
 
@@ -1234,7 +1235,7 @@ main#top { position: relative; z-index: 2; }
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: #050507;
+  background: #FFFFFF;
   display: none;
 }
 .bold-scrub-video {
@@ -1246,12 +1247,59 @@ main#top { position: relative; z-index: 2; }
   object-position: center;
   pointer-events: none;
   z-index: 1;
-  background: #050507;
+  background: #FFFFFF;
+}
+
+/* TEXT TOUCHES — fly-in callouts that appear during the spin scene of the
+   bold-mode cinematic. Positioned at three corners around the bottle so they
+   read like spec annotations on a product render. JS sets data-on="1" while
+   scroll progress is inside the touch's time window. */
+.bold-text-touches {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  font-family: 'JetBrains Mono', monospace;
+}
+.bold-touch {
+  position: absolute;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 320ms ease, transform 480ms cubic-bezier(.2,.7,.2,1);
+  max-width: 380px;
+}
+.bold-touch[data-on="1"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+.bold-touch .touch-kicker {
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.bold-touch .touch-line {
+  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
+  font-size: clamp(28px, 3.6vw, 56px);
+  line-height: 1.0;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+.bold-touch[data-touch="1"] { left: 6vw;  top: 22vh; }
+.bold-touch[data-touch="2"] { right: 6vw; top: 32vh; text-align: right; }
+.bold-touch[data-touch="3"] { left: 6vw;  bottom: 22vh; }
+@media (max-width: 720px) {
+  .bold-touch { max-width: 70vw; }
+  .bold-touch[data-touch="1"] { top: 14vh; }
+  .bold-touch[data-touch="2"] { top: 28vh; }
+  .bold-touch[data-touch="3"] { bottom: 28vh; }
 }
 [data-brand="bold"] .cine-stage { display: none; }
 [data-brand="bold"] .bold-stage { display: block; }
 html[data-brand="bold"],
-[data-brand="bold"] body { background: #050507 !important; }
+[data-brand="bold"] body { background: #FFFFFF !important; }
 
 .bold-bg {
   position: absolute; inset: -10% -10% -10% -10%;  /* extra width so parallax-x doesn't expose edges */
@@ -1498,6 +1546,33 @@ html[data-brand="bold"],
 [data-brand="bold"] .hero-lede,
 [data-brand="bold"] .lede { color: var(--ink-2); }
 
+/* Bold-mode runs on a WHITE video bg, so override the calm-mode dark
+   palette — copy needs dark ink not white. */
+[data-brand="bold"] .hero-copy {
+  color: var(--ink);
+  text-shadow: 0 1px 2px rgba(255,255,255,0.7);  /* light glow keeps text legible against busy video */
+}
+[data-brand="bold"] .hero-title { color: var(--ink); }
+[data-brand="bold"] .h-display { color: var(--ink); }
+[data-brand="bold"] .eyebrow { color: var(--accent); }
+[data-brand="bold"] .product-name,
+[data-brand="bold"] .product-title,
+[data-brand="bold"] .product-spec,
+[data-brand="bold"] .product p,
+[data-brand="bold"] .trade-card h3,
+[data-brand="bold"] .trade-card p,
+[data-brand="bold"] .trade-card .n,
+[data-brand="bold"] .stats em,
+[data-brand="bold"] .stats span,
+[data-brand="bold"] .spec-list span,
+[data-brand="bold"] .spec-list em,
+[data-brand="bold"] .contact-detail .k,
+[data-brand="bold"] .contact-detail .v {
+  color: var(--ink);
+}
+[data-brand="bold"] footer { color: var(--ink); }
+[data-brand="bold"] footer a { color: var(--ink); }
+
 /* Bold-mode pill restyle: sharp corners, hard edges */
 [data-brand="bold"] .pill {
   border-radius: 4px;
@@ -1514,13 +1589,31 @@ html[data-brand="bold"],
 [data-brand="bold"] .pill-ghost {
   background: transparent;
   color: var(--ink);
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(10,10,12,0.20);
 }
 [data-brand="bold"] .pill-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-/* Bold-mode brand-pill (the calm/bold toggle): make the active state crimson */
+/* Nav links read dark on white */
+[data-brand="bold"] .nav-center a { color: var(--ink); }
+[data-brand="bold"] .brand { color: var(--ink); }
+
+/* Bold-mode brand-pill (the calm/bold toggle): white pill, dark active */
+[data-brand="bold"] .brand-pill {
+  background: rgba(10,10,12,0.05);
+  border: 1px solid rgba(10,10,12,0.10);
+}
+[data-brand="bold"] .brand-pill button { color: var(--ink); }
 [data-brand="bold"] .brand-pill button[aria-pressed="true"] {
   background: var(--accent);
+  color: #fff;
+}
+[data-brand="bold"] .lang-pill {
+  background: rgba(10,10,12,0.05);
+  border: 1px solid rgba(10,10,12,0.10);
+}
+[data-brand="bold"] .lang-pill button { color: var(--ink); }
+[data-brand="bold"] .lang-pill button[aria-pressed="true"] {
+  background: var(--ink);
   color: #fff;
 }
 
@@ -1529,12 +1622,14 @@ html[data-brand="bold"],
 [data-brand="bold"] .scroll-card,
 [data-brand="bold"] .side-badge { opacity: 0; pointer-events: none; }
 
-/* Marquee tone in bold mode */
+/* Marquee tone in bold mode — light strip on white */
 [data-brand="bold"] .marquee-band {
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.35)) !important;
+  background: linear-gradient(180deg, transparent, rgba(10,10,12,0.04)) !important;
   border-top: 1px solid rgba(230,57,70,0.4);
   border-bottom: 1px solid rgba(230,57,70,0.4);
+  color: var(--ink);
 }
+[data-brand="bold"] .marquee-track { color: var(--ink); }
 
 /* Mobile: shrink the lockup so it doesn't overwhelm a 375px screen */
 @media (max-width: 720px) {
@@ -1574,8 +1669,8 @@ html[data-brand="bold"],
   letter-spacing: -0.01em;
   text-transform: uppercase;
   color: transparent;
-  -webkit-text-stroke: 1.5px rgba(255,255,255,0.06);
-          text-stroke: 1.5px rgba(255,255,255,0.06);
+  -webkit-text-stroke: 1.5px rgba(10,10,12,0.10);
+          text-stroke: 1.5px rgba(10,10,12,0.10);
   white-space: nowrap;
   pointer-events: none;
   z-index: -1;
@@ -1609,10 +1704,10 @@ html[data-brand="bold"],
   transform: translate3d(0, 0, 0) scale(1);
 }
 [data-brand="bold"] .trade-card {
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(8,8,10,0.32);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(10,10,12,0.10);
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   transition: border-color 300ms ease, transform 600ms cubic-bezier(.2,.7,.2,1);
 }
 [data-brand="bold"] .trade-card:hover {
@@ -1622,19 +1717,19 @@ html[data-brand="bold"],
 [data-brand="bold"] .trade-card .n { color: var(--accent); }
 
 [data-brand="bold"] .product {
-  background: rgba(8,8,10,0.32);
-  border: 1px solid rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* Bold-mode contact form: glassy so the label-zoom reads through */
-[data-brand="bold"] .form-card,
-[data-brand="bold"] form.lead-form {
-  background: rgba(8,8,10,0.42) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(10,10,12,0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+/* Bold-mode contact form: glassy white so the label-zoom video reads through */
+[data-brand="bold"] .form-card,
+[data-brand="bold"] form.lead-form {
+  background: rgba(255,255,255,0.82) !important;
+  border: 1px solid rgba(10,10,12,0.10) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 [data-brand="bold"] .stats em {
