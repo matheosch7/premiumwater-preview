@@ -1441,6 +1441,43 @@ body.mg-hero-ready .hero-lede   .mg-word {
   background: #FFFFFF;
 }
 
+/* ============ BOLD FRAME STACK ==================================
+   Replacement for the Veo scroll-scrub MP4. Six designed beats are
+   stacked absolute, all centered, fitted (object-fit: contain) so
+   the bottle photography never crops awkwardly. Default opacity 0;
+   `updateBold()` in app.js sets per-frame opacity from scroll
+   progress so two adjacent beats cross-fade as the user scrolls.
+   ================================================================= */
+.bold-frames {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #FFFFFF;
+  overflow: hidden;
+}
+.bold-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0;
+  /* Soft transition so opacity changes feel buttery, not stepped.
+     JS still drives the actual values, but a gentle CSS transition
+     hides any one-frame jitter from the scroll handler. */
+  transition: opacity 220ms cubic-bezier(.2,.7,.2,1);
+  pointer-events: none;
+  will-change: opacity;
+  /* Subtle ken-burns idle so static beats don't feel frozen.
+     Kept very small so it reads as "alive" not "drifting". */
+  transform: scale(1.02);
+}
+.bold-frame[data-beat="0"] { opacity: 1; }  /* default first frame visible */
+@media (prefers-reduced-motion: reduce) {
+  .bold-frame { transform: none; transition: opacity 0ms; }
+}
+
 /* TEXT TOUCHES — fly-in callouts that appear during the spin scene of the
    bold-mode cinematic. Positioned at three corners around the bottle so they
    read like spec annotations on a product render. JS sets data-on="1" while

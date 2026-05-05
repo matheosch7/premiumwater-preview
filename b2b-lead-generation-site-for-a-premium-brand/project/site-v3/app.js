@@ -1039,19 +1039,35 @@
     document.body.appendChild(b);
   }
 
-  // Bold-mode cinematic is a pre-rendered MP4 from the hyperframes
-  // composition at project/bold-cinematic/. Veo 3 footage cut into stills,
-  // GSAP-timed crossfades between them, text-touch overlays baked in.
-  // Scroll drives currentTime exactly like calm mode's pour-scrub.mp4.
-  const boldScrubVideo = document.getElementById('boldScrubVideo');
+  // Bold-mode cinematic — frame-stack cross-fade.
+  // Six designed beats (Veo stills composed in Figma) are layered in
+  // .bold-frames. Each beat has a centre-of-attention scroll position p_i
+  // = i / (N-1). For each frame we compute opacity as a triangle window
+  // peaking at p_i and falling to 0 at the neighbouring beats — the
+  // result is a smooth two-beat blend at every scroll position, no
+  // jitter from a video element being seeked. This replaces the prior
+  // Veo MP4 background and is a Figma-driven composition.
+  const boldFrames = Array.from(document.querySelectorAll('#boldFrames .bold-frame'));
+  const BEAT_COUNT = boldFrames.length || 1;
 
   function updateBold() {
     if (!boldStage || currentBrand !== 'bold') return;
     if (isFrameLocked()) return;
     const p = clamp(window.scrollY / fullScrollEnd(), 0, 1);
-    if (boldScrubVideo && isFinite(boldScrubVideo.duration) && boldScrubVideo.duration > 0) {
-      try { boldScrubVideo.currentTime = p * boldScrubVideo.duration; } catch (e) {}
+
+    if (boldFrames.length > 1) {
+      const segment = 1 / (BEAT_COUNT - 1); // distance between adjacent beats
+      for (let i = 0; i < BEAT_COUNT; i++) {
+        const center = i * segment;
+        const dist = Math.abs(p - center);
+        // Triangle window: 1 at the center, 0 at +/- one segment away.
+        // Soft-easing the fade with a cubic so peaks feel held, not pointy.
+        const t = clamp(1 - dist / segment, 0, 1);
+        const eased = t * t * (3 - 2 * t); // smoothstep
+        boldFrames[i].style.opacity = eased.toFixed(3);
+      }
     }
+
     boldStage.style.opacity = 1 - smoothstep(0.97, 1.0, p);
   }
 
