@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1280, height=720" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -11,6 +14,7 @@
         width: 1280px; height: 720px;
         overflow: hidden;
         background: #FFFFFF;
+        font-family: 'Inter', sans-serif;
       }
       #root {
         position: relative;
@@ -21,32 +25,152 @@
         position: absolute;
         inset: 0;
       }
-      .clip img {
+      /* Photo layer: Veo stills, fitted into the 1280×720 canvas */
+      .photo {
         width: 100%; height: 100%;
-        object-fit: contain;
+        background: #FFFFFF;
+      }
+      .photo img {
+        width: 100%; height: 100%;
+        object-fit: cover;
         display: block;
+      }
+      /* Text-touch overlays — crisp HTML on top of the photo */
+      .touch {
+        position: absolute;
+        font-family: 'Inter', sans-serif;
+      }
+      .touch .kicker {
+        font-size: 13px;
+        font-weight: 700;
+        color: #E63946;
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+      .touch .line {
+        font-family: 'Anton', 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 56px;
+        line-height: 1.0;
+        text-transform: uppercase;
+        letter-spacing: -0.005em;
+        color: #0A0A0C;
+        max-width: 480px;
+      }
+      .touch--left  { left: 70px; }
+      .touch--right { right: 70px; text-align: right; }
+      .touch--top   { top: 110px; }
+      .touch--mid   { top: 200px; }
+      .touch--bot   { bottom: 90px; }
+
+      /* Spec callout panel for frame 12 */
+      .callout {
+        position: absolute;
+        left: 80px; top: 50%;
+        transform: translateY(-50%);
+        width: 380px; min-height: 360px;
+        background: rgba(247, 247, 248, 0.94);
+        border: 1px solid rgba(230, 57, 70, 0.40);
+        border-radius: 8px;
+        padding: 24px 28px;
+        font-family: 'JetBrains Mono', monospace;
+        backdrop-filter: blur(10px);
+      }
+      .callout .ck {
+        font-size: 11px; color: #E63946;
+        letter-spacing: 0.32em; text-transform: uppercase;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(230, 57, 70, 0.20);
+      }
+      .callout .row {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 14px;
+        font-size: 13px;
+        padding: 6px 0;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      .callout .row em { font-style: normal; color: #E63946; font-weight: 500; }
+      .callout .row span { color: #0A0A0C; font-weight: 500; }
+      .callout .foot {
+        margin-top: 20px;
+        font-size: 9px;
+        color: #76767D;
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
       }
     </style>
   </head>
   <body>
     <div id="root" data-composition-id="main" data-start="0" data-duration="12.5" data-width="1280" data-height="720">
 
-      <!-- Storyboard frames exported from Figma file eTdC2DBlIQFDkHM2JVeS08
-           and crossfaded via GSAP. Alternating tracks (1 / 2) so adjacent
-           frames overlap by ~0.2s for smooth crossfade. -->
+      <!-- ====================================================================
+           PHOTOREAL CINEMATIC v8
+           12 beats from approved Figma storyboard, mapped to Veo footage stills
+           with HTML text overlays at the Figma-designed positions.
+           ==================================================================== -->
 
-      <div id="f1"  class="clip" data-start="0.0"  data-duration="0.7"  data-track-index="1"><img src="assets/figma/frame-01.png" alt=""></div>
-      <div id="f2"  class="clip" data-start="0.5"  data-duration="1.1"  data-track-index="2"><img src="assets/figma/frame-02.png" alt=""></div>
-      <div id="f3"  class="clip" data-start="1.4"  data-duration="2.0"  data-track-index="1"><img src="assets/figma/frame-03.png" alt=""></div>
-      <div id="f4"  class="clip" data-start="3.2"  data-duration="1.2"  data-track-index="2"><img src="assets/figma/frame-04.png" alt=""></div>
-      <div id="f5"  class="clip" data-start="4.2"  data-duration="1.2"  data-track-index="1"><img src="assets/figma/frame-05.png" alt=""></div>
-      <div id="f6"  class="clip" data-start="5.2"  data-duration="1.0"  data-track-index="2"><img src="assets/figma/frame-06.png" alt=""></div>
-      <div id="f7"  class="clip" data-start="6.0"  data-duration="1.0"  data-track-index="1"><img src="assets/figma/frame-07.png" alt=""></div>
-      <div id="f8"  class="clip" data-start="6.8"  data-duration="1.0"  data-track-index="2"><img src="assets/figma/frame-08.png" alt=""></div>
-      <div id="f9"  class="clip" data-start="7.6"  data-duration="1.5"  data-track-index="1"><img src="assets/figma/frame-09.png" alt=""></div>
-      <div id="f10" class="clip" data-start="8.9"  data-duration="0.9"  data-track-index="2"><img src="assets/figma/frame-10.png" alt=""></div>
-      <div id="f11" class="clip" data-start="9.6"  data-duration="1.2"  data-track-index="1"><img src="assets/figma/frame-11.png" alt=""></div>
-      <div id="f12" class="clip" data-start="10.6" data-duration="1.9"  data-track-index="2"><img src="assets/figma/frame-12.png" alt=""></div>
+      <div id="f1"  class="clip" data-start="0.0"  data-duration="0.7"  data-track-index="1">
+        <div class="photo"><img src="assets/clipA/A_0_0.png" alt=""></div>
+      </div>
+      <div id="f2"  class="clip" data-start="0.5"  data-duration="1.1"  data-track-index="2">
+        <div class="photo"><img src="assets/clipA/A_0_5.png" alt=""></div>
+      </div>
+      <div id="f3"  class="clip" data-start="1.4"  data-duration="2.0"  data-track-index="1">
+        <div class="photo"><img src="assets/clipA/A_2_0.png" alt=""></div>
+        <div class="touch touch--left touch--top">
+          <div class="kicker">01 ▸ Source</div>
+          <div class="line">From the<br/>Andean&nbsp;páramo</div>
+        </div>
+      </div>
+      <div id="f4"  class="clip" data-start="3.2"  data-duration="1.2"  data-track-index="2">
+        <div class="photo"><img src="assets/clipA/A_4_5.png" alt=""></div>
+        <div class="touch touch--right touch--mid">
+          <div class="kicker">02 ▸ Altitude</div>
+          <div class="line">3,600 m above<br/>sea&nbsp;level</div>
+        </div>
+      </div>
+      <div id="f5"  class="clip" data-start="4.2"  data-duration="1.2"  data-track-index="1">
+        <div class="photo"><img src="assets/clipA/A_5_75.png" alt=""></div>
+        <div class="touch touch--left touch--bot">
+          <div class="kicker">03 ▸ Distance</div>
+          <div class="line">Bottled &lt; 40 km<br/>from&nbsp;source</div>
+        </div>
+      </div>
+      <div id="f6"  class="clip" data-start="5.2"  data-duration="1.0"  data-track-index="2">
+        <div class="photo"><img src="assets/clipA/A_7_5.png" alt=""></div>
+      </div>
+      <div id="f7"  class="clip" data-start="6.0"  data-duration="1.0"  data-track-index="1">
+        <div class="photo"><img src="assets/clipB/B_1_75.png" alt=""></div>
+      </div>
+      <div id="f8"  class="clip" data-start="6.8"  data-duration="1.0"  data-track-index="2">
+        <div class="photo"><img src="assets/clipB/B_2_25.png" alt=""></div>
+      </div>
+      <div id="f9"  class="clip" data-start="7.6"  data-duration="1.5"  data-track-index="1">
+        <div class="photo"><img src="assets/clipB/B_3_25.png" alt=""></div>
+      </div>
+      <div id="f10" class="clip" data-start="8.9"  data-duration="0.9"  data-track-index="2">
+        <div class="photo"><img src="assets/clipB/B_5_0.png" alt=""></div>
+      </div>
+      <div id="f11" class="clip" data-start="9.6"  data-duration="1.2"  data-track-index="1">
+        <div class="photo"><img src="assets/clipB/B_6_5.png" alt=""></div>
+      </div>
+      <div id="f12" class="clip" data-start="10.6" data-duration="1.9"  data-track-index="2">
+        <div class="photo"><img src="assets/clipB/B_7_5.png" alt=""></div>
+        <div class="callout">
+          <div class="ck">▸ Label Zoom · Matte Black · 500ml</div>
+          <div class="row"><em>pH</em><span>7.4</span></div>
+          <div class="row"><em>TDS</em><span>280 ppm</span></div>
+          <div class="row"><em>Source</em><span>Andean páramo</span></div>
+          <div class="row"><em>Alt</em><span>3,600 m</span></div>
+          <div class="row"><em>Bottled</em><span>Cartagena, CO</span></div>
+          <div class="row"><em>Vintage</em><span>2026</span></div>
+          <div class="foot">— Premiumwater · Loud edition —</div>
+        </div>
+      </div>
 
     </div>
 
@@ -54,10 +178,8 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      // Each frame fades in over its overlap window with the previous frame.
-      // Hyperframes auto-hides each clip at its data-end, so no exit needed.
+      // === FRAME CROSSFADE ENTRANCES ===
       const fadeIn = (id, t, dur) => tl.from(id, { opacity: 0, duration: dur, ease: "power2.out" }, t);
-
       fadeIn("#f1",  0.0,  0.25);
       fadeIn("#f2",  0.5,  0.4);
       fadeIn("#f3",  1.4,  0.4);
@@ -71,26 +193,29 @@
       fadeIn("#f11", 9.6,  0.4);
       fadeIn("#f12", 10.6, 0.5);
 
-      // === Beat-specific micro-motion (within each frame) ===
+      // === PER-BEAT MICRO-MOTION ===
+      // Frame 03 spin — subtle drift to fake rotation feel
+      tl.fromTo("#f3 .photo img", { x: -8 }, { x: 8, duration: 2.0, ease: "sine.inOut" }, 1.4);
+      // Frame 04 dolly-in — scale 1.0 → 1.06
+      tl.fromTo("#f4 .photo img", { scale: 1.0 }, { scale: 1.06, duration: 1.2, ease: "power2.out", transformOrigin: "50% 50%" }, 3.2);
+      // Frame 05 pull-back — scale 1.06 → 1.0
+      tl.fromTo("#f5 .photo img", { scale: 1.06 }, { scale: 1.0, duration: 1.2, ease: "power2.inOut", transformOrigin: "50% 50%" }, 4.2);
+      // Frame 06 last spin — gentle rotation
+      tl.fromTo("#f6 .photo img", { rotation: -1.2 }, { rotation: 0, duration: 1.0, ease: "sine.inOut" }, 5.2);
+      // Frame 10 clink — scale-pulse
+      tl.fromTo("#f10 .photo img", { scale: 1.0 }, { scale: 1.04, duration: 0.2, ease: "power3.out", transformOrigin: "50% 50%" }, 8.9);
+      tl.to("#f10 .photo img", { scale: 1.0, duration: 0.5, ease: "power3.inOut" }, 9.1);
+      // Frame 12 display — soft settle
+      tl.fromTo("#f12 .photo img", { scale: 1.02 }, { scale: 1.0, duration: 1.5, ease: "power3.out", transformOrigin: "50% 50%" }, 10.6);
 
-      // Frame 03 spinning — subtle horizontal nudge to suggest rotation
-      tl.fromTo("#f3 img", { x: -8 }, { x: 8, duration: 2.0, ease: "sine.inOut" }, 1.4);
+      // === TEXT TOUCHES — slide up + fade in inside their frame's window ===
+      tl.from("#f3 .touch", { opacity: 0, y: 24, duration: 0.5, ease: "power3.out" }, 1.7);
+      tl.from("#f4 .touch", { opacity: 0, y: 24, duration: 0.5, ease: "power3.out" }, 3.5);
+      tl.from("#f5 .touch", { opacity: 0, y: 24, duration: 0.5, ease: "power3.out" }, 4.5);
 
-      // Frame 04 dolly-in — scale up from 1.0 to 1.06
-      tl.fromTo("#f4 img", { scale: 1.0 }, { scale: 1.06, duration: 1.2, ease: "power2.out", transformOrigin: "50% 50%" }, 3.2);
-
-      // Frame 05 pull-back — scale down from 1.06 to 1.0
-      tl.fromTo("#f5 img", { scale: 1.06 }, { scale: 1.0, duration: 1.2, ease: "power2.inOut", transformOrigin: "50% 50%" }, 4.2);
-
-      // Frame 06 last spin — gentle rotation -2 → 0
-      tl.fromTo("#f6 img", { rotation: -2 }, { rotation: 0, duration: 1.0, ease: "sine.inOut" }, 5.2);
-
-      // Frame 10 clink — quick scale-up on impact (1.0 → 1.04 → 1.0)
-      tl.fromTo("#f10 img", { scale: 1.0 }, { scale: 1.04, duration: 0.2, ease: "power3.out", transformOrigin: "50% 50%" }, 8.9);
-      tl.to("#f10 img", { scale: 1.0, duration: 0.5, ease: "power3.inOut" }, 9.1);
-
-      // Frame 12 display pose — soft settle (scale 1.02 → 1.0)
-      tl.fromTo("#f12 img", { scale: 1.02 }, { scale: 1.0, duration: 1.5, ease: "power3.out", transformOrigin: "50% 50%" }, 10.6);
+      // Frame 12 callout panel — slide in from left, then stagger rows
+      tl.from("#f12 .callout", { opacity: 0, x: -30, duration: 0.6, ease: "power3.out" }, 10.8);
+      tl.from("#f12 .callout .row", { opacity: 0, x: 12, duration: 0.4, stagger: 0.06, ease: "power3.out" }, 11.0);
 
       window.__timelines["main"] = tl;
     </script>
