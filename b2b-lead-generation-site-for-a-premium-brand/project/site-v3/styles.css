@@ -1902,3 +1902,12 @@ html[data-brand="bold"],
   [data-brand="bold"] .h-display { font-size: clamp(40px, 11vw, 72px); }
   [data-brand="bold"] .stats em { font-size: clamp(48px, 14vw, 80px); }
 }
+
+/* Disable the calm-mode .reveal opacity gate in bold mode — bold sections
+   should always be readable; the slide-up + fade reveal was a calm-mode
+   atmospheric effect that's been getting stuck mid-transition. */
+:root[data-brand="bold"] .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
