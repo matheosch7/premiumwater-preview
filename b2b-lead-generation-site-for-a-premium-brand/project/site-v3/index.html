@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=43" />
+  <link rel="stylesheet" href="styles.css?v=44" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -128,13 +128,22 @@
        and `updateBold()` drives per-frame opacity from scroll progress
        so the visible image always feels handcrafted, not "video paused
        in the background". -->
+  <!-- Bold-stage frame stack — 12 beats from the Figma cinematic page
+       (file dHKh6V6sE0XTQRpzIhVVkh, "Cinematic · 12 beats"). Beats 4 + 5
+       are the new "label zoom-in / inside the source" sequence. -->
   <div class="bold-frames" id="boldFrames">
-    <img class="bold-frame" data-beat="0" src="assets/bold-frames/01-void.png?v=1"   alt="" decoding="async" />
-    <img class="bold-frame" data-beat="1" src="assets/bold-frames/02-hero.png?v=1"   alt="" decoding="async" />
-    <img class="bold-frame" data-beat="2" src="assets/bold-frames/03-grip.png?v=1"   alt="" decoding="async" />
-    <img class="bold-frame" data-beat="3" src="assets/bold-frames/04-cheers.png?v=1" alt="" decoding="async" />
-    <img class="bold-frame" data-beat="4" src="assets/bold-frames/05-tilt.png?v=1"   alt="" decoding="async" />
-    <img class="bold-frame" data-beat="5" src="assets/bold-frames/06-fade.png?v=1"   alt="" decoding="async" />
+    <img class="bold-frame" data-beat="0"  src="assets/bold-cinematic/01-cold-open.png?v=1"   alt="" decoding="async" />
+    <img class="bold-frame" data-beat="1"  src="assets/bold-cinematic/02-materialize.png?v=1" alt="" decoding="async" />
+    <img class="bold-frame" data-beat="2"  src="assets/bold-cinematic/03-spinning.png?v=1"    alt="" decoding="async" />
+    <img class="bold-frame" data-beat="3"  src="assets/bold-cinematic/04-label-zoom.png?v=1"  alt="" decoding="async" />
+    <img class="bold-frame" data-beat="4"  src="assets/bold-cinematic/05-inside.png?v=1"      alt="" decoding="async" />
+    <img class="bold-frame" data-beat="5"  src="assets/bold-cinematic/06-last-spin.png?v=1"   alt="" decoding="async" />
+    <img class="bold-frame" data-beat="6"  src="assets/bold-cinematic/07-hand-inbound.png?v=1" alt="" decoding="async" />
+    <img class="bold-frame" data-beat="7"  src="assets/bold-cinematic/08-grip.png?v=1"        alt="" decoding="async" />
+    <img class="bold-frame" data-beat="8"  src="assets/bold-cinematic/09-green.png?v=1"       alt="" decoding="async" />
+    <img class="bold-frame" data-beat="9"  src="assets/bold-cinematic/10-clink.png?v=1"       alt="" decoding="async" />
+    <img class="bold-frame" data-beat="10" src="assets/bold-cinematic/11-recede.png?v=1"      alt="" decoding="async" />
+    <img class="bold-frame" data-beat="11" src="assets/bold-cinematic/12-display.png?v=1"     alt="" decoding="async" />
   </div>
   <!-- Lockup overlay layer — Figma-style typography composition pinned to
        each beat. updateBold() drives per-lockup opacity using the same
@@ -142,28 +151,52 @@
        and exit together. Lives inside .bold-stage so it inherits the
        fixed positioning + the soft fade-out near scroll end. -->
   <div class="bold-lockups" id="boldLockups" aria-hidden="true">
-    <div class="bold-lockup" data-beat="0" data-corner="tl">
-      <span class="lk-kicker">00 ▸ Enter</span>
+    <div class="bold-lockup" data-beat="0"  data-corner="tl">
+      <span class="lk-kicker">00 ▸ Cold open</span>
       <h2 class="lk-line">The loud<br/>edition.</h2>
     </div>
-    <div class="bold-lockup" data-beat="1" data-corner="bl">
-      <span class="lk-kicker">01 ▸ Source</span>
+    <div class="bold-lockup" data-beat="1"  data-corner="tl">
+      <span class="lk-kicker">01 ▸ Materialize</span>
+      <h2 class="lk-line">From&nbsp;void,<br/>a bottle.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="2"  data-corner="bl">
+      <span class="lk-kicker">02 ▸ Source</span>
       <h2 class="lk-line">From the<br/>Andean&nbsp;páramo.</h2>
     </div>
-    <div class="bold-lockup" data-beat="2" data-corner="tr">
-      <span class="lk-kicker">02 ▸ Grip</span>
+    <div class="bold-lockup" data-beat="3"  data-corner="tr">
+      <span class="lk-kicker">03 ▸ Label zoom</span>
+      <h2 class="lk-line">Step<br/>inside.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="4"  data-corner="bl">
+      <span class="lk-kicker">04 ▸ Inside</span>
+      <h2 class="lk-line">The source<br/>itself.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="5"  data-corner="tl">
+      <span class="lk-kicker">05 ▸ Last spin</span>
+      <h2 class="lk-line">Settled.<br/>Centred.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="6"  data-corner="tr">
+      <span class="lk-kicker">06 ▸ Hand inbound</span>
       <h2 class="lk-line">Built for<br/>the floor.</h2>
     </div>
-    <div class="bold-lockup" data-beat="3" data-corner="tl">
-      <span class="lk-kicker">03 ▸ Cheers</span>
+    <div class="bold-lockup" data-beat="7"  data-corner="tl">
+      <span class="lk-kicker">07 ▸ Grip</span>
+      <h2 class="lk-line">Held<br/>tight.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="8"  data-corner="bl">
+      <span class="lk-kicker">08 ▸ Green inbound</span>
+      <h2 class="lk-line">A second<br/>hand arrives.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="9"  data-corner="tl">
+      <span class="lk-kicker">09 ▸ Clink</span>
       <h2 class="lk-line">Same liquid;<br/>zero apologies.</h2>
     </div>
-    <div class="bold-lockup" data-beat="4" data-corner="bl">
-      <span class="lk-kicker">04 ▸ Distance</span>
-      <h2 class="lk-line">Bottled &lt;&nbsp;40&nbsp;km<br/>from source.</h2>
+    <div class="bold-lockup" data-beat="10" data-corner="bl">
+      <span class="lk-kicker">10 ▸ Hands recede</span>
+      <h2 class="lk-line">Bottle alone.<br/>City quiet.</h2>
     </div>
-    <div class="bold-lockup" data-beat="5" data-corner="tr">
-      <span class="lk-kicker">05 ▸ Spec</span>
+    <div class="bold-lockup" data-beat="11" data-corner="tr">
+      <span class="lk-kicker">11 ▸ Display pose</span>
       <h2 class="lk-line">Premiumwater<br/>Loud&nbsp;Edition.</h2>
       <ul class="lk-spec">
         <li><em>pH</em><span>7.4</span></li>
