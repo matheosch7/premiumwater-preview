@@ -614,6 +614,35 @@
     });
   }
 
+  // Section motion — when a .block enters viewport, add .section-in so the
+  // section title clip-reveals and its content cascade-stagger in. Each
+  // sub-element gets a --mg-section-i index so CSS transition-delay can
+  // build the cascade.
+  function applySectionMotion() {
+    const sections = document.querySelectorAll('main section.block, main #contact');
+    if (!sections.length) return;
+    sections.forEach(sec => {
+      // Index every motion-eligible child for cascade delay
+      const targets = sec.querySelectorAll(
+        '.eyebrow, .h-display, .lede, .spec-list, .spec-list li, .product, .trade-card, .stats > div, .impact-grid > .reveal, .form-card, .contact-detail'
+      );
+      targets.forEach((el, i) => el.style.setProperty('--mg-section-i', i));
+    });
+    if (!('IntersectionObserver' in window)) {
+      sections.forEach(s => s.classList.add('section-in'));
+      return;
+    }
+    const sIo = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('section-in');
+          sIo.unobserve(en.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -100px 0px', threshold: 0.15 });
+    sections.forEach(s => sIo.observe(s));
+  }
+
   // Cursor follower — subtle accent dot trailing the cursor. Only on bold mode
   // and only on devices with a fine pointer (skips touch).
   let cursorEl = null, cursorRaf = 0, cursorTarget = { x: 0, y: 0 }, cursorPos = { x: 0, y: 0 };
@@ -1132,6 +1161,7 @@
   try { applyHeroReveal(); }     catch (e) { console.warn('[mg] hero reveal failed', e); }
   try { applyCounters(); }       catch (e) { console.warn('[mg] counters failed', e); }
   try { applyCardStagger(); }    catch (e) { console.warn('[mg] card stagger failed', e); }
+  try { applySectionMotion(); }  catch (e) { console.warn('[mg] section motion failed', e); }
   try { applyCursorFollower(); } catch (e) { console.warn('[mg] cursor failed', e); }
   updateCine();
 })();

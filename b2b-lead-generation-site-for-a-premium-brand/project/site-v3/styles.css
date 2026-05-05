@@ -1329,6 +1329,156 @@ body.mg-hero-ready .hero-lede   .mg-word {
   .mg-cursor { display: none; }
 }
 
+/* ==========================================================================
+   BOLD-MODE SECTION MOTION — each section "unfolds" as user scrolls into it.
+   Title wipe-reveals via clip-path. Content cascades up with stagger.
+   Section content offsets to one side so it doesn't fight the central video
+   bottle — left/right alternates per section so the eye reads narratively.
+   ========================================================================== */
+
+/* Section pre-state: title masked, body content offset down + invisible */
+[data-brand="bold"] section.block .eyebrow,
+[data-brand="bold"] section.block .h-display,
+[data-brand="bold"] #contact .eyebrow,
+[data-brand="bold"] #contact .h-display {
+  display: inline-block;
+  clip-path: inset(0 100% 0 0);
+  -webkit-clip-path: inset(0 100% 0 0);
+  transition: clip-path 1100ms cubic-bezier(.2,.7,.2,1) calc(var(--mg-section-i, 0) * 80ms),
+              -webkit-clip-path 1100ms cubic-bezier(.2,.7,.2,1) calc(var(--mg-section-i, 0) * 80ms);
+}
+[data-brand="bold"] section.block .eyebrow { display: block; }   /* keep block layout */
+[data-brand="bold"] #contact .eyebrow { display: block; }
+[data-brand="bold"] section.block .h-display,
+[data-brand="bold"] #contact .h-display { display: block; }
+
+[data-brand="bold"] section.block .lede,
+[data-brand="bold"] section.block .spec-list,
+[data-brand="bold"] section.block .spec-list li,
+[data-brand="bold"] section.block .product,
+[data-brand="bold"] section.block .trade-card,
+[data-brand="bold"] section.block .stats > div,
+[data-brand="bold"] #contact .lede,
+[data-brand="bold"] #contact .form-card,
+[data-brand="bold"] #contact .contact-detail {
+  transform: translate3d(0, 36px, 0);
+  opacity: 0;
+  transition: transform 900ms cubic-bezier(.2,.7,.2,1),
+              opacity 700ms ease;
+  transition-delay: calc(var(--mg-section-i, 0) * 90ms + 280ms);
+}
+
+/* Section in-state: clip wide-open, content lifted to rest position */
+[data-brand="bold"] section.block.section-in .eyebrow,
+[data-brand="bold"] section.block.section-in .h-display,
+[data-brand="bold"] #contact.section-in .eyebrow,
+[data-brand="bold"] #contact.section-in .h-display {
+  clip-path: inset(0 0 0 0);
+  -webkit-clip-path: inset(0 0 0 0);
+}
+
+[data-brand="bold"] section.block.section-in .lede,
+[data-brand="bold"] section.block.section-in .spec-list,
+[data-brand="bold"] section.block.section-in .spec-list li,
+[data-brand="bold"] section.block.section-in .product,
+[data-brand="bold"] section.block.section-in .trade-card,
+[data-brand="bold"] section.block.section-in .stats > div,
+[data-brand="bold"] #contact.section-in .lede,
+[data-brand="bold"] #contact.section-in .form-card,
+[data-brand="bold"] #contact.section-in .contact-detail {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+
+/* Section divider — a thin crimson line that draws across between sections */
+[data-brand="bold"] section.block::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent 0%, var(--accent) 50%, transparent 100%);
+  transform: scaleX(0);
+  transform-origin: 50% 50%;
+  transition: transform 900ms cubic-bezier(.2,.7,.2,1) 100ms;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.5;
+}
+[data-brand="bold"] section.block.section-in::before {
+  transform: scaleX(1);
+}
+/* Make sure block has positioning context for the ::before line */
+[data-brand="bold"] section.block { position: relative; }
+
+/* Section content offset — push text to one side so the central video
+   bottle doesn't fight with the copy. Sections alternate L / R. */
+[data-brand="bold"] #story .grid-2 {
+  grid-template-columns: 1fr 1.4fr;
+  gap: clamp(40px, 6vw, 100px);
+  max-width: 56vw;          /* keep right column off the centre */
+  margin-right: auto;
+  margin-left: 6vw;
+}
+[data-brand="bold"] #product .section-head {
+  max-width: 46vw;
+  margin-left: 6vw;
+  margin-right: auto;
+  text-align: left;
+}
+[data-brand="bold"] #trade .section-head {
+  max-width: 46vw;
+  margin-left: auto;
+  margin-right: 6vw;
+  text-align: right;
+}
+[data-brand="bold"] #impact .section-head {
+  max-width: 46vw;
+  margin-left: 6vw;
+  margin-right: auto;
+  text-align: left;
+}
+[data-brand="bold"] #contact .grid-2 {
+  grid-template-columns: 1fr 1.2fr;
+  gap: clamp(40px, 6vw, 100px);
+}
+
+@media (max-width: 900px) {
+  [data-brand="bold"] #story .grid-2,
+  [data-brand="bold"] #product .section-head,
+  [data-brand="bold"] #trade .section-head,
+  [data-brand="bold"] #impact .section-head,
+  [data-brand="bold"] #contact .grid-2 {
+    max-width: none;
+    margin: 0;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-brand="bold"] section.block .eyebrow,
+  [data-brand="bold"] section.block .h-display,
+  [data-brand="bold"] #contact .eyebrow,
+  [data-brand="bold"] #contact .h-display {
+    clip-path: none;
+    -webkit-clip-path: none;
+    transition: none;
+  }
+  [data-brand="bold"] section.block .lede,
+  [data-brand="bold"] section.block .spec-list,
+  [data-brand="bold"] section.block .spec-list li,
+  [data-brand="bold"] section.block .product,
+  [data-brand="bold"] section.block .trade-card,
+  [data-brand="bold"] section.block .stats > div,
+  [data-brand="bold"] #contact .lede,
+  [data-brand="bold"] #contact .form-card,
+  [data-brand="bold"] #contact .contact-detail {
+    transform: none;
+    opacity: 1;
+    transition: none;
+  }
+  [data-brand="bold"] section.block::before { transform: scaleX(1); transition: none; }
+}
+
 /* ============ BOLD STAGE (party-mode) ============================ */
 /* Sibling to .cine-stage; hidden by default. When [data-brand="bold"] is
    active on <html>, the cine-stage hides and this one takes over.
