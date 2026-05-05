@@ -674,7 +674,7 @@ main { position: relative; z-index: 5; padding-right: 56px; }
   align-items: start;
 }
 .direct { margin-top: 40px; }
-.direct > div { display: grid; grid-template-columns: 120px 1fr; gap: 24px; padding: 16px 0; border-top: 1px solid var(--line); color: #fff; }
+.direct > div { display: grid; grid-template-columns: 120px 1fr; gap: 24px; padding: 16px 0; border-top: 1px solid var(--line); color: var(--ink); }
 .direct > div:last-child { border-bottom: 1px solid var(--line); }
 .direct span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); align-self: center; }
 .direct em { font-style: normal; }
@@ -1330,64 +1330,31 @@ body.mg-hero-ready .hero-lede   .mg-word {
 }
 
 /* ==========================================================================
-   BOLD-MODE SECTION MOTION — each section "unfolds" as user scrolls into it.
-   Title wipe-reveals via clip-path. Content cascades up with stagger.
-   Section content offsets to one side so it doesn't fight the central video
-   bottle — left/right alternates per section so the eye reads narratively.
+   BOLD-MODE SECTION MOTION — softer entrance pass.
+   Previous version aggressively hid content with opacity:0 +
+   translateY(36px) waiting for IntersectionObserver, which left whole
+   sections invisible during scroll. New version keeps content visible
+   by default, only applies a subtle 12px slide-up if the section hasn't
+   been seen yet AND the user has motion preferences on.
    ========================================================================== */
 
-/* Section pre-state: title masked, body content offset down + invisible */
-[data-brand="bold"] section.block .eyebrow,
-[data-brand="bold"] section.block .h-display,
-[data-brand="bold"] #contact .eyebrow,
-[data-brand="bold"] #contact .h-display {
-  display: inline-block;
-  clip-path: inset(0 100% 0 0);
-  -webkit-clip-path: inset(0 100% 0 0);
-  transition: clip-path 1100ms cubic-bezier(.2,.7,.2,1) calc(var(--mg-section-i, 0) * 80ms),
-              -webkit-clip-path 1100ms cubic-bezier(.2,.7,.2,1) calc(var(--mg-section-i, 0) * 80ms);
-}
-[data-brand="bold"] section.block .eyebrow { display: block; }   /* keep block layout */
-[data-brand="bold"] #contact .eyebrow { display: block; }
-[data-brand="bold"] section.block .h-display,
-[data-brand="bold"] #contact .h-display { display: block; }
-
-[data-brand="bold"] section.block .lede,
-[data-brand="bold"] section.block .spec-list,
-[data-brand="bold"] section.block .spec-list li,
-[data-brand="bold"] section.block .product,
-[data-brand="bold"] section.block .trade-card,
-[data-brand="bold"] section.block .stats > div,
-[data-brand="bold"] #contact .lede,
-[data-brand="bold"] #contact .form-card,
-[data-brand="bold"] #contact .contact-detail {
-  transform: translate3d(0, 36px, 0);
+/* Title: subtle fade-up only when section is unseen. Content always visible. */
+[data-brand="bold"] section.block:not(.section-in) > .section-head .eyebrow,
+[data-brand="bold"] section.block:not(.section-in) > .section-head .h-display,
+[data-brand="bold"] section.block:not(.section-in) > .grid-2 .eyebrow,
+[data-brand="bold"] section.block:not(.section-in) > .grid-2 .h-display,
+[data-brand="bold"] #contact:not(.section-in) .eyebrow,
+[data-brand="bold"] #contact:not(.section-in) .h-display {
   opacity: 0;
-  transition: transform 900ms cubic-bezier(.2,.7,.2,1),
-              opacity 700ms ease;
-  transition-delay: calc(var(--mg-section-i, 0) * 90ms + 280ms);
+  transform: translateY(12px);
+  transition: opacity 600ms ease, transform 700ms cubic-bezier(.2,.7,.2,1);
 }
-
-/* Section in-state: clip wide-open, content lifted to rest position */
 [data-brand="bold"] section.block.section-in .eyebrow,
 [data-brand="bold"] section.block.section-in .h-display,
 [data-brand="bold"] #contact.section-in .eyebrow,
 [data-brand="bold"] #contact.section-in .h-display {
-  clip-path: inset(0 0 0 0);
-  -webkit-clip-path: inset(0 0 0 0);
-}
-
-[data-brand="bold"] section.block.section-in .lede,
-[data-brand="bold"] section.block.section-in .spec-list,
-[data-brand="bold"] section.block.section-in .spec-list li,
-[data-brand="bold"] section.block.section-in .product,
-[data-brand="bold"] section.block.section-in .trade-card,
-[data-brand="bold"] section.block.section-in .stats > div,
-[data-brand="bold"] #contact.section-in .lede,
-[data-brand="bold"] #contact.section-in .form-card,
-[data-brand="bold"] #contact.section-in .contact-detail {
-  transform: translate3d(0, 0, 0);
   opacity: 1;
+  transform: none;
 }
 
 /* Section divider — a thin crimson line that draws across between sections */
@@ -1410,49 +1377,10 @@ body.mg-hero-ready .hero-lede   .mg-word {
 /* Make sure block has positioning context for the ::before line */
 [data-brand="bold"] section.block { position: relative; }
 
-/* Section content offset — push text to one side so the central video
-   bottle doesn't fight with the copy. Sections alternate L / R. */
-[data-brand="bold"] #story .grid-2 {
-  grid-template-columns: 1fr 1.4fr;
-  gap: clamp(40px, 6vw, 100px);
-  max-width: 56vw;          /* keep right column off the centre */
-  margin-right: auto;
-  margin-left: 6vw;
-}
-[data-brand="bold"] #product .section-head {
-  max-width: 46vw;
-  margin-left: 6vw;
-  margin-right: auto;
-  text-align: left;
-}
-[data-brand="bold"] #trade .section-head {
-  max-width: 46vw;
-  margin-left: auto;
-  margin-right: 6vw;
-  text-align: right;
-}
-[data-brand="bold"] #impact .section-head {
-  max-width: 46vw;
-  margin-left: 6vw;
-  margin-right: auto;
-  text-align: left;
-}
-[data-brand="bold"] #contact .grid-2 {
-  grid-template-columns: 1fr 1.2fr;
-  gap: clamp(40px, 6vw, 100px);
-}
-
-@media (max-width: 900px) {
-  [data-brand="bold"] #story .grid-2,
-  [data-brand="bold"] #product .section-head,
-  [data-brand="bold"] #trade .section-head,
-  [data-brand="bold"] #impact .section-head,
-  [data-brand="bold"] #contact .grid-2 {
-    max-width: none;
-    margin: 0;
-    text-align: left;
-  }
-}
+/* Removed the per-section forced max-width offsets — they were squeezing
+   content into narrow columns and creating awkward layouts. Sections now
+   flow at natural widths, the video bottle plays its center role at the
+   back, and HTML content reads at full readable width on top. */
 
 @media (prefers-reduced-motion: reduce) {
   [data-brand="bold"] section.block .eyebrow,
@@ -1933,8 +1861,8 @@ html[data-brand="bold"],
   will-change: transform;
 }
 
-/* fade alternating sections to a subtly different ambient tint
-   so the page reads as multi-act, not one flat slab */
+/* Ambient tint dialed way back — was competing with content readability.
+   On a white stage these radial blobs were creating muddy pink washes. */
 [data-brand="bold"] #story::after,
 [data-brand="bold"] #product::after,
 [data-brand="bold"] #trade::after,
@@ -1945,8 +1873,8 @@ html[data-brand="bold"],
   inset: 0;
   pointer-events: none;
   z-index: -2;
-  background: radial-gradient(ellipse 60% 40% at var(--blob-x, 50%) var(--blob-y, 50%),
-              rgba(230,57,70,0.12) 0%, transparent 70%);
+  background: radial-gradient(ellipse 50% 30% at var(--blob-x, 50%) var(--blob-y, 50%),
+              rgba(230,57,70,0.04) 0%, transparent 70%);
   transition: --blob-x 200ms linear, --blob-y 200ms linear;
 }
 
@@ -1976,6 +1904,48 @@ html[data-brand="bold"],
   border: 1px solid rgba(10,10,12,0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+/* Hide the calm-mode "Premium Water Colombia" gold-label SVG bottle inside
+   product cards while in bold mode — it's a different aesthetic. Replace
+   with a clean blank visual area until we drop in a bold-mode render. */
+[data-brand="bold"] .product .product-visual { display: none; }
+[data-brand="bold"] .product { padding: 32px 28px; min-height: 280px; }
+[data-brand="bold"] .product-meta { padding: 0; }
+[data-brand="bold"] .product-name { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+[data-brand="bold"] .product-title {
+  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: 36px;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+[data-brand="bold"] .product-spec {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.20em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+[data-brand="bold"] .product p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+/* Trade-card titles: Anton uppercase in bold mode (was serif "Wholesale pricing") */
+[data-brand="bold"] .trade-card h3 {
+  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+[data-brand="bold"] .trade-card .n {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.24em;
 }
 
 /* Bold-mode contact form: glassy white so the label-zoom video reads through */

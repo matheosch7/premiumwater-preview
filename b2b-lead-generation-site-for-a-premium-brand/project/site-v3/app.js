@@ -639,7 +639,7 @@
           sIo.unobserve(en.target);
         }
       });
-    }, { rootMargin: '0px 0px -100px 0px', threshold: 0.15 });
+    }, { rootMargin: '200px 0px 200px 0px', threshold: 0.01 });
     sections.forEach(s => sIo.observe(s));
   }
 
