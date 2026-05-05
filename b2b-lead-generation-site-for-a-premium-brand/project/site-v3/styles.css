@@ -1470,20 +1470,23 @@ html[data-brand="bold"],
   color: var(--accent);
 }
 
-/* Hero photo (right column). The Veo source has a light-grey studio
-   backdrop that we mask away with a soft radial vignette so only the
-   bottle floats on the dark hero. mix-blend-mode 'lighten' on top of
-   the dark hero makes the light backplate fade into the dark, while
-   the matte-black bottle stays visible thanks to the radial mask. */
+/* Hero photo — hidden by default. The <img class="bold-hero-photo">
+   lives in the HTML directly inside .hero, so it would otherwise leak
+   into calm mode (where the cinematic stage owns the visual). CSS
+   gates it to bold only. */
+.bold-hero-photo { display: none; }
+
+/* In bold mode, show the photo with a soft radial vignette so its
+   light-grey studio backdrop fades away and only the bottle floats
+   on the dark hero. mix-blend-mode 'lighten' completes the integration. */
 [data-brand="bold"] .bold-hero-photo {
+  display: block;
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: 720px;
   height: auto;
   margin: 0 auto;
-  /* Radial mask: opaque in the centre (where the bottle is), fully
-     transparent at the edges so the studio backplate fades to black. */
   -webkit-mask-image: radial-gradient(ellipse at center, #000 28%, transparent 65%);
           mask-image: radial-gradient(ellipse at center, #000 28%, transparent 65%);
   filter:
