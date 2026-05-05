@@ -1371,7 +1371,10 @@ html[data-brand="bold"],
   color: var(--ink);
 }
 
-/* 4) HERO — black backdrop, giant red+white wordmark, bottle still right. */
+/* 4) HERO — black backdrop, giant red+white wordmark. The bottle photo
+   is no longer a grid item: it's been promoted to a fixed-position
+   roadmap element that travels down the page (see .bold-hero-photo
+   below), so the hero is single-column / typography-led. */
 [data-brand="bold"] .hero {
   background: #0A0A0C;
   color: #FFFFFF;
@@ -1379,10 +1382,7 @@ html[data-brand="bold"],
   min-height: 100vh;
   padding: clamp(120px, 18vh, 200px) clamp(24px, 5vw, 80px) clamp(80px, 12vh, 140px);
   overflow: hidden;
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  align-items: center;
-  gap: clamp(40px, 5vw, 80px);
+  display: block;
 }
 [data-brand="bold"] .hero::before {
   content: "";
@@ -1476,23 +1476,69 @@ html[data-brand="bold"],
    gates it to bold only. */
 .bold-hero-photo { display: none; }
 
-/* In bold mode, show the photo with a soft radial vignette so its
-   light-grey studio backdrop fades away and only the bottle floats
-   on the dark hero. mix-blend-mode 'lighten' completes the integration. */
+/* In bold mode the photo escapes the hero box and becomes a single
+   fixed-position element that travels down the page. Its transform is
+   driven by JS-set CSS vars (--rb-x, --rb-y, --rb-s, --rb-r), lerped
+   between four scroll-anchored beats: HERO → STORY → APPROACH → LANDED.
+   Past the product section, JS toggles data-rb-state="hidden" to fade
+   it out. The radial mask crops the studio-grey backplate so the bottle
+   reads on both the dark hero and the light story/product backgrounds.
+   mix-blend-mode is intentionally absent here — `lighten` would erase
+   the dark bottle on light sections. */
 [data-brand="bold"] .bold-hero-photo {
   display: block;
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 720px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 38vw;
+  max-width: 480px;
   height: auto;
-  margin: 0 auto;
-  -webkit-mask-image: radial-gradient(ellipse at center, #000 28%, transparent 65%);
-          mask-image: radial-gradient(ellipse at center, #000 28%, transparent 65%);
+  pointer-events: none;
+  z-index: 5;
+  will-change: transform, opacity;
+  transform:
+    translate(-50%, -50%)
+    translate(var(--rb-x, 22vw), var(--rb-y, 0))
+    scale(var(--rb-s, 1))
+    rotate(var(--rb-r, 0deg));
+  transition:
+    transform 220ms cubic-bezier(.2,.8,.2,1),
+    opacity 240ms ease;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 24%, transparent 58%);
+          mask-image: radial-gradient(ellipse at center, #000 24%, transparent 58%);
   filter:
-    drop-shadow(0 40px 80px rgba(0,0,0,0.50))
-    drop-shadow(0 0 80px rgba(230,57,70,0.30));
-  mix-blend-mode: lighten;
+    drop-shadow(0 30px 60px rgba(0,0,0,0.45))
+    drop-shadow(0 0 60px rgba(230,57,70,0.25));
+}
+[data-brand="bold"] .bold-hero-photo[data-rb-state="hidden"] {
+  opacity: 0;
+}
+
+/* Mobile: the roadmap journey is a desktop-only choreography. On small
+   screens the bottle reverts to in-flow placement — bold-mode hero stays
+   typographic, photo simply renders below copy at natural width. */
+@media (max-width: 900px) {
+  [data-brand="bold"] .bold-hero-photo {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    transition: opacity 240ms ease;
+  }
+}
+
+/* Reduced motion: snap to the HERO beat with no transition, no scroll
+   coupling. JS bails before attaching listeners; CSS just makes sure the
+   first paint is clean. */
+@media (prefers-reduced-motion: reduce) {
+  [data-brand="bold"] .bold-hero-photo {
+    transition: none;
+    transform:
+      translate(-50%, -50%)
+      translate(22vw, 0)
+      scale(1);
+  }
 }
 
 /* 5) Section transitions: alternating bg colours so each section reads

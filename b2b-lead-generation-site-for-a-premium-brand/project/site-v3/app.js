@@ -190,6 +190,7 @@
     });
     if (mode === 'bold') {
       ensureModelViewer();
+      if (typeof setupBottleRoadmap === 'function') setupBottleRoadmap();
       if (isFrameLocked()) {
         applyFrame(FRAMES[FRAME_LOCK_INDEX]);
         ensureFrameBadge();
@@ -1082,6 +1083,137 @@
 
   window.addEventListener('scroll', updateBold, { passive: true });
   window.addEventListener('resize', updateBold);
+
+  // ---------- bold-mode bottle roadmap ----------
+  // The bold hero photo (.bold-hero-photo) is fixed-positioned in CSS and
+  // travels down the page as the user scrolls, drifting between four
+  // beats so each section's copy gets clear breathing room on the
+  // opposite side. Past the product section it fades out.
+  //
+  // We mirror updateCine()'s pattern: passive scroll listener, read
+  // anchor offsets on resize, lerp CSS custom props.
+  let bottleRoadmapInit = false;
+  function setupBottleRoadmap() {
+    if (bottleRoadmapInit) return;
+    const bottle = document.querySelector('.bold-hero-photo');
+    if (!bottle) return;
+
+    const reducedMotion = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return; // CSS holds it at HERO beat
+    if (window.innerWidth <= 900) return; // CSS reverts to in-flow on mobile
+
+    bottleRoadmapInit = true;
+
+    const heroEl    = document.querySelector('.hero');
+    const storyEl   = document.getElementById('story');
+    const productEl = document.getElementById('product');
+    if (!heroEl || !storyEl || !productEl) return;
+
+    // Beats: offsets in vw/vh from viewport center. Element is positioned
+    // at top:50% / left:50% with a -50%/-50% recentering translate, so
+    // (0,0) here = perfectly centered.
+    const BEATS = {
+      HERO:     { x: 22,  y: 0,  s: 1.00, r: 0  },
+      STORY:    { x: -26, y: 0,  s: 0.85, r: -3 },
+      APPROACH: { x: 18,  y: 0,  s: 0.70, r: 2  },
+      LANDED:   { x: 24,  y: -4, s: 0.55, r: 0  }
+    };
+
+    let heroTop, storyTop, productTop, productBottom;
+    function cacheAnchors() {
+      const sy = window.scrollY || window.pageYOffset || 0;
+      heroTop       = heroEl.getBoundingClientRect().top + sy;
+      storyTop      = storyEl.getBoundingClientRect().top + sy;
+      productTop    = productEl.getBoundingClientRect().top + sy;
+      productBottom = productTop + productEl.offsetHeight;
+    }
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+    }
+    function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+    function lerpBeat(a, b, t) {
+      const e = easeInOutCubic(clamp01(t));
+      return {
+        x: lerp(a.x, b.x, e),
+        y: lerp(a.y, b.y, e),
+        s: lerp(a.s, b.s, e),
+        r: lerp(a.r, b.r, e)
+      };
+    }
+
+    function update() {
+      if (currentBrand !== 'bold') return;
+      if (window.innerWidth <= 900) return;
+      const sy = window.scrollY || window.pageYOffset || 0;
+
+      // Use the viewport-mid as the "playhead" so beats trigger when a
+      // section is roughly centered on screen, not when its top edge
+      // first crosses zero.
+      const playhead = sy + window.innerHeight * 0.5;
+
+      let pose;
+      if (playhead <= storyTop) {
+        // HERO → STORY: hero centered → story centered
+        const t = (playhead - (heroTop + window.innerHeight * 0.5)) /
+                  (storyTop - (heroTop + window.innerHeight * 0.5));
+        pose = lerpBeat(BEATS.HERO, BEATS.STORY, t);
+      } else if (playhead <= productTop) {
+        // STORY → APPROACH: hold at STORY through first half of the
+        // story-to-product gap, then ease into APPROACH toward product.
+        const mid = (storyTop + productTop) / 2;
+        if (playhead <= mid) {
+          pose = BEATS.STORY;
+        } else {
+          const t = (playhead - mid) / (productTop - mid);
+          pose = lerpBeat(BEATS.STORY, BEATS.APPROACH, t);
+        }
+      } else if (playhead <= productTop + window.innerHeight * 0.4) {
+        // APPROACH → LANDED: snap into the product section
+        const t = (playhead - productTop) / (window.innerHeight * 0.4);
+        pose = lerpBeat(BEATS.APPROACH, BEATS.LANDED, t);
+      } else {
+        // Past the landing point: hold at LANDED until past product bottom
+        pose = BEATS.LANDED;
+      }
+
+      bottle.style.setProperty('--rb-x', pose.x.toFixed(2) + 'vw');
+      bottle.style.setProperty('--rb-y', pose.y.toFixed(2) + 'vh');
+      bottle.style.setProperty('--rb-s', pose.s.toFixed(3));
+      bottle.style.setProperty('--rb-r', pose.r.toFixed(2) + 'deg');
+
+      // Past the product section, hide so trade/impact/contact stay clean.
+      if (sy > productBottom - window.innerHeight * 0.2) {
+        bottle.setAttribute('data-rb-state', 'hidden');
+      } else {
+        bottle.removeAttribute('data-rb-state');
+      }
+    }
+
+    function onResize() {
+      // If the user resized into mobile range, re-init logic would need
+      // teardown — since CSS handles the static fallback at <=900px,
+      // simply skip updates and bail update() on its own check.
+      cacheAnchors();
+      update();
+    }
+
+    function init() {
+      cacheAnchors();
+      update();
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', onResize);
+    }
+
+    if (bottle.complete && bottle.naturalWidth > 0) {
+      init();
+    } else {
+      bottle.addEventListener('load', init, { once: true });
+    }
+  }
 
   // ---------- lead form ----------
   // Posts an enriched payload (form fields + brand_mode + language + UTM source)
