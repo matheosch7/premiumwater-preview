@@ -1196,25 +1196,43 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
 .scene, .sky, .sun, .landscape, .horizon, .bubbles, .orbs, .droplet, .specks,
 .hero-bottle, .pour-overlay, .diner-scene, .diner-caption { display: none !important; }
 
-/* ============ CONTENT OVER STAGE ============ */
-/* Body stays transparent through the cinematic zone — the stage IS the background. */
-body { background: transparent !important; }
+/* ============ CONTENT OVER STAGE (calm mode only) ============ */
+/* In calm mode the cine-stage video sits fixed behind everything, so the
+   first few sections must be transparent for it to show through. In bold
+   mode there is NO fixed stage — each section paints its own background.
+   We scope the `!important transparent` rules to calm mode only so bold
+   mode can use solid backgrounds without specificity wars. */
+:root[data-brand="calm"] body,
+:root:not([data-brand]) body { background: transparent !important; }
 /* A dark backing layer under the stage keeps the page feeling solid at load */
-html { background: var(--cine-color); }
+:root[data-brand="calm"],
+:root:not([data-brand]) { background: var(--cine-color); }
 
 main#top { position: relative; z-index: 2; }
 
-/* cinematic zone: first few sections are transparent (stage visible behind them) */
-.hero, .sep, .marquee-band, #story { background: transparent !important; }
-.marquee-band { background: linear-gradient(180deg, transparent, rgba(0,0,0,0.25)) !important; }
+/* cinematic zone: first few sections are transparent in CALM only */
+:root[data-brand="calm"] .hero,
+:root[data-brand="calm"] .sep,
+:root[data-brand="calm"] .marquee-band,
+:root[data-brand="calm"] #story,
+:root:not([data-brand]) .hero,
+:root:not([data-brand]) .sep,
+:root:not([data-brand]) .marquee-band,
+:root:not([data-brand]) #story { background: transparent !important; }
+:root[data-brand="calm"] .marquee-band,
+:root:not([data-brand]) .marquee-band { background: linear-gradient(180deg, transparent, rgba(0,0,0,0.25)) !important; }
 
-/* After the cinematic zone, fade back to the solid page background */
-#product {
+/* After the cinematic zone in calm mode, fade back to the solid page background.
+   In bold mode each section paints its own background, so these rules are
+   scoped to calm only. */
+:root[data-brand="calm"] #product,
+:root:not([data-brand]) #product {
   background: var(--bg-d, #0E0C08);
   position: relative;
   box-shadow: 0 -60px 120px rgba(0,0,0,0.45);
 }
-#product::before {
+:root[data-brand="calm"] #product::before,
+:root:not([data-brand]) #product::before {
   content: "";
   position: absolute;
   left: 0; right: 0; top: -160px; height: 160px;
@@ -1222,7 +1240,14 @@ main#top { position: relative; z-index: 2; }
   pointer-events: none;
   z-index: -1;
 }
-#trade, #impact, #contact, footer { background: var(--bg-d, #0E0C08); }
+:root[data-brand="calm"] #trade,
+:root[data-brand="calm"] #impact,
+:root[data-brand="calm"] #contact,
+:root[data-brand="calm"] footer,
+:root:not([data-brand]) #trade,
+:root:not([data-brand]) #impact,
+:root:not([data-brand]) #contact,
+:root:not([data-brand]) footer { background: var(--bg-d, #0E0C08); }
 
 /* ==========================================================================
    MOTION GRAPHICS LAYER
