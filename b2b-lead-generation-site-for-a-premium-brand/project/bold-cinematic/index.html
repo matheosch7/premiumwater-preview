@@ -4,9 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1280, height=720" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Schibsted+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -14,7 +11,6 @@
         width: 1280px; height: 720px;
         overflow: hidden;
         background: #FFFFFF;
-        font-family: 'Schibsted Grotesk', sans-serif;
       }
       #root {
         position: relative;
@@ -30,191 +26,71 @@
         object-fit: contain;
         display: block;
       }
-      .text-touch {
-        position: absolute;
-        font-family: 'JetBrains Mono', monospace;
-        opacity: 0;
-        pointer-events: none;
-      }
-      .text-touch .kicker {
-        font-size: 13px;
-        color: #E63946;
-        letter-spacing: 0.32em;
-        text-transform: uppercase;
-        margin-bottom: 14px;
-      }
-      .text-touch .line {
-        font-family: 'Anton', sans-serif;
-        font-size: 56px;
-        line-height: 1.0;
-        text-transform: uppercase;
-        letter-spacing: -0.005em;
-        color: #0A0A0C;
-        max-width: 480px;
-      }
-      #t1 { left: 70px;  top: 110px; }
-      #t2 { right: 70px; top: 160px; text-align: right; }
-      #t3 { left: 70px;  bottom: 90px; }
-      #t4 { right: 70px; bottom: 90px; text-align: right; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="14" data-width="1280" data-height="720">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="12.5" data-width="1280" data-height="720">
 
-      <!-- ============ STORYBOARD CLIPS ============ -->
-      <!-- Each beat is an <img> with the best Veo still for that moment.
-           Alternating tracks (1 / 2) so adjacent clips can overlap for
-           crossfade. Each clip uses GSAP gsap.from(opacity:0) for soft
-           entry while the previous clip is still visible. -->
+      <!-- Storyboard frames exported from Figma file eTdC2DBlIQFDkHM2JVeS08
+           and crossfaded via GSAP. Alternating tracks (1 / 2) so adjacent
+           frames overlap by ~0.2s for smooth crossfade. -->
 
-      <!-- BEAT 1 — empty white frame (0.0-0.7s) -->
-      <div id="c1" class="clip" data-start="0" data-duration="0.8" data-track-index="1">
-        <img src="assets/clipA/A_0_0.png" alt="" />
-      </div>
-      <!-- BEAT 2 — bottle materializing (0.6-1.7s) -->
-      <div id="c2" class="clip" data-start="0.6" data-duration="1.1" data-track-index="2">
-        <img src="assets/clipA/A_0_5.png" alt="" />
-      </div>
-      <!-- BEAT 3 — bottle fully appeared, vertical (1.5-2.5s) -->
-      <div id="c3" class="clip" data-start="1.5" data-duration="1.0" data-track-index="1">
-        <img src="assets/clipA/A_1_25.png" alt="" />
-      </div>
+      <div id="f1"  class="clip" data-start="0.0"  data-duration="0.7"  data-track-index="1"><img src="assets/figma/frame-01.png" alt=""></div>
+      <div id="f2"  class="clip" data-start="0.5"  data-duration="1.1"  data-track-index="2"><img src="assets/figma/frame-02.png" alt=""></div>
+      <div id="f3"  class="clip" data-start="1.4"  data-duration="2.0"  data-track-index="1"><img src="assets/figma/frame-03.png" alt=""></div>
+      <div id="f4"  class="clip" data-start="3.2"  data-duration="1.2"  data-track-index="2"><img src="assets/figma/frame-04.png" alt=""></div>
+      <div id="f5"  class="clip" data-start="4.2"  data-duration="1.2"  data-track-index="1"><img src="assets/figma/frame-05.png" alt=""></div>
+      <div id="f6"  class="clip" data-start="5.2"  data-duration="1.0"  data-track-index="2"><img src="assets/figma/frame-06.png" alt=""></div>
+      <div id="f7"  class="clip" data-start="6.0"  data-duration="1.0"  data-track-index="1"><img src="assets/figma/frame-07.png" alt=""></div>
+      <div id="f8"  class="clip" data-start="6.8"  data-duration="1.0"  data-track-index="2"><img src="assets/figma/frame-08.png" alt=""></div>
+      <div id="f9"  class="clip" data-start="7.6"  data-duration="1.5"  data-track-index="1"><img src="assets/figma/frame-09.png" alt=""></div>
+      <div id="f10" class="clip" data-start="8.9"  data-duration="0.9"  data-track-index="2"><img src="assets/figma/frame-10.png" alt=""></div>
+      <div id="f11" class="clip" data-start="9.6"  data-duration="1.2"  data-track-index="1"><img src="assets/figma/frame-11.png" alt=""></div>
+      <div id="f12" class="clip" data-start="10.6" data-duration="1.9"  data-track-index="2"><img src="assets/figma/frame-12.png" alt=""></div>
 
-      <!-- BEAT 4-6 — SPIN sequence: 4 frames showing bottle from different
-           angles. Each holds ~0.6s, crossfades into next, creating an
-           illusion of slow rotation. -->
-      <div id="c4" class="clip" data-start="2.3" data-duration="0.8" data-track-index="2">
-        <img src="assets/clipA/A_2_0.png" alt="" />
-      </div>
-      <div id="c5" class="clip" data-start="2.9" data-duration="0.8" data-track-index="1">
-        <img src="assets/clipA/A_2_75.png" alt="" />
-      </div>
-      <div id="c6" class="clip" data-start="3.5" data-duration="0.8" data-track-index="2">
-        <img src="assets/clipA/A_3_5.png" alt="" />
-      </div>
-
-      <!-- BEAT 7 — bottle dollies TOWARD camera (4.1-5.1s)
-           uses a single still + GSAP scale for the depth move -->
-      <div id="c7" class="clip" data-start="4.1" data-duration="1.0" data-track-index="1">
-        <img src="assets/clipA/A_4_5.png" alt="" />
-      </div>
-
-      <!-- BEAT 8 — bottle pulls BACK to original distance (5.0-6.0s) -->
-      <div id="c8" class="clip" data-start="5.0" data-duration="1.0" data-track-index="2">
-        <img src="assets/clipA/A_5_75.png" alt="" />
-      </div>
-
-      <!-- BEAT 9 — final spin + settle (5.9-7.4s) -->
-      <div id="c9" class="clip" data-start="5.9" data-duration="0.8" data-track-index="1">
-        <img src="assets/clipA/A_6_5.png" alt="" />
-      </div>
-      <div id="c10" class="clip" data-start="6.6" data-duration="1.1" data-track-index="2">
-        <img src="assets/clipA/A_7_5.png" alt="" />
-      </div>
-
-      <!-- BEAT 10 — hand sweeping in from right (7.5-8.6s) -->
-      <div id="c11" class="clip" data-start="7.5" data-duration="1.1" data-track-index="1">
-        <img src="assets/clipB/B_1_75.png" alt="" />
-      </div>
-      <!-- BEAT 11 — hand at bottle, gripping (8.5-9.5s) -->
-      <div id="c12" class="clip" data-start="8.5" data-duration="1.0" data-track-index="2">
-        <img src="assets/clipB/B_2_25.png" alt="" />
-      </div>
-
-      <!-- BEAT 12 — green bottle entering from LEFT (9.4-10.4s) -->
-      <div id="c13" class="clip" data-start="9.4" data-duration="1.0" data-track-index="1">
-        <img src="assets/clipB/B_3_25.png" alt="" />
-      </div>
-      <!-- BEAT 13 — bottles meeting (10.3-10.9s) -->
-      <div id="c14" class="clip" data-start="10.3" data-duration="0.6" data-track-index="2">
-        <img src="assets/clipB/B_3_75.png" alt="" />
-      </div>
-      <!-- BEAT 14 — CLINK with water mist burst (10.8-11.6s) -->
-      <div id="c15" class="clip" data-start="10.8" data-duration="0.8" data-track-index="1">
-        <img src="assets/clipB/B_5_0.png" alt="" />
-      </div>
-
-      <!-- BEAT 15 — hands receding off both sides (11.5-12.6s) -->
-      <div id="c16" class="clip" data-start="11.5" data-duration="1.1" data-track-index="2">
-        <img src="assets/clipB/B_6_5.png" alt="" />
-      </div>
-
-      <!-- BEAT 16 — bottle alone in display pose (12.5-14.0s) -->
-      <div id="c17" class="clip" data-start="12.5" data-duration="1.5" data-track-index="1">
-        <img src="assets/clipB/B_7_5.png" alt="" />
-      </div>
-
-      <!-- ============ TEXT TOUCHES (overlay) ============ -->
-      <!-- Crisp HTML callouts that appear during the spin scene.
-           Sequential on track 3 (no overlap), each fades in/out via GSAP. -->
-      <div id="t1" class="clip text-touch" data-start="2.4" data-duration="1.7" data-track-index="3">
-        <div class="kicker">01 ▸ Source</div>
-        <div class="line">From the<br/>Andean&nbsp;páramo</div>
-      </div>
-      <div id="t2" class="clip text-touch" data-start="4.2" data-duration="1.6" data-track-index="3">
-        <div class="kicker">02 ▸ Altitude</div>
-        <div class="line">3,600 m above<br/>sea&nbsp;level</div>
-      </div>
-      <div id="t3" class="clip text-touch" data-start="5.9" data-duration="1.5" data-track-index="3">
-        <div class="kicker">03 ▸ Distance</div>
-        <div class="line">Bottled &lt; 40 km<br/>from&nbsp;source</div>
-      </div>
-      <div id="t4" class="clip text-touch" data-start="12.6" data-duration="1.4" data-track-index="3">
-        <div class="kicker">▸ Premium Water</div>
-        <div class="line">Loud<br/>edition.</div>
-      </div>
     </div>
 
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      // === CLIP CROSSFADE ENTRANCES ===
-      // Each clip fades in from 0 over 0.4s starting at its data-start.
-      // The previous clip is still visible (overlap window) so this looks
-      // like a soft crossfade. Hyperframes auto-hides each clip at its
-      // data-end, so no exit animation needed.
-      const fadeIn = (id, t, dur=0.4) => tl.from(id, { opacity: 0, duration: dur, ease: "power2.out" }, t);
+      // Each frame fades in over its overlap window with the previous frame.
+      // Hyperframes auto-hides each clip at its data-end, so no exit needed.
+      const fadeIn = (id, t, dur) => tl.from(id, { opacity: 0, duration: dur, ease: "power2.out" }, t);
 
-      fadeIn("#c1",  0.00, 0.3);
-      fadeIn("#c2",  0.60);   // bottle ghost emerging
-      fadeIn("#c3",  1.50);   // fully present
-      fadeIn("#c4",  2.30);   // spin a
-      fadeIn("#c5",  2.90);   // spin b
-      fadeIn("#c6",  3.50);   // spin c
-      fadeIn("#c7",  4.10);   // dolly in
-      fadeIn("#c8",  5.00);   // dolly back
-      fadeIn("#c9",  5.90);   // final spin
-      fadeIn("#c10", 6.60);   // settled
-      fadeIn("#c11", 7.50);   // hand inbound
-      fadeIn("#c12", 8.50);   // hand grip
-      fadeIn("#c13", 9.40);   // green inbound
-      fadeIn("#c14", 10.30);  // bottles meet
-      fadeIn("#c15", 10.80, 0.25);  // clink — quicker hit
-      fadeIn("#c16", 11.50);  // hands receding
-      fadeIn("#c17", 12.50);  // display pose
+      fadeIn("#f1",  0.0,  0.25);
+      fadeIn("#f2",  0.5,  0.4);
+      fadeIn("#f3",  1.4,  0.4);
+      fadeIn("#f4",  3.2,  0.4);
+      fadeIn("#f5",  4.2,  0.4);
+      fadeIn("#f6",  5.2,  0.4);
+      fadeIn("#f7",  6.0,  0.4);
+      fadeIn("#f8",  6.8,  0.4);
+      fadeIn("#f9",  7.6,  0.4);
+      fadeIn("#f10", 8.9,  0.2);   // clink — quick punch
+      fadeIn("#f11", 9.6,  0.4);
+      fadeIn("#f12", 10.6, 0.5);
 
-      // === FAKE-MOTION SCALE TWEENS ===
-      // Beat 7: dolly TOWARD camera — scale 1.0 → 1.10 over 1s
-      tl.to("#c7 img", { scale: 1.10, duration: 1.0, ease: "power2.inOut", transformOrigin: "50% 50%" }, 4.1);
-      // Beat 8: dolly BACK — scale 1.10 → 1.00 over 1s
-      tl.fromTo("#c8 img", { scale: 1.10 }, { scale: 1.00, duration: 1.0, ease: "power2.inOut", transformOrigin: "50% 50%" }, 5.0);
+      // === Beat-specific micro-motion (within each frame) ===
 
-      // Beat 4-6 spin: each frame gets a tiny rotation tween for liveness
-      tl.fromTo("#c4 img", { rotation: -2 }, { rotation: 0, duration: 0.8, ease: "sine.inOut" }, 2.3);
-      tl.fromTo("#c5 img", { rotation: 2 },  { rotation: 0, duration: 0.8, ease: "sine.inOut" }, 2.9);
-      tl.fromTo("#c6 img", { rotation: -2 }, { rotation: 0, duration: 0.8, ease: "sine.inOut" }, 3.5);
+      // Frame 03 spinning — subtle horizontal nudge to suggest rotation
+      tl.fromTo("#f3 img", { x: -8 }, { x: 8, duration: 2.0, ease: "sine.inOut" }, 1.4);
 
-      // Beat 17: bottle settles — gentle scale-down to anchor the hero pose
-      tl.fromTo("#c17 img", { scale: 1.04 }, { scale: 1.00, duration: 1.2, ease: "power3.out", transformOrigin: "50% 50%" }, 12.5);
+      // Frame 04 dolly-in — scale up from 1.0 to 1.06
+      tl.fromTo("#f4 img", { scale: 1.0 }, { scale: 1.06, duration: 1.2, ease: "power2.out", transformOrigin: "50% 50%" }, 3.2);
 
-      // === TEXT TOUCH ENTRANCES ===
-      // Each touch slides up from below + fades in, holds, then exits.
-      [["#t1", 2.4], ["#t2", 4.2], ["#t3", 5.9], ["#t4", 12.6]].forEach(([id, t]) => {
-        tl.to(id, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, t);
-      });
-      gsap.set([".text-touch"], { y: 16 });
-      tl.from([".text-touch .line"], { y: 30, opacity: 0, duration: 0.5, stagger: 0, ease: "power3.out" }, 0); // initial hide
+      // Frame 05 pull-back — scale down from 1.06 to 1.0
+      tl.fromTo("#f5 img", { scale: 1.06 }, { scale: 1.0, duration: 1.2, ease: "power2.inOut", transformOrigin: "50% 50%" }, 4.2);
+
+      // Frame 06 last spin — gentle rotation -2 → 0
+      tl.fromTo("#f6 img", { rotation: -2 }, { rotation: 0, duration: 1.0, ease: "sine.inOut" }, 5.2);
+
+      // Frame 10 clink — quick scale-up on impact (1.0 → 1.04 → 1.0)
+      tl.fromTo("#f10 img", { scale: 1.0 }, { scale: 1.04, duration: 0.2, ease: "power3.out", transformOrigin: "50% 50%" }, 8.9);
+      tl.to("#f10 img", { scale: 1.0, duration: 0.5, ease: "power3.inOut" }, 9.1);
+
+      // Frame 12 display pose — soft settle (scale 1.02 → 1.0)
+      tl.fromTo("#f12 img", { scale: 1.02 }, { scale: 1.0, duration: 1.5, ease: "power3.out", transformOrigin: "50% 50%" }, 10.6);
 
       window.__timelines["main"] = tl;
     </script>
