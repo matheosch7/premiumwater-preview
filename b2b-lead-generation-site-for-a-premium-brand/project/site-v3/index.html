@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=40" />
+  <link rel="stylesheet" href="styles.css?v=41" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -135,6 +135,43 @@
     <img class="bold-frame" data-beat="3" src="assets/bold-frames/04-cheers.png?v=1" alt="" decoding="async" />
     <img class="bold-frame" data-beat="4" src="assets/bold-frames/05-tilt.png?v=1"   alt="" decoding="async" />
     <img class="bold-frame" data-beat="5" src="assets/bold-frames/06-fade.png?v=1"   alt="" decoding="async" />
+  </div>
+  <!-- Lockup overlay layer — Figma-style typography composition pinned to
+       each beat. updateBold() drives per-lockup opacity using the same
+       per-beat formula as the photo frames, so headline + photo arrive
+       and exit together. Lives inside .bold-stage so it inherits the
+       fixed positioning + the soft fade-out near scroll end. -->
+  <div class="bold-lockups" id="boldLockups" aria-hidden="true">
+    <div class="bold-lockup" data-beat="0" data-corner="tl">
+      <span class="lk-kicker">00 ▸ Enter</span>
+      <h2 class="lk-line">The loud<br/>edition.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="1" data-corner="bl">
+      <span class="lk-kicker">01 ▸ Source</span>
+      <h2 class="lk-line">From the<br/>Andean&nbsp;páramo.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="2" data-corner="tr">
+      <span class="lk-kicker">02 ▸ Grip</span>
+      <h2 class="lk-line">Built for<br/>the floor.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="3" data-corner="tl">
+      <span class="lk-kicker">03 ▸ Cheers</span>
+      <h2 class="lk-line">Same liquid;<br/>zero apologies.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="4" data-corner="bl">
+      <span class="lk-kicker">04 ▸ Distance</span>
+      <h2 class="lk-line">Bottled &lt;&nbsp;40&nbsp;km<br/>from source.</h2>
+    </div>
+    <div class="bold-lockup" data-beat="5" data-corner="tl">
+      <span class="lk-kicker">05 ▸ Spec</span>
+      <h2 class="lk-line">Premiumwater<br/>Loud&nbsp;Edition.</h2>
+      <ul class="lk-spec">
+        <li><em>pH</em><span>7.4</span></li>
+        <li><em>TDS</em><span>280 ppm</span></li>
+        <li><em>Alt</em><span>3,600 m</span></li>
+        <li><em>Bottled</em><span>Cartagena, CO</span></li>
+      </ul>
+    </div>
   </div>
 </div>
 
@@ -505,6 +542,6 @@
   <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12.04 2.5c-5.25 0-9.5 4.25-9.5 9.5 0 1.67.44 3.3 1.27 4.75L2.5 21.5l4.9-1.28a9.48 9.48 0 0 0 4.64 1.19c5.25 0 9.5-4.25 9.5-9.5s-4.25-9.41-9.5-9.41zm5.55 13.45c-.24.67-1.39 1.28-1.93 1.32-.5.03-1.13.05-1.82-.11-.42-.1-.96-.27-1.65-.57-2.9-1.26-4.8-4.18-4.95-4.38-.14-.2-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.43.26-.3.58-.37.77-.37l.55.01c.18 0 .42-.07.65.5.24.59.81 2.03.88 2.18.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.18-.32.4-.45.54-.15.15-.31.31-.13.6.18.3.79 1.3 1.7 2.1 1.17 1.04 2.15 1.37 2.44 1.52.3.15.47.13.64-.08.18-.2.74-.86.94-1.16.2-.3.4-.25.67-.15.27.1 1.72.81 2.01.96.3.15.5.22.57.35.07.13.07.77-.17 1.44z"/></svg>
 </a>
 
-<script src="app.js?v=17"></script>
+<script src="app.js?v=18"></script>
 </body>
 </html>

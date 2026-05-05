@@ -1478,6 +1478,104 @@ body.mg-hero-ready .hero-lede   .mg-word {
   .bold-frame { transform: none; transition: opacity 0ms; }
 }
 
+/* ============ BOLD LOCKUP OVERLAYS ===============================
+   Pass-B: typography composition layer above the photo frame stack.
+   Each lockup is pinned to a corner and arrives/exits with the same
+   per-beat opacity its photo uses (driven by updateBold()). The site's
+   foreground HTML still sits on top; lockups live BEHIND content but
+   IN FRONT of the photo, giving the editorial-spread feel.
+   ================================================================== */
+.bold-lockups {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.bold-lockup {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 220ms cubic-bezier(.2,.7,.2,1);
+  max-width: clamp(280px, 36vw, 540px);
+  will-change: opacity;
+}
+.bold-lockup[data-beat="0"] { opacity: 1; }  /* default first lockup visible */
+.bold-lockup[data-corner="tl"] { left: clamp(20px, 5vw, 80px); top: clamp(80px, 11vh, 140px); }
+.bold-lockup[data-corner="tr"] { right: clamp(20px, 5vw, 80px); top: clamp(80px, 11vh, 140px); text-align: right; }
+.bold-lockup[data-corner="bl"] { left: clamp(20px, 5vw, 80px); bottom: clamp(60px, 9vh, 120px); }
+.bold-lockup[data-corner="br"] { right: clamp(20px, 5vw, 80px); bottom: clamp(60px, 9vh, 120px); text-align: right; }
+
+.bold-lockup .lk-kicker {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+  padding: 6px 10px;
+  border: 1px solid rgba(230, 57, 70, 0.30);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.bold-lockup .lk-line {
+  margin: 0;
+  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 76px);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+  /* subtle text-shadow keeps the headline legible against any photo */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Spec-card variant — only used on the last beat (06) to give the
+   end of the journey a "product display" punctuation. */
+.bold-lockup .lk-spec {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  list-style: none;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(230, 57, 70, 0.20);
+  border-left: 3px solid var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  max-width: 360px;
+}
+.bold-lockup .lk-spec li {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+  padding: 5px 0;
+}
+.bold-lockup .lk-spec li + li { border-top: 1px solid rgba(230, 57, 70, 0.14); }
+.bold-lockup .lk-spec em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 500;
+}
+.bold-lockup .lk-spec span {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+@media (max-width: 720px) {
+  .bold-lockup {
+    max-width: 80vw;
+  }
+  .bold-lockup[data-corner="tl"], .bold-lockup[data-corner="tr"] { top: 90px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bold-lockup { transition: opacity 0ms; }
+}
+
 /* TEXT TOUCHES — fly-in callouts that appear during the spin scene of the
    bold-mode cinematic. Positioned at three corners around the bottle so they
    read like spec annotations on a product render. JS sets data-on="1" while

@@ -1048,6 +1048,7 @@
   // jitter from a video element being seeked. This replaces the prior
   // Veo MP4 background and is a Figma-driven composition.
   const boldFrames = Array.from(document.querySelectorAll('#boldFrames .bold-frame'));
+  const boldLockups = Array.from(document.querySelectorAll('#boldLockups .bold-lockup'));
   const BEAT_COUNT = boldFrames.length || 1;
 
   function updateBold() {
@@ -1064,7 +1065,15 @@
         // Soft-easing the fade with a cubic so peaks feel held, not pointy.
         const t = clamp(1 - dist / segment, 0, 1);
         const eased = t * t * (3 - 2 * t); // smoothstep
-        boldFrames[i].style.opacity = eased.toFixed(3);
+        const opStr = eased.toFixed(3);
+        boldFrames[i].style.opacity = opStr;
+        // Sync the typography lockup for the same beat. We damp lockup
+        // opacity slightly (×0.92 max) so the text never reaches "white-
+        // out hard 100%" — keeps it feeling like a designed overlay
+        // instead of a UI badge.
+        if (boldLockups[i]) {
+          boldLockups[i].style.opacity = (eased * 0.92).toFixed(3);
+        }
       }
     }
 
