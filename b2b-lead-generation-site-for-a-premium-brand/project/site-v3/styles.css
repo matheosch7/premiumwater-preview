@@ -1224,6 +1224,111 @@ main#top { position: relative; z-index: 2; }
 }
 #trade, #impact, #contact, footer { background: var(--bg-d, #0E0C08); }
 
+/* ==========================================================================
+   MOTION GRAPHICS LAYER
+   Premium polish — hero word reveal, card stagger, hover lift, cursor follower.
+   Each effect respects prefers-reduced-motion (instant final state).
+   ========================================================================== */
+
+/* --- Hero split-text reveal --- */
+/* Words start translated down + invisible. CSS transitions kick in after
+   body.mg-hero-ready is added (next frame after JS splits). Stagger via
+   --mg-i index set per word. */
+.hero-title .mg-word,
+.hero-eyebrow .mg-word,
+.hero-lede   .mg-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 700ms cubic-bezier(.2,.7,.2,1),
+              transform 800ms cubic-bezier(.2,.7,.2,1);
+  transition-delay: calc(var(--mg-i, 0) * 60ms + 80ms);
+  will-change: transform, opacity;
+}
+.hero-eyebrow .mg-word {
+  transition-duration: 500ms, 600ms;
+  transition-delay: calc(var(--mg-i, 0) * 35ms);
+  transform: translateY(8px);
+}
+.hero-lede .mg-word {
+  transition-delay: calc(var(--mg-i, 0) * 22ms + 600ms);
+  transform: translateY(12px);
+}
+body.mg-hero-ready .hero-title .mg-word,
+body.mg-hero-ready .hero-eyebrow .mg-word,
+body.mg-hero-ready .hero-lede   .mg-word {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Card stagger --- */
+/* Sibling reveals get cascading delay so a row of cards enters one after
+   another rather than all at once. */
+.product.reveal,
+.trade-card.reveal,
+.stats > div.reveal,
+.impact-grid > .reveal {
+  transition-delay: calc(var(--mg-stagger-i, 0) * 90ms);
+}
+
+/* --- Card hover lift --- */
+.trade-card,
+.product {
+  transition: transform 320ms cubic-bezier(.2,.7,.2,1),
+              box-shadow 320ms cubic-bezier(.2,.7,.2,1),
+              border-color 200ms ease;
+  will-change: transform;
+}
+.trade-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.18), 0 0 0 1px rgba(230,57,70,0.15);
+}
+.product:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.14);
+}
+
+/* In bold mode the card bg is white-glass; tighten the lift shadow to crimson */
+[data-brand="bold"] .trade-card:hover {
+  box-shadow: 0 20px 40px rgba(230,57,70,0.18), 0 0 0 1px rgba(230,57,70,0.30);
+  border-color: var(--accent);
+}
+[data-brand="bold"] .product:hover {
+  box-shadow: 0 16px 32px rgba(230,57,70,0.12);
+}
+
+/* --- Cursor follower (bold mode only, fine-pointer only) --- */
+.mg-cursor {
+  position: fixed;
+  top: 0; left: 0;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent, #E63946);
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0;
+  mix-blend-mode: multiply;
+  transition: opacity 300ms ease, width 200ms ease, height 200ms ease;
+  box-shadow: 0 0 24px rgba(230, 57, 70, 0.55);
+}
+[data-brand="bold"] .mg-cursor {
+  opacity: 0.55;
+}
+/* Cursor expands when hovering over an interactive element */
+[data-brand="bold"] a:hover ~ .mg-cursor,
+[data-brand="bold"] button:hover ~ .mg-cursor {
+  width: 36px; height: 36px;
+}
+
+/* --- Reduced motion: skip everything, snap to final state --- */
+@media (prefers-reduced-motion: reduce) {
+  .hero-title .mg-word,
+  .hero-eyebrow .mg-word,
+  .hero-lede .mg-word { opacity: 1; transform: none; transition: none; }
+  .trade-card, .product { transition: none; }
+  .mg-cursor { display: none; }
+}
+
 /* ============ BOLD STAGE (party-mode) ============================ */
 /* Sibling to .cine-stage; hidden by default. When [data-brand="bold"] is
    active on <html>, the cine-stage hides and this one takes over.

@@ -477,11 +477,166 @@
     document.querySelectorAll('.lang-pill button').forEach(b => {
       b.setAttribute('aria-pressed', b.dataset.lang === lang ? 'true' : 'false');
     });
+
+    // Re-run hero split-text reveal after copy changes (i18n / brand toggle)
+    document.querySelectorAll('.hero-title .line, .hero-eyebrow, .hero-lede').forEach(el => {
+      el.dataset.split = '';
+    });
+    if (typeof applyHeroReveal === 'function') {
+      document.body.classList.remove('mg-hero-ready');
+      applyHeroReveal();
+    }
   }
 
   document.querySelectorAll('.lang-pill button').forEach(b => {
     b.addEventListener('click', () => applyLang(b.dataset.lang));
   });
+
+  // ===================================================================
+  // MOTION GRAPHICS LAYER (Apple/Stripe-style premium polish)
+  // - Split-text reveal on hero headlines (word-by-word slide up)
+  // - Number count-up on stats when scrolled into view
+  // - Card stagger entrance (sibling .reveal elements get cascade delay)
+  // - Cursor follower dot in bold mode
+  // Each helper is idempotent and re-runs cleanly when language/brand toggles.
+  // ===================================================================
+
+  // Split a line of text into <span class="word">…</span> wrappers so we can
+  // animate each word independently. Skips elements already split.
+  function splitWords(el) {
+    if (!el || el.dataset.split === '1') return;
+    const html = el.innerHTML;
+    // Preserve <em>, <br/>, <i>, <b> etc — only split text nodes
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const walk = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const frag = document.createDocumentFragment();
+        const parts = node.textContent.split(/(\s+)/);
+        parts.forEach(part => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) {
+            frag.appendChild(document.createTextNode(part));
+          } else {
+            const w = document.createElement('span');
+            w.className = 'mg-word';
+            w.textContent = part;
+            frag.appendChild(w);
+          }
+        });
+        node.parentNode.replaceChild(frag, node);
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        Array.from(node.childNodes).forEach(walk);
+      }
+    };
+    Array.from(tmp.childNodes).forEach(walk);
+    el.innerHTML = tmp.innerHTML;
+    el.dataset.split = '1';
+  }
+
+  function applyHeroReveal() {
+    const targets = document.querySelectorAll('.hero-title .line, .hero-eyebrow, .hero-lede');
+    targets.forEach(splitWords);
+    // Stagger reveal — set --mg-i index on each word so CSS transition-delay
+    // can drive the cascade.
+    document.querySelectorAll('.hero-title .line').forEach(line => {
+      line.querySelectorAll('.mg-word').forEach((w, i) => {
+        w.style.setProperty('--mg-i', i);
+      });
+    });
+    // After a tick, mark them as ready so CSS animation kicks in.
+    requestAnimationFrame(() => {
+      document.body.classList.add('mg-hero-ready');
+    });
+  }
+
+  // Easing for counter — ease-out cubic
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // Animate a number from 0 to target over duration ms. Preserves the original
+  // formatting (commas, k suffix, %, etc) by interpreting the original text.
+  function animateCounter(el, durationMs = 1400) {
+    if (el.dataset.counted === '1') return;
+    const original = el.textContent.trim();
+    const m = original.match(/^([0-9,.]+)([a-zA-Z%]*)$/);
+    if (!m) return;
+    const numStr = m[1];
+    const suffix = m[2] || '';
+    const hasComma = numStr.includes(',');
+    const hasDot = numStr.includes('.');
+    const decimals = hasDot ? (numStr.split('.')[1] || '').length : 0;
+    const target = parseFloat(numStr.replace(/,/g, ''));
+    if (!isFinite(target)) return;
+    el.dataset.counted = '1';
+    const start = performance.now();
+    const fmt = (n) => {
+      let s;
+      if (decimals > 0) s = n.toFixed(decimals);
+      else s = String(Math.round(n));
+      if (hasComma) {
+        const [intPart, decPart] = s.split('.');
+        s = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (decPart ? '.' + decPart : '');
+      }
+      return s + suffix;
+    };
+    function tick(now) {
+      const t = Math.min(1, (now - start) / durationMs);
+      el.textContent = fmt(target * easeOutCubic(t));
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = original; // snap back to original formatting at end
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function applyCounters() {
+    const counters = document.querySelectorAll('.stats em');
+    if (!counters.length) return;
+    const cIo = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          animateCounter(en.target);
+          cIo.unobserve(en.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -120px 0px' });
+    counters.forEach(c => cIo.observe(c));
+  }
+
+  function applyCardStagger() {
+    // Sibling .reveal elements inside the same row get a cascade --mg-i.
+    document.querySelectorAll('.product-row, .trade-grid, .stats, .impact-grid').forEach(row => {
+      const kids = Array.from(row.querySelectorAll('.reveal, .product, .trade-card, > div'));
+      kids.forEach((k, i) => k.style.setProperty('--mg-stagger-i', i));
+    });
+  }
+
+  // Cursor follower — subtle accent dot trailing the cursor. Only on bold mode
+  // and only on devices with a fine pointer (skips touch).
+  let cursorEl = null, cursorRaf = 0, cursorTarget = { x: 0, y: 0 }, cursorPos = { x: 0, y: 0 };
+  function applyCursorFollower() {
+    if (cursorEl) return;
+    if (!window.matchMedia || !window.matchMedia('(pointer: fine)').matches) return;
+    cursorEl = document.createElement('div');
+    cursorEl.className = 'mg-cursor';
+    cursorEl.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(cursorEl);
+    window.addEventListener('mousemove', (e) => {
+      cursorTarget.x = e.clientX;
+      cursorTarget.y = e.clientY;
+      if (!cursorRaf) {
+        cursorRaf = requestAnimationFrame(function loop() {
+          cursorPos.x += (cursorTarget.x - cursorPos.x) * 0.18;
+          cursorPos.y += (cursorTarget.y - cursorPos.y) * 0.18;
+          cursorEl.style.transform = `translate3d(${cursorPos.x}px, ${cursorPos.y}px, 0) translate(-50%, -50%)`;
+          if (Math.abs(cursorTarget.x - cursorPos.x) > 0.5 || Math.abs(cursorTarget.y - cursorPos.y) > 0.5) {
+            cursorRaf = requestAnimationFrame(loop);
+          } else {
+            cursorRaf = 0;
+          }
+        });
+      }
+    }, { passive: true });
+  }
 
   // ---------- reveal on scroll ----------
   let io;
@@ -969,5 +1124,10 @@
   setupConsentBanner();
   initAnalytics();
   setupReveal();
+  // Motion graphics layer
+  applyHeroReveal();
+  applyCounters();
+  applyCardStagger();
+  applyCursorFollower();
   updateCine();
 })();
