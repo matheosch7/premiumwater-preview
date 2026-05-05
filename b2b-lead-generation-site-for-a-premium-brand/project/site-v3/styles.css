@@ -1549,6 +1549,17 @@ body.mg-hero-ready .hero-lede   .mg-word {
   -webkit-backdrop-filter: blur(8px);
   max-width: 360px;
 }
+/* When the lockup is anchored right, push the spec card to the right
+   too — text-align:right doesn't affect block-level <ul>, so we need
+   margin-left:auto. */
+.bold-lockup[data-corner="tr"] .lk-spec,
+.bold-lockup[data-corner="br"] .lk-spec {
+  margin-left: auto;
+  /* keep the accent stripe on the LEFT of the card so it visually
+     anchors the labels — flipping border-left to border-right would
+     break the read direction. */
+  text-align: left;
+}
 .bold-lockup .lk-spec li {
   display: grid;
   grid-template-columns: 90px 1fr;
