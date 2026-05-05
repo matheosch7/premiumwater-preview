@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta name="viewport" content="width=1280, height=720" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,361 +11,157 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
         margin: 0;
-        width: 1920px; height: 1080px;
+        width: 1280px; height: 720px;
         overflow: hidden;
-        background: #000;
+        background: #FFFFFF;
         font-family: 'Schibsted Grotesk', sans-serif;
-        color: #fff;
       }
       #root {
         position: relative;
-        width: 1920px; height: 1080px;
+        width: 1280px; height: 720px;
+        background: #FFFFFF;
       }
-
-      /* ========== persistent backdrop ========== */
-      #bg {
-        position: absolute; inset: 0;
-        background:
-          radial-gradient(ellipse 70% 60% at 50% 60%, rgba(230,57,70,0.22) 0%, transparent 60%),
-          radial-gradient(ellipse 110% 60% at 50% 100%, #000 30%, transparent 100%),
-          linear-gradient(180deg, #050507 0%, #0a0a0d 50%, #000 100%);
-      }
-      #grid {
-        position: absolute; inset: 0;
-        background-image:
-          linear-gradient(to right,  rgba(255,255,255,0.05) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
-        background-size: 80px 80px;
-        -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, black 25%, transparent 80%);
-                mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, black 25%, transparent 80%);
-        opacity: .85;
-      }
-      #scanlines {
-        position: absolute; inset: 0; pointer-events: none;
-        background: repeating-linear-gradient(180deg,
-          rgba(255,255,255,0) 0, rgba(255,255,255,0) 2px,
-          rgba(255,255,255,0.03) 3px, rgba(255,255,255,0) 4px);
-        mix-blend-mode: overlay; opacity: 0.6;
-      }
-
-      /* huge stroked lockup behind bottle */
-      #lockup {
-        position: absolute; left: 0; right: 0; top: 50%;
-        transform: translateY(-50%);
-        text-align: center;
-        font-family: 'Anton', sans-serif;
-        font-size: 360px; line-height: 0.86;
-        text-transform: uppercase; letter-spacing: -0.01em;
-        color: transparent;
-        -webkit-text-stroke: 2px rgba(255,255,255,0.10);
-                text-stroke: 2px rgba(255,255,255,0.10);
-        user-select: none; pointer-events: none;
-      }
-      #lockup span { display: block; }
-
-      /* ========== bottles — screen-blended + masked so the poster's
-         dark studio backdrop drops out and only the bottle silhouette
-         reads against the page background. ========== */
-      #bottle-black, #bottle-green {
+      .clip {
         position: absolute;
-        left: 50%; top: 50%;
-        width: 380px; height: auto;
-        transform-origin: 50% 70%;
-        mix-blend-mode: screen;
-        -webkit-mask-image: radial-gradient(ellipse 30% 70% at 50% 50%, #000 50%, rgba(0,0,0,0.6) 75%, transparent 95%);
-                mask-image: radial-gradient(ellipse 30% 70% at 50% 50%, #000 50%, rgba(0,0,0,0.6) 75%, transparent 95%);
-        filter: drop-shadow(0 50px 60px rgba(0,0,0,0.55))
-                drop-shadow(0 0 80px rgba(230,57,70,0.30));
+        inset: 0;
       }
-      #bottle-green {
-        filter: drop-shadow(0 30px 40px rgba(0,0,0,0.55))
-                drop-shadow(0 0 60px rgba(120,255,80,0.35));
+      .clip img {
+        width: 100%; height: 100%;
+        object-fit: contain;
+        display: block;
       }
-
-      /* ========== pour cascade ========== */
-      #pour {
+      .text-touch {
         position: absolute;
-        left: 0; top: 0;
-        width: 600px; height: 900px;
-        pointer-events: none;
-        filter: drop-shadow(0 0 16px rgba(230,57,70,0.7));
-        mix-blend-mode: screen;
-      }
-      .pour-stream {
-        stroke: url(#pourGrad);
-        stroke-dasharray: 30 22;
-        stroke-linecap: round;
-        fill: none;
-      }
-      .pour-drop { fill: url(#dropGrad); }
-
-      /* ========== hand ========== */
-      #hand {
-        position: absolute;
-        left: 50%; top: 50%;
-        width: 540px; height: auto;
-        transform-origin: center;
-        mix-blend-mode: screen;
-        -webkit-mask-image: radial-gradient(ellipse 50% 55% at 50% 48%, #000 30%, rgba(0,0,0,0.55) 55%, transparent 80%);
-                mask-image: radial-gradient(ellipse 50% 55% at 50% 48%, #000 30%, rgba(0,0,0,0.55) 55%, transparent 80%);
-        filter: saturate(0.65) brightness(1.05)
-                drop-shadow(0 0 22px rgba(230,57,70,0.55))
-                drop-shadow(0 12px 28px rgba(0,0,0,0.55));
-      }
-
-      /* ========== green swoosh ========== */
-      #swoosh {
-        position: absolute;
-        left: 0; top: 50%;
-        transform: translateY(-50%);
-        width: 100%; height: 200px;
-        pointer-events: none;
-        filter: drop-shadow(0 0 18px rgba(120,255,80,0.55));
-        mix-blend-mode: screen;
-      }
-
-      /* ========== spark burst (clink) ========== */
-      #clink {
-        position: absolute;
-        left: 50%; top: 50%;
-        width: 1px; height: 1px;
-        pointer-events: none;
-      }
-      #clink span {
-        position: absolute; left: 0; top: 0;
-        width: 8px; height: 8px;
-        background: #E63946;
-        border-radius: 50%;
-        box-shadow: 0 0 14px rgba(230,57,70,0.95);
-      }
-
-      /* ========== callout panel ========== */
-      #callout {
-        position: absolute;
-        left: 80px; top: 220px;
         font-family: 'JetBrains Mono', monospace;
-      }
-      #callout-arrow {
-        width: 80px; height: 220px;
-        margin-left: 30px;
-      }
-      #callout-panel {
-        background: rgba(8,8,10,0.78);
-        border: 1px solid rgba(230,57,70,0.45);
-        border-radius: 8px;
-        padding: 22px 28px;
-        min-width: 320px;
-        backdrop-filter: blur(8px);
-      }
-      #callout-panel .kicker {
-        font-size: 12px; color: #E63946;
-        margin-bottom: 16px;
-        border-bottom: 1px solid rgba(230,57,70,0.25);
-        padding-bottom: 10px;
-        letter-spacing: 0.18em; text-transform: uppercase;
-      }
-      .callout-row {
-        display: grid;
-        grid-template-columns: 110px 1fr;
-        gap: 14px;
-        font-size: 14px;
-        padding: 6px 0;
-        letter-spacing: 0.18em; text-transform: uppercase;
-      }
-      .callout-row em { font-style: normal; color: #E63946; }
-      .callout-row span { color: rgba(255,255,255,0.95); }
-      #callout-panel .foot {
-        margin-top: 16px;
-        font-size: 10px;
-        color: rgba(255,255,255,0.45);
-        letter-spacing: 0.32em; text-transform: uppercase;
-      }
-
-      /* ========== HUD: data strip + reticle ========== */
-      #data {
-        position: absolute;
-        left: 60px; top: 50%;
-        transform: translateY(-50%);
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 14px;
-        letter-spacing: 0.18em; text-transform: uppercase;
-        color: rgba(255,255,255,0.65);
-        display: grid; gap: 12px;
-      }
-      .data-row {
-        display: grid; grid-template-columns: 12px 80px 1fr;
-        gap: 10px; align-items: center;
-      }
-      .data-row i {
-        display: inline-block; width: 8px; height: 8px;
-        background: #E63946; border-radius: 50%;
-        box-shadow: 0 0 10px rgba(230,57,70,0.85);
-      }
-      .data-row em { font-style: normal; color: #E63946; letter-spacing: 0.24em; }
-
-      #reticle {
-        position: absolute;
-        left: 50%; top: 50%;
-        width: 420px; height: 420px;
-        transform: translate(-50%, -50%);
+        opacity: 0;
         pointer-events: none;
       }
-
-      /* ========== headline ========== */
-      #headline {
-        position: absolute;
-        left: 80px; top: 200px;
-        font-family: 'Anton', sans-serif;
-        font-size: 140px; line-height: 0.92;
-        letter-spacing: -0.01em; text-transform: uppercase;
-        color: #fff;
-      }
-      #headline em { font-style: normal; color: #E63946; }
-      #headline-eyebrow {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 14px;
+      .text-touch .kicker {
+        font-size: 13px;
         color: #E63946;
-        letter-spacing: 0.32em; text-transform: uppercase;
-        margin-bottom: 28px;
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
       }
-      #headline-eyebrow::before {
-        content: "—";
-        margin-right: 14px;
-      }
-
-      /* ========== caption strip (scene labels at bottom) ========== */
-      #caption {
-        position: absolute;
-        right: 80px; bottom: 80px;
+      .text-touch .line {
         font-family: 'Anton', sans-serif;
-        text-align: right;
+        font-size: 56px;
+        line-height: 1.0;
+        text-transform: uppercase;
+        letter-spacing: -0.005em;
+        color: #0A0A0C;
+        max-width: 480px;
       }
-      #caption .kicker {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 14px;
-        color: #E63946;
-        letter-spacing: 0.32em; text-transform: uppercase;
-        margin-bottom: 16px;
-      }
-      #caption .hed {
-        font-size: 88px; line-height: 0.92;
-        text-transform: uppercase; letter-spacing: -0.01em;
-        color: #fff;
-      }
-      #caption .hed em { font-style: normal; color: #E63946; }
+      #t1 { left: 70px;  top: 110px; }
+      #t2 { right: 70px; top: 160px; text-align: right; }
+      #t3 { left: 70px;  bottom: 90px; }
+      #t4 { right: 70px; bottom: 90px; text-align: right; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="14" data-width="1280" data-height="720">
 
-      <!-- ============ persistent backdrop (always-on) ============ -->
-      <div id="bg"></div>
-      <div id="grid"></div>
-      <div id="scanlines"></div>
+      <!-- ============ STORYBOARD CLIPS ============ -->
+      <!-- Each beat is an <img> with the best Veo still for that moment.
+           Alternating tracks (1 / 2) so adjacent clips can overlap for
+           crossfade. Each clip uses GSAP gsap.from(opacity:0) for soft
+           entry while the previous clip is still visible. -->
 
-      <div id="lockup">
-        <span>DRINK</span>
-        <span>LOUD</span>
+      <!-- BEAT 1 — empty white frame (0.0-0.7s) -->
+      <div id="c1" class="clip" data-start="0" data-duration="0.8" data-track-index="1">
+        <img src="assets/clipA/A_0_0.png" alt="" />
+      </div>
+      <!-- BEAT 2 — bottle materializing (0.6-1.7s) -->
+      <div id="c2" class="clip" data-start="0.6" data-duration="1.1" data-track-index="2">
+        <img src="assets/clipA/A_0_5.png" alt="" />
+      </div>
+      <!-- BEAT 3 — bottle fully appeared, vertical (1.5-2.5s) -->
+      <div id="c3" class="clip" data-start="1.5" data-duration="1.0" data-track-index="1">
+        <img src="assets/clipA/A_1_25.png" alt="" />
       </div>
 
-      <!-- ============ huge stroked headline (scenes 1-3) ============ -->
-      <div id="headline-wrap">
-        <div id="headline-eyebrow">Hydration · Loud edition</div>
-        <h1 id="headline">DRINK WATER<br/>LIKE YOU<br/><em>MEAN IT.</em></h1>
+      <!-- BEAT 4-6 — SPIN sequence: 4 frames showing bottle from different
+           angles. Each holds ~0.6s, crossfades into next, creating an
+           illusion of slow rotation. -->
+      <div id="c4" class="clip" data-start="2.3" data-duration="0.8" data-track-index="2">
+        <img src="assets/clipA/A_2_0.png" alt="" />
+      </div>
+      <div id="c5" class="clip" data-start="2.9" data-duration="0.8" data-track-index="1">
+        <img src="assets/clipA/A_2_75.png" alt="" />
+      </div>
+      <div id="c6" class="clip" data-start="3.5" data-duration="0.8" data-track-index="2">
+        <img src="assets/clipA/A_3_5.png" alt="" />
       </div>
 
-      <!-- ============ HUD: data strip + reticle ============ -->
-      <div id="data">
-        <div class="data-row"><i></i><em>SOURCE</em><span>Páramo · Andes</span></div>
-        <div class="data-row"><i></i><em>ALT</em><span>3,600 m</span></div>
-        <div class="data-row"><i></i><em>TDS</em><span>280 ppm</span></div>
-        <div class="data-row"><i></i><em>pH</em><span>7.4</span></div>
-        <div class="data-row"><i></i><em>BPM</em><span>130</span></div>
-        <div class="data-row"><i></i><em>STATUS</em><span style="color:#E63946">READY · POUR</span></div>
+      <!-- BEAT 7 — bottle dollies TOWARD camera (4.1-5.1s)
+           uses a single still + GSAP scale for the depth move -->
+      <div id="c7" class="clip" data-start="4.1" data-duration="1.0" data-track-index="1">
+        <img src="assets/clipA/A_4_5.png" alt="" />
       </div>
 
-      <svg id="reticle" viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(230,57,70,0.45)" stroke-width="0.8" stroke-dasharray="3 4"/>
-        <circle cx="100" cy="100" r="58" fill="none" stroke="rgba(230,57,70,0.30)" stroke-width="0.6"/>
-        <line x1="100" y1="0"  x2="100" y2="22" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
-        <line x1="100" y1="178" x2="100" y2="200" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
-        <line x1="0"   y1="100" x2="22" y2="100"  stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
-        <line x1="178" y1="100" x2="200" y2="100" stroke="rgba(230,57,70,0.55)" stroke-width="1"/>
-        <text x="120" y="98" fill="rgba(230,57,70,0.7)" font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="2">TARGET</text>
-      </svg>
-
-      <!-- ============ bottles ============ -->
-      <img id="bottle-black" src="assets/bottle-bold-poster.png" alt="" crossorigin="anonymous" />
-      <img id="bottle-green" src="assets/bottle-green-poster.png" alt="" crossorigin="anonymous" />
-
-      <!-- ============ pour cascade ============ -->
-      <svg id="pour" viewBox="0 0 600 900">
-        <defs>
-          <linearGradient id="pourGrad" x1="0.5" y1="0" x2="0.5" y2="1">
-            <stop offset="0"   stop-color="rgba(255,80,95,1)"/>
-            <stop offset="0.4" stop-color="rgba(230,57,70,0.85)"/>
-            <stop offset="1"   stop-color="rgba(230,57,70,0)"/>
-          </linearGradient>
-          <radialGradient id="dropGrad" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0" stop-color="rgba(255,140,150,1)"/>
-            <stop offset="1" stop-color="rgba(230,57,70,0)"/>
-          </radialGradient>
-        </defs>
-        <path class="pour-stream" d="M 300 40 Q 270 240 320 460 T 360 880" stroke-width="16"/>
-        <path class="pour-stream" d="M 320 60 Q 300 280 350 500 T 380 880" stroke-width="10" opacity="0.75"/>
-        <path class="pour-stream" d="M 280 50 Q 250 260 300 480 T 340 880" stroke-width="6" opacity="0.55"/>
-        <circle class="pour-drop" cx="310" cy="220" r="14"/>
-        <circle class="pour-drop" cx="335" cy="380" r="10"/>
-        <circle class="pour-drop" cx="290" cy="540" r="16"/>
-        <circle class="pour-drop" cx="345" cy="680" r="8"/>
-        <circle class="pour-drop" cx="320" cy="820" r="12"/>
-      </svg>
-
-      <!-- ============ reaching hand ============ -->
-      <img id="hand" src="assets/hand-grab.png" alt="" crossorigin="anonymous" />
-
-      <!-- ============ green swoosh ============ -->
-      <svg id="swoosh" viewBox="0 0 1600 200" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="swooshGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0"   stop-color="rgba(120,255,80,0)"/>
-            <stop offset="0.25" stop-color="rgba(120,255,80,0.55)"/>
-            <stop offset="0.6"  stop-color="rgba(180,255,120,0.85)"/>
-            <stop offset="1"   stop-color="rgba(255,255,255,0)"/>
-          </linearGradient>
-        </defs>
-        <path d="M 50 110 Q 400 80 800 100 Q 1200 120 1500 100" stroke="url(#swooshGrad)" stroke-width="14" fill="none" stroke-linecap="round"/>
-        <path d="M 80 130 Q 420 120 820 130 Q 1220 140 1480 120" stroke="url(#swooshGrad)" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.65"/>
-      </svg>
-
-      <!-- ============ spark burst on clink ============ -->
-      <div id="clink">
-        <span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span>
+      <!-- BEAT 8 — bottle pulls BACK to original distance (5.0-6.0s) -->
+      <div id="c8" class="clip" data-start="5.0" data-duration="1.0" data-track-index="2">
+        <img src="assets/clipA/A_5_75.png" alt="" />
       </div>
 
-      <!-- ============ label callout panel ============ -->
-      <div id="callout">
-        <div id="callout-panel">
-          <div class="kicker">▸ LABEL ZOOM · MATTE BLACK · 500ML</div>
-          <div class="callout-row"><em>pH</em><span>7.4</span></div>
-          <div class="callout-row"><em>TDS</em><span>280 ppm</span></div>
-          <div class="callout-row"><em>SOURCE</em><span>Andean páramo</span></div>
-          <div class="callout-row"><em>ALT</em><span>3,600 m</span></div>
-          <div class="callout-row"><em>BOTTLED</em><span>Cartagena, CO</span></div>
-          <div class="callout-row"><em>VINTAGE</em><span>2026</span></div>
-          <div class="foot">— PREMIUMWATER · LOUD EDITION —</div>
-        </div>
-        <svg id="callout-arrow" viewBox="0 0 80 220">
-          <path d="M 40 0 L 40 160 L 56 144" stroke="rgba(230,57,70,0.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
-          <circle cx="56" cy="144" r="5" fill="#E63946"/>
-        </svg>
+      <!-- BEAT 9 — final spin + settle (5.9-7.4s) -->
+      <div id="c9" class="clip" data-start="5.9" data-duration="0.8" data-track-index="1">
+        <img src="assets/clipA/A_6_5.png" alt="" />
+      </div>
+      <div id="c10" class="clip" data-start="6.6" data-duration="1.1" data-track-index="2">
+        <img src="assets/clipA/A_7_5.png" alt="" />
       </div>
 
-      <!-- ============ caption (scene label) ============ -->
-      <div id="caption">
-        <div class="kicker">01 — Incoming</div>
-        <h2 class="hed"><em>Bottle inbound.</em></h2>
+      <!-- BEAT 10 — hand sweeping in from right (7.5-8.6s) -->
+      <div id="c11" class="clip" data-start="7.5" data-duration="1.1" data-track-index="1">
+        <img src="assets/clipB/B_1_75.png" alt="" />
+      </div>
+      <!-- BEAT 11 — hand at bottle, gripping (8.5-9.5s) -->
+      <div id="c12" class="clip" data-start="8.5" data-duration="1.0" data-track-index="2">
+        <img src="assets/clipB/B_2_25.png" alt="" />
+      </div>
+
+      <!-- BEAT 12 — green bottle entering from LEFT (9.4-10.4s) -->
+      <div id="c13" class="clip" data-start="9.4" data-duration="1.0" data-track-index="1">
+        <img src="assets/clipB/B_3_25.png" alt="" />
+      </div>
+      <!-- BEAT 13 — bottles meeting (10.3-10.9s) -->
+      <div id="c14" class="clip" data-start="10.3" data-duration="0.6" data-track-index="2">
+        <img src="assets/clipB/B_3_75.png" alt="" />
+      </div>
+      <!-- BEAT 14 — CLINK with water mist burst (10.8-11.6s) -->
+      <div id="c15" class="clip" data-start="10.8" data-duration="0.8" data-track-index="1">
+        <img src="assets/clipB/B_5_0.png" alt="" />
+      </div>
+
+      <!-- BEAT 15 — hands receding off both sides (11.5-12.6s) -->
+      <div id="c16" class="clip" data-start="11.5" data-duration="1.1" data-track-index="2">
+        <img src="assets/clipB/B_6_5.png" alt="" />
+      </div>
+
+      <!-- BEAT 16 — bottle alone in display pose (12.5-14.0s) -->
+      <div id="c17" class="clip" data-start="12.5" data-duration="1.5" data-track-index="1">
+        <img src="assets/clipB/B_7_5.png" alt="" />
+      </div>
+
+      <!-- ============ TEXT TOUCHES (overlay) ============ -->
+      <!-- Crisp HTML callouts that appear during the spin scene.
+           Sequential on track 3 (no overlap), each fades in/out via GSAP. -->
+      <div id="t1" class="clip text-touch" data-start="2.4" data-duration="1.7" data-track-index="3">
+        <div class="kicker">01 ▸ Source</div>
+        <div class="line">From the<br/>Andean&nbsp;páramo</div>
+      </div>
+      <div id="t2" class="clip text-touch" data-start="4.2" data-duration="1.6" data-track-index="3">
+        <div class="kicker">02 ▸ Altitude</div>
+        <div class="line">3,600 m above<br/>sea&nbsp;level</div>
+      </div>
+      <div id="t3" class="clip text-touch" data-start="5.9" data-duration="1.5" data-track-index="3">
+        <div class="kicker">03 ▸ Distance</div>
+        <div class="line">Bottled &lt; 40 km<br/>from&nbsp;source</div>
+      </div>
+      <div id="t4" class="clip text-touch" data-start="12.6" data-duration="1.4" data-track-index="3">
+        <div class="kicker">▸ Premium Water</div>
+        <div class="line">Loud<br/>edition.</div>
       </div>
     </div>
 
@@ -373,109 +169,52 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      /* ============================================================
-         10 HERO FRAMES driven by GSAP timeline (1s per frame, 10s total).
-         Each frame is a key pose: at t=N the elements are at FRAMES[N]'s
-         layout. GSAP interpolates smoothly between adjacent frames.
-         The composition is designed to be SCROLL-SCRUBBED on the live
-         site (player.currentTime = scrollProgress * duration).
-         ============================================================ */
+      // === CLIP CROSSFADE ENTRANCES ===
+      // Each clip fades in from 0 over 0.4s starting at its data-start.
+      // The previous clip is still visible (overlap window) so this looks
+      // like a soft crossfade. Hyperframes auto-hides each clip at its
+      // data-end, so no exit animation needed.
+      const fadeIn = (id, t, dur=0.4) => tl.from(id, { opacity: 0, duration: dur, ease: "power2.out" }, t);
 
-      /* --- ATTACH initial poses (Frame 1: cold-open) --- */
-      gsap.set("#bottle-black", {
-        x: -880, y: 0, rotation: -75, scale: 1, opacity: 1,
-        xPercent: -50, yPercent: -50,
-        transformOrigin: "50% 70%"
+      fadeIn("#c1",  0.00, 0.3);
+      fadeIn("#c2",  0.60);   // bottle ghost emerging
+      fadeIn("#c3",  1.50);   // fully present
+      fadeIn("#c4",  2.30);   // spin a
+      fadeIn("#c5",  2.90);   // spin b
+      fadeIn("#c6",  3.50);   // spin c
+      fadeIn("#c7",  4.10);   // dolly in
+      fadeIn("#c8",  5.00);   // dolly back
+      fadeIn("#c9",  5.90);   // final spin
+      fadeIn("#c10", 6.60);   // settled
+      fadeIn("#c11", 7.50);   // hand inbound
+      fadeIn("#c12", 8.50);   // hand grip
+      fadeIn("#c13", 9.40);   // green inbound
+      fadeIn("#c14", 10.30);  // bottles meet
+      fadeIn("#c15", 10.80, 0.25);  // clink — quicker hit
+      fadeIn("#c16", 11.50);  // hands receding
+      fadeIn("#c17", 12.50);  // display pose
+
+      // === FAKE-MOTION SCALE TWEENS ===
+      // Beat 7: dolly TOWARD camera — scale 1.0 → 1.10 over 1s
+      tl.to("#c7 img", { scale: 1.10, duration: 1.0, ease: "power2.inOut", transformOrigin: "50% 50%" }, 4.1);
+      // Beat 8: dolly BACK — scale 1.10 → 1.00 over 1s
+      tl.fromTo("#c8 img", { scale: 1.10 }, { scale: 1.00, duration: 1.0, ease: "power2.inOut", transformOrigin: "50% 50%" }, 5.0);
+
+      // Beat 4-6 spin: each frame gets a tiny rotation tween for liveness
+      tl.fromTo("#c4 img", { rotation: -2 }, { rotation: 0, duration: 0.8, ease: "sine.inOut" }, 2.3);
+      tl.fromTo("#c5 img", { rotation: 2 },  { rotation: 0, duration: 0.8, ease: "sine.inOut" }, 2.9);
+      tl.fromTo("#c6 img", { rotation: -2 }, { rotation: 0, duration: 0.8, ease: "sine.inOut" }, 3.5);
+
+      // Beat 17: bottle settles — gentle scale-down to anchor the hero pose
+      tl.fromTo("#c17 img", { scale: 1.04 }, { scale: 1.00, duration: 1.2, ease: "power3.out", transformOrigin: "50% 50%" }, 12.5);
+
+      // === TEXT TOUCH ENTRANCES ===
+      // Each touch slides up from below + fades in, holds, then exits.
+      [["#t1", 2.4], ["#t2", 4.2], ["#t3", 5.9], ["#t4", 12.6]].forEach(([id, t]) => {
+        tl.to(id, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, t);
       });
-      gsap.set("#bottle-green", {
-        x: -2200, y: 0, rotation: -55, scale: 0.85, opacity: 0,
-        xPercent: -50, yPercent: -50,
-        transformOrigin: "50% 70%"
-      });
-      gsap.set("#pour", { left: 280, top: 60, opacity: 0 });
-      gsap.set("#hand", {
-        x: 1280, y: 0, rotation: -8, scale: 1, opacity: 0,
-        xPercent: -50, yPercent: -50, scaleX: -1
-      });
-      gsap.set("#swoosh", { opacity: 0 });
-      gsap.set("#clink span", { x: 0, y: 0, opacity: 0, scale: 0 });
-      gsap.set("#callout", { x: -120, opacity: 0 });
-      gsap.set(".callout-row", { opacity: 0, x: 16 });
-      gsap.set("#data", { opacity: 0.4 });
-      gsap.set("#reticle", { opacity: 0.35 });
-      gsap.set("#headline-wrap", { opacity: 1 });
-      gsap.set("#caption", { opacity: 1 });
-      gsap.set("#lockup", { opacity: 0.18, x: 0 });
-
-      /* === FRAME 2 (t=1) — POUR PEAK ===
-         bottle 70% on-screen tilted -50, water cascade at full,
-         camera approaches (scale up) */
-      tl.to("#bottle-black",   { x: -440, rotation: -50, duration: 1, ease: "power2.out" }, 0)
-        .to("#pour",            { opacity: 1,            duration: 0.4, ease: "power2.out" }, 0.2)
-        .to("#data, #reticle",  { opacity: 0.85,         duration: 0.6, ease: "none" }, 0)
-        .to("#lockup",          { x: -120, opacity: 0.18,duration: 1,   ease: "none" }, 0);
-
-      /* === FRAME 3 (t=2) — LANDED ===
-         bottle vertical centre, hero shot */
-      tl.to("#bottle-black",   { x: 0, rotation: 0,      duration: 1, ease: "power2.inOut" }, 1)
-        .to("#pour",            { opacity: 0,            duration: 0.4, ease: "power2.in" }, 1.2)
-        .to("#data, #reticle",  { opacity: 1,            duration: 0.6, ease: "none" }, 1)
-        .to("#lockup",          { x: -240, opacity: 0.20,duration: 1,   ease: "none" }, 1);
-
-      /* === FRAME 4 (t=3) — INSPECTION ===
-         bottle holds with subtle wobble, lockup drifts */
-      tl.to("#bottle-black",   { x: 30, rotation: 2, scale: 1.02, duration: 1, ease: "sine.inOut" }, 2)
-        .to("#lockup",          { x: -360, opacity: 0.22, duration: 1, ease: "none" }, 2)
-        .to("#headline-wrap",   { opacity: 0.3, x: -40, duration: 1, ease: "power2.in" }, 2.4);
-
-      /* === FRAME 5 (t=4) — HAND INBOUND === */
-      tl.to("#bottle-black",   { x: -20, rotation: 0, scale: 1, duration: 1, ease: "power2.inOut" }, 3)
-        .to("#hand",            { x: 380, opacity: 0.92, duration: 1, ease: "power3.out" }, 3)
-        .to("#data",            { opacity: 0.7, duration: 0.5, ease: "none" }, 3)
-        .to("#reticle",         { opacity: 0.55, duration: 0.5, ease: "none" }, 3)
-        .to("#headline-wrap",   { opacity: 0, duration: 0.6, ease: "power2.in" }, 3);
-
-      /* === FRAME 6 (t=5) — CONTACT JOLT === */
-      tl.to("#bottle-black",   { x: -20, rotation: 6, duration: 0.4, ease: "back.out(2)" }, 4)
-        .to("#bottle-black",   { rotation: 4, duration: 0.6, ease: "sine.inOut" }, 4.4)
-        .to("#hand",            { x: -10, opacity: 1, duration: 1, ease: "power3.out" }, 4)
-        .to("#data, #reticle",  { opacity: 0.4, duration: 0.6, ease: "none" }, 4)
-        .to("#caption .kicker", { opacity: 1, duration: 0.3 }, 4)
-        .to("#caption .hed",    { opacity: 1, duration: 0.3 }, 4);
-
-      /* === FRAME 7 (t=6) — GREEN INBOUND === */
-      tl.to("#bottle-black",   { x: 140, rotation: -2, duration: 1, ease: "power2.out" }, 5)
-        .to("#hand",            { x: 1280, opacity: 0, duration: 1, ease: "power3.in" }, 5)
-        .to("#bottle-green",   { x: -700, rotation: -28, opacity: 0.95, scale: 1, duration: 1, ease: "power2.out" }, 5.1)
-        .to("#swoosh",          { opacity: 1, duration: 0.6, ease: "power2.out" }, 5.1)
-        .to("#data, #reticle",  { opacity: 0.3, duration: 0.6, ease: "none" }, 5);
-
-      /* === FRAME 8 (t=7) — CLINK === */
-      tl.to("#bottle-black",   { x: 140, rotation: -2, duration: 1, ease: "sine.inOut" }, 6)
-        .to("#bottle-green",   { x: -140, rotation: -8, duration: 1, ease: "power2.inOut" }, 6)
-        .to("#swoosh",          { opacity: 0.4, duration: 0.5, ease: "power2.in" }, 6.4)
-        .to("#clink span", {
-          x: (i) => Math.cos((i * 45) * Math.PI / 180) * 120,
-          y: (i) => Math.sin((i * 45) * Math.PI / 180) * 120,
-          opacity: 1, scale: 1.4,
-          duration: 0.4, ease: "power3.out", stagger: 0.02
-        }, 6.95)
-        .to("#clink span", { opacity: 0, scale: 0.4, duration: 0.4, ease: "power2.in" }, 7.3);
-
-      /* === FRAME 9 (t=8) — APPROACH (green exits LEFT, camera dollies in) === */
-      tl.to("#bottle-black",   { x: 0, rotation: 0, scale: 1.6, duration: 1, ease: "power2.inOut" }, 7)
-        .to("#bottle-green",   { x: -2200, rotation: -38, opacity: 0, duration: 1, ease: "power2.in" }, 7)
-        .to("#swoosh",          { opacity: 0, duration: 0.5, ease: "power2.in" }, 7)
-        .to("#data, #reticle",  { opacity: 0.6, duration: 0.6, ease: "none" }, 7.4)
-        .to("#callout",         { opacity: 0.25, x: -40, duration: 0.6, ease: "none" }, 7.5);
-
-      /* === FRAME 10 (t=9) — LABEL FINALE (close-up + spec callout) === */
-      tl.to("#bottle-black",   { x: 200, scale: 2.6, duration: 1, ease: "power2.inOut" }, 8)
-        .to("#callout",         { opacity: 1, x: 0, duration: 0.7, ease: "power3.out" }, 8.1)
-        .to(".callout-row",     { opacity: 1, x: 0, duration: 0.4, ease: "power3.out", stagger: 0.06 }, 8.3)
-        .to("#data, #reticle",  { opacity: 0.95, duration: 0.6, ease: "none" }, 8)
-        .to("#lockup",          { x: -480, opacity: 0.10, duration: 1, ease: "none" }, 8)
-        .to("#caption",         { opacity: 0, duration: 0.5, ease: "power2.in" }, 8.5);
+      gsap.set([".text-touch"], { y: 16 });
+      tl.from([".text-touch .line"], { y: 30, opacity: 0, duration: 0.5, stagger: 0, ease: "power3.out" }, 0); // initial hide
 
       window.__timelines["main"] = tl;
     </script>

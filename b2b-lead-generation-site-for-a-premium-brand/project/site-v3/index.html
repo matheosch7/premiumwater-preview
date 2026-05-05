@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=32" />
+  <link rel="stylesheet" href="styles.css?v=33" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -130,22 +130,8 @@
     preload="auto"
     disablePictureInPicture
     aria-hidden="true"></video>
-  <!-- Text touches appear during the spin scene of Clip A. JS sets data-on="1"
-       when scroll progress is inside the touch's window. -->
-  <div class="bold-text-touches" id="boldTextTouches" aria-hidden="true">
-    <div class="bold-touch" data-touch="1">
-      <div class="touch-kicker">01 ▸ Source</div>
-      <div class="touch-line">From the Andean páramo</div>
-    </div>
-    <div class="bold-touch" data-touch="2">
-      <div class="touch-kicker">02 ▸ Altitude</div>
-      <div class="touch-line">3,600 m above sea level</div>
-    </div>
-    <div class="bold-touch" data-touch="3">
-      <div class="touch-kicker">03 ▸ Distance</div>
-      <div class="touch-line">Bottled &lt; 40 km from source</div>
-    </div>
-  </div>
+  <!-- Text-touch overlays are now baked into the rendered MP4 (via the
+       hyperframes composition). No page-level overlays needed. -->
 </div>
 
 <!-- ============ navigation ============ -->
