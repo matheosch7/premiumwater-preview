@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=44" />
+  <link rel="stylesheet" href="styles.css?v=45" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -115,98 +115,15 @@
   </div>
 </div>
 
-<!-- ============ bold-mode cinematic stage (scroll-scrubbed video) ============ -->
-<!-- The choreography for bold mode lives in the rendered MP4. Source HTML
-     and GSAP timeline are in ../bold-cinematic/ (HyperFrames project).
-     We mirror the calm-mode pattern: <video> sits position:fixed in viewport,
-     scrollY drives currentTime. -->
-<div class="bold-stage" id="boldStage" aria-hidden="true">
-  <!-- Bold-stage frame stack — 6 designed beats cross-faded by scrollY.
-       Replaces the previous Veo scroll-scrub MP4. Each frame is a
-       composited still (Veo photography + typography overlay built in
-       Figma). Stack order matters: later frames sit above earlier ones,
-       and `updateBold()` drives per-frame opacity from scroll progress
-       so the visible image always feels handcrafted, not "video paused
-       in the background". -->
-  <!-- Bold-stage frame stack — 12 beats from the Figma cinematic page
-       (file dHKh6V6sE0XTQRpzIhVVkh, "Cinematic · 12 beats"). Beats 4 + 5
-       are the new "label zoom-in / inside the source" sequence. -->
-  <div class="bold-frames" id="boldFrames">
-    <img class="bold-frame" data-beat="0"  src="assets/bold-cinematic/01-cold-open.png?v=1"   alt="" decoding="async" />
-    <img class="bold-frame" data-beat="1"  src="assets/bold-cinematic/02-materialize.png?v=1" alt="" decoding="async" />
-    <img class="bold-frame" data-beat="2"  src="assets/bold-cinematic/03-spinning.png?v=1"    alt="" decoding="async" />
-    <img class="bold-frame" data-beat="3"  src="assets/bold-cinematic/04-label-zoom.png?v=1"  alt="" decoding="async" />
-    <img class="bold-frame" data-beat="4"  src="assets/bold-cinematic/05-inside.png?v=1"      alt="" decoding="async" />
-    <img class="bold-frame" data-beat="5"  src="assets/bold-cinematic/06-last-spin.png?v=1"   alt="" decoding="async" />
-    <img class="bold-frame" data-beat="6"  src="assets/bold-cinematic/07-hand-inbound.png?v=1" alt="" decoding="async" />
-    <img class="bold-frame" data-beat="7"  src="assets/bold-cinematic/08-grip.png?v=1"        alt="" decoding="async" />
-    <img class="bold-frame" data-beat="8"  src="assets/bold-cinematic/09-green.png?v=1"       alt="" decoding="async" />
-    <img class="bold-frame" data-beat="9"  src="assets/bold-cinematic/10-clink.png?v=1"       alt="" decoding="async" />
-    <img class="bold-frame" data-beat="10" src="assets/bold-cinematic/11-recede.png?v=1"      alt="" decoding="async" />
-    <img class="bold-frame" data-beat="11" src="assets/bold-cinematic/12-display.png?v=1"     alt="" decoding="async" />
-  </div>
-  <!-- Lockup overlay layer — Figma-style typography composition pinned to
-       each beat. updateBold() drives per-lockup opacity using the same
-       per-beat formula as the photo frames, so headline + photo arrive
-       and exit together. Lives inside .bold-stage so it inherits the
-       fixed positioning + the soft fade-out near scroll end. -->
-  <div class="bold-lockups" id="boldLockups" aria-hidden="true">
-    <div class="bold-lockup" data-beat="0"  data-corner="tl">
-      <span class="lk-kicker">00 ▸ Cold open</span>
-      <h2 class="lk-line">The loud<br/>edition.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="1"  data-corner="tl">
-      <span class="lk-kicker">01 ▸ Materialize</span>
-      <h2 class="lk-line">From&nbsp;void,<br/>a bottle.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="2"  data-corner="bl">
-      <span class="lk-kicker">02 ▸ Source</span>
-      <h2 class="lk-line">From the<br/>Andean&nbsp;páramo.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="3"  data-corner="tr">
-      <span class="lk-kicker">03 ▸ Label zoom</span>
-      <h2 class="lk-line">Step<br/>inside.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="4"  data-corner="bl">
-      <span class="lk-kicker">04 ▸ Inside</span>
-      <h2 class="lk-line">The source<br/>itself.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="5"  data-corner="tl">
-      <span class="lk-kicker">05 ▸ Last spin</span>
-      <h2 class="lk-line">Settled.<br/>Centred.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="6"  data-corner="tr">
-      <span class="lk-kicker">06 ▸ Hand inbound</span>
-      <h2 class="lk-line">Built for<br/>the floor.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="7"  data-corner="tl">
-      <span class="lk-kicker">07 ▸ Grip</span>
-      <h2 class="lk-line">Held<br/>tight.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="8"  data-corner="bl">
-      <span class="lk-kicker">08 ▸ Green inbound</span>
-      <h2 class="lk-line">A second<br/>hand arrives.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="9"  data-corner="tl">
-      <span class="lk-kicker">09 ▸ Clink</span>
-      <h2 class="lk-line">Same liquid;<br/>zero apologies.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="10" data-corner="bl">
-      <span class="lk-kicker">10 ▸ Hands recede</span>
-      <h2 class="lk-line">Bottle alone.<br/>City quiet.</h2>
-    </div>
-    <div class="bold-lockup" data-beat="11" data-corner="tr">
-      <span class="lk-kicker">11 ▸ Display pose</span>
-      <h2 class="lk-line">Premiumwater<br/>Loud&nbsp;Edition.</h2>
-      <ul class="lk-spec">
-        <li><em>pH</em><span>7.4</span></li>
-        <li><em>TDS</em><span>280 ppm</span></li>
-        <li><em>Alt</em><span>3,600 m</span></li>
-        <li><em>Bottled</em><span>Cartagena, CO</span></li>
-      </ul>
-    </div>
-  </div>
-</div>
+<!-- bold-mode (party mode) is now built per-section instead of as a single
+     fixed cinematic stage. The previous bold-stage / boldFrames / boldLockups
+     subsystem was removed in the rebuild — see [data-brand="bold"] section
+     overrides in styles.css for the new approach. -->
+
+<!-- Each section in bold mode carries one strong visual + typographic
+     identity. Sections render their bold-mode visuals via inline
+     <img class="bold-hero-photo"> elements (added below where needed)
+     plus background colours / typography swapped via CSS. -->
 
 <!-- ============ navigation ============ -->
 <header class="nav">
@@ -329,6 +246,8 @@
         <a class="pill pill-solid" href="#contact" data-i18n="hero.cta">Get started →</a>
       </div>
     </div>
+    <!-- Bold-mode hero photo (only visible in [data-brand="bold"]). -->
+    <img class="bold-hero-photo" src="assets/bold-frames/02-hero.png?v=2" alt="" decoding="async" />
   </section>
 
   <!-- SPACER to let scene breathe -->
@@ -342,7 +261,7 @@
   </section>
 
   <!-- STORY / ORIGIN -->
-  <section class="block" id="story" data-bold-lockup="MOUNTAIN">
+  <section class="block" id="story">
     <div class="grid-2">
       <div class="reveal">
         <div class="eyebrow" data-i18n="story.eyebrow">01 · The source</div>
@@ -362,7 +281,7 @@
   </section>
 
   <!-- PRODUCT -->
-  <section class="block" id="product" data-bold-lockup="THREE · SIZES · ONE · VOLUME">
+  <section class="block" id="product">
     <div class="section-head reveal">
       <div class="eyebrow" data-i18n="product.eyebrow">02 · The range</div>
       <h2 class="h-display" data-i18n-html="product.hed">A small,<br/><em>considered</em> range.</h2>
@@ -400,7 +319,7 @@
   </section>
 
   <!-- TRADE / DISTRIBUTOR -->
-  <section class="block" id="trade" data-bold-lockup="VENUES · BARS · GYMS · CLUBS">
+  <section class="block" id="trade">
     <div class="section-head reveal">
       <div class="eyebrow" data-i18n="trade.eyebrow">03 · Trade</div>
       <h2 class="h-display" data-i18n-html="trade.hed">Built for the people<br/>who <em>pour it</em>.</h2>
@@ -419,7 +338,7 @@
   </section>
 
   <!-- IMPACT -->
-  <section class="block" id="impact" data-bold-lockup="ONE · FOR · ONE">
+  <section class="block" id="impact">
     <div class="section-head reveal">
       <div class="eyebrow" data-i18n="impact.eyebrow">04 · Impact</div>
       <h2 class="h-display" data-i18n-html="impact.hed">One liter in,<br/>one liter <em>forward</em>.</h2>
@@ -439,7 +358,7 @@
   </section>
 
   <!-- CONTACT -->
-  <section class="block" id="contact" data-bold-lockup="POUR · IT · LOUD">
+  <section class="block" id="contact">
     <div class="contact-grid">
       <div class="reveal">
         <div class="eyebrow" data-i18n="contact.eyebrow">05 · Become a distributor</div>

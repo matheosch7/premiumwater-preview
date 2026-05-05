@@ -1288,1137 +1288,581 @@ body.mg-hero-ready .hero-lede   .mg-word {
   box-shadow: 0 16px 32px rgba(0,0,0,0.14);
 }
 
-/* In bold mode the card bg is white-glass; tighten the lift shadow to crimson */
-[data-brand="bold"] .trade-card:hover {
-  box-shadow: 0 20px 40px rgba(230,57,70,0.18), 0 0 0 1px rgba(230,57,70,0.30);
+/* =====================================================================
+   BOLD MODE (Party mode) — Rebuild v2
+   ---------------------------------------------------------------------
+   Scrapped: scroll-driven cinematic stage, frame-stack cross-fade,
+             fixed-position video, 3D model-viewer, lockup overlay,
+             per-section parallax, cursor follower, ambient blobs.
+
+   Kept:     brand-pill toggle (data-brand="bold" on <html>),
+             design tokens (--ink #0A0A0C, --accent #E63946, --sans Anton),
+             nav, marquee, content sections, footer, form.
+
+   Approach: each section in bold mode gets its own visual identity,
+             alternating black/white backgrounds, strong Anton headlines,
+             one editorial Veo bottle photo per section. No shared
+             "stage" — each section reads as a designed magazine spread.
+   ===================================================================== */
+
+/* 1) Hide the calm-mode cinematic stage and ornaments completely. */
+[data-brand="bold"] .cine-stage,
+[data-brand="bold"] .river,
+[data-brand="bold"] .scroll-card,
+[data-brand="bold"] #scrollCard {
+  display: none !important;
+}
+
+/* 2) Page-level: white background, no gradients leaking through. */
+html[data-brand="bold"],
+[data-brand="bold"] body {
+  background: #FFFFFF;
+}
+[data-brand="bold"] body { color: var(--ink); }
+
+/* 3) Nav stays but with crisper crimson accent. */
+[data-brand="bold"] .nav-inner {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+[data-brand="bold"] .nav-center a {
+  color: var(--ink);
+}
+[data-brand="bold"] .nav-center a:hover {
+  background: rgba(230,57,70,0.08);
+  color: var(--accent);
+}
+[data-brand="bold"] .pill.pill-solid {
+  background: var(--accent);
+  color: #FFFFFF;
   border-color: var(--accent);
 }
-[data-brand="bold"] .product:hover {
-  box-shadow: 0 16px 32px rgba(230,57,70,0.12);
+[data-brand="bold"] .pill.pill-ghost {
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
-/* --- Cursor follower (bold mode only, fine-pointer only) --- */
-.mg-cursor {
-  position: fixed;
-  top: 0; left: 0;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--accent, #E63946);
-  pointer-events: none;
-  z-index: 999;
-  opacity: 0;
-  mix-blend-mode: multiply;
-  transition: opacity 300ms ease, width 200ms ease, height 200ms ease;
-  box-shadow: 0 0 24px rgba(230, 57, 70, 0.55);
+/* 4) HERO — black backdrop, giant red+white wordmark, bottle still right. */
+[data-brand="bold"] .hero {
+  background: #0A0A0C;
+  color: #FFFFFF;
+  position: relative;
+  min-height: 100vh;
+  padding: clamp(120px, 18vh, 200px) clamp(24px, 5vw, 80px) clamp(80px, 12vh, 140px);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: center;
+  gap: clamp(40px, 5vw, 80px);
 }
-[data-brand="bold"] .mg-cursor {
-  opacity: 0.55;
-}
-/* Cursor expands when hovering over an interactive element */
-[data-brand="bold"] a:hover ~ .mg-cursor,
-[data-brand="bold"] button:hover ~ .mg-cursor {
-  width: 36px; height: 36px;
-}
-
-/* --- Reduced motion: skip everything, snap to final state --- */
-@media (prefers-reduced-motion: reduce) {
-  .hero-title .mg-word,
-  .hero-eyebrow .mg-word,
-  .hero-lede .mg-word { opacity: 1; transform: none; transition: none; }
-  .trade-card, .product { transition: none; }
-  .mg-cursor { display: none; }
-}
-
-/* ==========================================================================
-   BOLD-MODE SECTION MOTION — softer entrance pass.
-   Previous version aggressively hid content with opacity:0 +
-   translateY(36px) waiting for IntersectionObserver, which left whole
-   sections invisible during scroll. New version keeps content visible
-   by default, only applies a subtle 12px slide-up if the section hasn't
-   been seen yet AND the user has motion preferences on.
-   ========================================================================== */
-
-/* Title: subtle fade-up only when section is unseen. Content always visible. */
-[data-brand="bold"] section.block:not(.section-in) > .section-head .eyebrow,
-[data-brand="bold"] section.block:not(.section-in) > .section-head .h-display,
-[data-brand="bold"] section.block:not(.section-in) > .grid-2 .eyebrow,
-[data-brand="bold"] section.block:not(.section-in) > .grid-2 .h-display,
-[data-brand="bold"] #contact:not(.section-in) .eyebrow,
-[data-brand="bold"] #contact:not(.section-in) .h-display {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 600ms ease, transform 700ms cubic-bezier(.2,.7,.2,1);
-}
-[data-brand="bold"] section.block.section-in .eyebrow,
-[data-brand="bold"] section.block.section-in .h-display,
-[data-brand="bold"] #contact.section-in .eyebrow,
-[data-brand="bold"] #contact.section-in .h-display {
-  opacity: 1;
-  transform: none;
-}
-
-/* Section divider — a thin crimson line that draws across between sections */
-[data-brand="bold"] section.block::before {
+[data-brand="bold"] .hero::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(to right, transparent 0%, var(--accent) 50%, transparent 100%);
-  transform: scaleX(0);
-  transform-origin: 50% 50%;
-  transition: transform 900ms cubic-bezier(.2,.7,.2,1) 100ms;
-  z-index: 4;
+  right: -20%;
+  bottom: -20%;
+  width: 70vw;
+  height: 70vw;
+  max-width: 900px;
+  max-height: 900px;
+  background: radial-gradient(circle, rgba(230,57,70,0.40) 0%, transparent 60%);
+  filter: blur(40px);
   pointer-events: none;
-  opacity: 0.5;
-}
-[data-brand="bold"] section.block.section-in::before {
-  transform: scaleX(1);
-}
-/* Make sure block has positioning context for the ::before line */
-[data-brand="bold"] section.block { position: relative; }
-
-/* Nav-overlap fix: the fixed .nav (top:18px, ~52px tall) sits above ~y=70.
-   When a section title lands at viewport top, push it down so it clears
-   the nav. scroll-margin-top handles anchor jumps; padding handles
-   continuous scroll where .block + .block had padding-top:0. */
-[data-brand="bold"] section.block { scroll-margin-top: 96px; }
-[data-brand="bold"] section.block + section.block { padding-top: clamp(96px, 12vh, 140px); }
-[data-brand="bold"] .section-head { scroll-margin-top: 96px; }
-
-/* Removed the per-section forced max-width offsets — they were squeezing
-   content into narrow columns and creating awkward layouts. Sections now
-   flow at natural widths, the video bottle plays its center role at the
-   back, and HTML content reads at full readable width on top. */
-
-@media (prefers-reduced-motion: reduce) {
-  [data-brand="bold"] section.block .eyebrow,
-  [data-brand="bold"] section.block .h-display,
-  [data-brand="bold"] #contact .eyebrow,
-  [data-brand="bold"] #contact .h-display {
-    clip-path: none;
-    -webkit-clip-path: none;
-    transition: none;
-  }
-  [data-brand="bold"] section.block .lede,
-  [data-brand="bold"] section.block .spec-list,
-  [data-brand="bold"] section.block .spec-list li,
-  [data-brand="bold"] section.block .product,
-  [data-brand="bold"] section.block .trade-card,
-  [data-brand="bold"] section.block .stats > div,
-  [data-brand="bold"] #contact .lede,
-  [data-brand="bold"] #contact .form-card,
-  [data-brand="bold"] #contact .contact-detail {
-    transform: none;
-    opacity: 1;
-    transition: none;
-  }
-  [data-brand="bold"] section.block::before { transform: scaleX(1); transition: none; }
-}
-
-/* ============ BOLD STAGE (party-mode) ============================ */
-/* Sibling to .cine-stage; hidden by default. When [data-brand="bold"] is
-   active on <html>, the cine-stage hides and this one takes over.
-   v4: contents are a single <video> scroll-scrubbed from the rendered
-   bold-cinematic.mp4 (built in ../bold-cinematic/ via hyperframes). */
-.bold-stage {
-  position: fixed;
-  inset: 0;
   z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-  background: #FFFFFF;
-  display: none;
 }
-.bold-scrub-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  pointer-events: none;
-  z-index: 1;
-  background: #FFFFFF;
-}
-
-/* ============ BOLD FRAME STACK ==================================
-   Replacement for the Veo scroll-scrub MP4. Six designed beats are
-   stacked absolute, all centered, fitted (object-fit: contain) so
-   the bottle photography never crops awkwardly. Default opacity 0;
-   `updateBold()` in app.js sets per-frame opacity from scroll
-   progress so two adjacent beats cross-fade as the user scrolls.
-   ================================================================= */
-.bold-frames {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: #FFFFFF;
-  overflow: hidden;
-}
-.bold-frame {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  opacity: 0;
-  /* Soft transition so opacity changes feel buttery, not stepped.
-     JS still drives the actual values, but a gentle CSS transition
-     hides any one-frame jitter from the scroll handler. */
-  transition: opacity 220ms cubic-bezier(.2,.7,.2,1);
-  pointer-events: none;
-  will-change: opacity;
-  /* Subtle ken-burns idle so static beats don't feel frozen.
-     Kept very small so it reads as "alive" not "drifting". */
-  transform: scale(1.02);
-}
-.bold-frame[data-beat="0"] { opacity: 1; }  /* default first frame visible */
-@media (prefers-reduced-motion: reduce) {
-  .bold-frame { transform: none; transition: opacity 0ms; }
-}
-
-/* ============ BOLD LOCKUP OVERLAYS ===============================
-   Pass-B: typography composition layer above the photo frame stack.
-   Each lockup is pinned to a corner and arrives/exits with the same
-   per-beat opacity its photo uses (driven by updateBold()). The site's
-   foreground HTML still sits on top; lockups live BEHIND content but
-   IN FRONT of the photo, giving the editorial-spread feel.
-   ================================================================== */
-.bold-lockups {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+[data-brand="bold"] .hero-copy {
+  position: relative;
   z-index: 2;
 }
-.bold-lockup {
-  position: absolute;
-  opacity: 0;
-  transition: opacity 220ms cubic-bezier(.2,.7,.2,1);
-  max-width: clamp(280px, 36vw, 540px);
-  will-change: opacity;
-}
-.bold-lockup[data-beat="0"] { opacity: 1; }  /* default first lockup visible */
-.bold-lockup[data-corner="tl"] { left: clamp(20px, 5vw, 80px); top: clamp(80px, 11vh, 140px); }
-.bold-lockup[data-corner="tr"] { right: clamp(20px, 5vw, 80px); top: clamp(80px, 11vh, 140px); text-align: right; }
-.bold-lockup[data-corner="bl"] { left: clamp(20px, 5vw, 80px); bottom: clamp(60px, 9vh, 120px); }
-.bold-lockup[data-corner="br"] { right: clamp(20px, 5vw, 80px); bottom: clamp(60px, 9vh, 120px); text-align: right; }
-
-.bold-lockup .lk-kicker {
-  display: inline-block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--accent);
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  margin-bottom: 18px;
-  padding: 6px 10px;
-  border: 1px solid rgba(230, 57, 70, 0.30);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.bold-lockup .lk-line {
-  margin: 0;
-  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
-  font-weight: 400;
-  font-size: clamp(36px, 5vw, 76px);
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
-  color: var(--ink);
-  /* subtle text-shadow keeps the headline legible against any photo */
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-/* Spec-card variant — only used on the last beat (06) to give the
-   end of the journey a "product display" punctuation. */
-.bold-lockup .lk-spec {
-  margin: 18px 0 0;
-  padding: 14px 16px;
-  list-style: none;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(230, 57, 70, 0.20);
-  border-left: 3px solid var(--accent);
+[data-brand="bold"] .hero-eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  max-width: 360px;
-}
-/* When the lockup is anchored right, push the spec card to the right
-   too — text-align:right doesn't affect block-level <ul>, so we need
-   margin-left:auto. */
-.bold-lockup[data-corner="tr"] .lk-spec,
-.bold-lockup[data-corner="br"] .lk-spec {
-  margin-left: auto;
-  /* keep the accent stripe on the LEFT of the card so it visually
-     anchors the labels — flipping border-left to border-right would
-     break the read direction. */
-  text-align: left;
-}
-.bold-lockup .lk-spec li {
-  display: grid;
-  grid-template-columns: 90px 1fr;
-  gap: 10px;
-  padding: 5px 0;
-}
-.bold-lockup .lk-spec li + li { border-top: 1px solid rgba(230, 57, 70, 0.14); }
-.bold-lockup .lk-spec em {
-  font-style: normal;
-  color: var(--accent);
   font-weight: 500;
-}
-.bold-lockup .lk-spec span {
-  color: var(--ink);
-  font-weight: 500;
-}
-
-@media (max-width: 720px) {
-  .bold-lockup {
-    max-width: 80vw;
-  }
-  .bold-lockup[data-corner="tl"], .bold-lockup[data-corner="tr"] { top: 90px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bold-lockup { transition: opacity 0ms; }
-}
-
-/* TEXT TOUCHES — fly-in callouts that appear during the spin scene of the
-   bold-mode cinematic. Positioned at three corners around the bottle so they
-   read like spec annotations on a product render. JS sets data-on="1" while
-   scroll progress is inside the touch's time window. */
-.bold-text-touches {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 4;
-  font-family: 'JetBrains Mono', monospace;
-}
-.bold-touch {
-  position: absolute;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 320ms ease, transform 480ms cubic-bezier(.2,.7,.2,1);
-  max-width: 380px;
-}
-.bold-touch[data-on="1"] {
-  opacity: 1;
-  transform: translateY(0);
-}
-.bold-touch .touch-kicker {
-  font-size: 11px;
   color: var(--accent);
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: clamp(20px, 3vh, 32px);
+  position: relative;
+  padding-left: 80px;
 }
-.bold-touch .touch-line {
-  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
-  font-size: clamp(28px, 3.6vw, 56px);
-  line-height: 1.0;
-  text-transform: uppercase;
-  letter-spacing: -0.005em;
-  color: var(--ink);
-}
-.bold-touch[data-touch="1"] { left: 6vw;  top: 22vh; }
-.bold-touch[data-touch="2"] { right: 6vw; top: 32vh; text-align: right; }
-.bold-touch[data-touch="3"] { left: 6vw;  bottom: 22vh; }
-@media (max-width: 720px) {
-  .bold-touch { max-width: 70vw; }
-  .bold-touch[data-touch="1"] { top: 14vh; }
-  .bold-touch[data-touch="2"] { top: 28vh; }
-  .bold-touch[data-touch="3"] { bottom: 28vh; }
-}
-[data-brand="bold"] .cine-stage { display: none; }
-[data-brand="bold"] .bold-stage { display: block; }
-html[data-brand="bold"],
-[data-brand="bold"] body { background: #FFFFFF !important; }
-
-.bold-bg {
-  position: absolute; inset: -10% -10% -10% -10%;  /* extra width so parallax-x doesn't expose edges */
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 60%, rgba(230,57,70,0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 110% 60% at 50% 100%, #000 30%, transparent 100%),
-    linear-gradient(180deg, #050507 0%, #0a0a0d 50%, #000 100%);
-  transform: translateX(var(--bg-parallax-x, 0));
-  transition: transform 80ms linear;
-  will-change: transform;
-}
-.bold-grid {
-  position: absolute; inset: -10% -10% -10% -10%;
-  background-image:
-    linear-gradient(to right,  rgba(255,255,255,0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
-  background-size: 64px 64px;
-  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, black 25%, transparent 80%);
-          mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, black 25%, transparent 80%);
-  opacity: .85;
-  transform: translateX(calc(var(--bg-parallax-x, 0) * -0.6));
-  transition: transform 80ms linear;
-  will-change: transform;
-}
-.bold-glow {
-  position: absolute;
-  left: 50%; top: 58%;
-  transform: translate(-50%, -50%);
-  width: clamp(420px, 80vw, 980px);
-  height: clamp(420px, 80vw, 980px);
-  background: radial-gradient(circle,
-                rgba(230,57,70,0.55) 0%,
-                rgba(230,57,70,0.18) 30%,
-                rgba(230,57,70,0.04) 55%,
-                transparent 70%);
-  filter: blur(48px);
-  animation: boldPulse 4.2s ease-in-out infinite alternate;
-}
-@keyframes boldPulse {
-  0%   { opacity: .65; transform: translate(-50%,-50%) scale(0.96); }
-  100% { opacity: 1;   transform: translate(-50%,-50%) scale(1.06); }
-}
-/* faint elliptical floor reflection under the bottle */
-.bold-floor {
-  position: absolute;
-  left: 50%; bottom: 8vh;
-  transform: translateX(-50%);
-  width: clamp(220px, 32vw, 460px);
-  height: 28px;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,255,255,0.18), transparent 70%);
-  filter: blur(8px);
-  opacity: .5;
-}
-.bold-grain {
-  position: absolute; inset: 0;
-  pointer-events: none;
-  opacity: 0.08;
-  background-image:
-    radial-gradient(rgba(255,255,255,.7) 1px, transparent 1px),
-    radial-gradient(rgba(0,0,0,.5) 1px, transparent 1px);
-  background-size: 3px 3px, 4px 4px;
-  background-position: 0 0, 1px 2px;
-  mix-blend-mode: overlay;
-}
-
-/* (removed) The old `.bold-lockup` + `.bold-lockup-line` rules
-   targeted a gigantic Liquid-Death-style background phrase that no
-   longer exists in the HTML — current per-section parallax uses the
-   [data-bold-lockup] attribute via `[data-bold-lockup]::before` rules.
-   The dead class rules collided with the new pass-B `.bold-lockup`
-   typography overlays (left:0 + transform:translateY(-50%)), so they
-   were removed in favour of the new system above. */
-
-/* mounted model-viewer (centered, 3D bottle).
-   Translate (sway/drift) AND rotate (tilt/pour pose) are both driven by
-   JS-set CSS vars so we can compose them cleanly. transform-origin sits
-   below the bottle so the tilt feels like the base is pinned. */
-.bold-model-mount {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  will-change: transform;
-  transition: transform 80ms linear;
-  transform-origin: 50% 70%;
-  transform: translate3d(var(--mount-x, 0), var(--mount-y, 0), 0) rotate(var(--mount-tilt, 0deg));
-}
-.bold-model-mount model-viewer {
-  width: clamp(360px, 52vw, 720px);
-  height: clamp(540px, 78vh, 880px);
-  --poster-color: transparent;
-  background: transparent;
-  pointer-events: auto;
-  outline: none;
-  filter: drop-shadow(0 50px 60px rgba(0,0,0,0.55))
-          drop-shadow(0 0 80px rgba(230,57,70,0.25));
-}
-.bold-model-mount model-viewer::part(default-progress-bar) { display: none; }
-
-/* ----- crimson flood that rises from the bottom of the stage ----- */
-.bold-flood {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: var(--flood, 0%);
-  pointer-events: none;
-  z-index: 3;
-  transition: height 80ms linear;
-  will-change: height;
-}
-.bold-flood-fill {
-  position: absolute; inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(230,57,70,0.25) 0%,
-    rgba(230,57,70,0.55) 35%,
-    rgba(180,30,40,0.85) 75%,
-    rgba(120,15,25,0.95) 100%
-  );
-  mix-blend-mode: multiply;
-}
-/* wavy crimson edge sitting just above the fill */
-.bold-flood-wave {
-  position: absolute;
-  left: 0; right: 0; top: -34px;
-  width: 100%; height: 60px;
-  display: block;
-  filter: drop-shadow(0 -8px 18px rgba(230,57,70,0.55));
-  animation: floodSlide 6s linear infinite;
-  will-change: transform;
-}
-@keyframes floodSlide {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-1200px); }
-}
-/* render the wave doubled so it tiles seamlessly during the slide animation */
-.bold-flood-wave::after {
+[data-brand="bold"] .hero-eyebrow::before {
   content: "";
   position: absolute;
-  left: 100%; top: 0;
-  width: 100%; height: 100%;
-  background: inherit;
+  left: 0; top: 50%;
+  width: 60px; height: 2px;
+  background: var(--accent);
+  transform: translateY(-50%);
 }
-
-/* ----- bold-mode scroll captions (mirror cine-captions positioning) ----- */
-.bold-captions {
-  position: absolute;
-  left: 6vw; bottom: 14vh;
-  max-width: 460px;
-  color: var(--ink, #fff);
-  pointer-events: none;
-  z-index: 4;
-}
-.bold-caption {
-  position: absolute;
-  bottom: 0; left: 0;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 600ms ease, transform 600ms cubic-bezier(.2,.7,.2,1);
-  will-change: opacity, transform;
-}
-.bold-caption.is-active { opacity: 1; transform: translateY(0); }
-.bold-kicker {
-  font-family: var(--mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--accent, #E63946);
-  margin-bottom: 16px;
-}
-.bold-hed {
+[data-brand="bold"] .hero-title {
   font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
   font-weight: 400;
-  font-size: clamp(40px, 5.5vw, 88px);
-  line-height: 0.94;
-  letter-spacing: -0.005em;
+  font-size: clamp(64px, 11vw, 192px);
+  line-height: 0.86;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
-  margin: 0;
+  color: #FFFFFF;
+  margin-bottom: clamp(24px, 4vh, 48px);
 }
-.bold-hed em { font-style: normal; color: var(--accent, #E63946); }
-@media (max-width: 720px) {
-  .bold-captions { left: 6vw; right: 6vw; bottom: 18vh; max-width: none; }
-  .bold-hed { font-size: clamp(32px, 9vw, 56px); }
+[data-brand="bold"] .hero-title .line {
+  display: block;
+}
+[data-brand="bold"] .hero-title .line:nth-child(1) { color: #FFFFFF; }
+[data-brand="bold"] .hero-title .line:nth-child(2) { color: rgba(255,255,255,0.45); }
+[data-brand="bold"] .hero-title .line:nth-child(3) { color: var(--accent); }
+[data-brand="bold"] .hero-title em {
+  font-style: normal;
+}
+[data-brand="bold"] .hero-lede {
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: clamp(16px, 1.4vw, 20px);
+  line-height: 1.5;
+  color: rgba(255,255,255,0.75);
+  max-width: 520px;
+  margin-bottom: clamp(24px, 4vh, 40px);
+}
+[data-brand="bold"] .hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+[data-brand="bold"] .hero-actions .pill.pill-ghost {
+  border-color: rgba(255,255,255,0.30);
+  color: #FFFFFF;
+}
+[data-brand="bold"] .hero-actions .pill.pill-ghost:hover {
+  border-color: #FFFFFF;
+  background: rgba(255,255,255,0.08);
+}
+[data-brand="bold"] .hero-actions .pill.pill-solid {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+[data-brand="bold"] .hero-actions .pill.pill-solid:hover {
+  background: #FFFFFF;
+  color: var(--accent);
 }
 
-/* loading shimmer placeholder while the GLB downloads */
-.bold-model-loading {
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%,-50%);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.28em;
+/* Hero photo (right column) — added inline via JS. */
+[data-brand="bold"] .bold-hero-photo {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  margin: 0 auto;
+  filter: drop-shadow(0 40px 80px rgba(230,57,70,0.30)) drop-shadow(0 0 60px rgba(230,57,70,0.18));
+}
+
+/* 5) Section transitions: alternating bg colours so each section reads
+      distinct. Hero black → marquee red → story white → product off-white
+      → trade black → impact white → contact off-white. */
+[data-brand="bold"] .marquee-band {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+[data-brand="bold"] .marquee-track {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(40px, 6vw, 88px);
   text-transform: uppercase;
+  letter-spacing: -0.005em;
+  font-weight: 400;
+  color: #FFFFFF;
+  padding: 28px 0;
+}
+[data-brand="bold"] .marquee-track em {
+  font-style: normal;
   color: rgba(255,255,255,0.55);
 }
 
-/* Bold-mode hero: re-tone copy and pull it leftward so the 3D bottle owns the right.
-   In calm mode the cinematic captions sit on the right; in bold the bottle does. */
-[data-brand="bold"] .hero { padding-top: clamp(80px, 16vh, 180px); }
-[data-brand="bold"] .hero-eyebrow {
+/* 6) BLOCK base in bold: tighter padding, generous max-widths. */
+[data-brand="bold"] .block {
+  padding: clamp(80px, 12vh, 160px) clamp(24px, 5vw, 80px);
+  background: #FFFFFF;
+}
+[data-brand="bold"] .block + .block { padding-top: clamp(80px, 12vh, 160px); }
+
+/* Story section — white bg, editorial split. */
+[data-brand="bold"] #story { background: #FFFFFF; }
+
+/* Product — off-white. */
+[data-brand="bold"] #product { background: #F7F7F8; }
+
+/* Trade — black. */
+[data-brand="bold"] #trade {
+  background: #0A0A0C;
+  color: #FFFFFF;
+}
+[data-brand="bold"] #trade .h-display,
+[data-brand="bold"] #trade .lede,
+[data-brand="bold"] #trade .trade-card h3,
+[data-brand="bold"] #trade .trade-card p {
+  color: #FFFFFF;
+}
+[data-brand="bold"] #trade .lede,
+[data-brand="bold"] #trade .trade-card p {
+  color: rgba(255,255,255,0.70);
+}
+[data-brand="bold"] #trade .trade-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+[data-brand="bold"] #trade .trade-card .n {
   color: var(--accent);
-  font-family: var(--mono);
+}
+
+/* Impact — white. */
+[data-brand="bold"] #impact { background: #FFFFFF; }
+
+/* Contact — off-white. */
+[data-brand="bold"] #contact { background: #F7F7F8; }
+
+/* 7) Typography overrides for headlines, eyebrows, body. */
+[data-brand="bold"] .h-display {
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: clamp(48px, 7vw, 104px);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+[data-brand="bold"] .h-display em {
+  font-style: normal;
+  color: var(--accent);
+}
+[data-brand="bold"] .eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
 }
-[data-brand="bold"] .hero-title,
-[data-brand="bold"] .h-display {
-  font-family: 'Anton', 'Schibsted Grotesk', sans-serif !important;
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 0.92;
-}
-[data-brand="bold"] .hero-title em,
-[data-brand="bold"] .h-display em {
-  font-family: inherit;
-  font-style: normal;
-  font-weight: inherit;
-  color: var(--accent);
-}
-/* keep the brand wordmark consistent with bold typography (no italic 'water') */
-[data-brand="bold"] .brand i {
-  font-family: inherit;
-  font-style: normal;
-  color: var(--accent);
-}
-[data-brand="bold"] .hero-lede,
-[data-brand="bold"] .lede { color: var(--ink-2); }
-
-/* Bold-mode runs on a WHITE video bg, so override the calm-mode dark
-   palette — copy needs dark ink not white. */
-[data-brand="bold"] .hero-copy {
-  color: var(--ink);
-  text-shadow: 0 1px 2px rgba(255,255,255,0.7);  /* light glow keeps text legible against busy video */
-}
-[data-brand="bold"] .hero-title { color: var(--ink); }
-[data-brand="bold"] .h-display { color: var(--ink); }
-[data-brand="bold"] .eyebrow { color: var(--accent); }
-[data-brand="bold"] .product-name,
-[data-brand="bold"] .product-title,
-[data-brand="bold"] .product-spec,
-[data-brand="bold"] .product p,
-[data-brand="bold"] .trade-card h3,
-[data-brand="bold"] .trade-card p,
-[data-brand="bold"] .trade-card .n,
-[data-brand="bold"] .stats em,
-[data-brand="bold"] .stats span,
-[data-brand="bold"] .spec-list span,
-[data-brand="bold"] .spec-list em,
-[data-brand="bold"] .contact-detail .k,
-[data-brand="bold"] .contact-detail .v {
-  color: var(--ink);
-}
-[data-brand="bold"] footer { color: var(--ink); }
-[data-brand="bold"] footer a { color: var(--ink); }
-
-/* Bold-mode pill restyle: sharp corners, hard edges */
-[data-brand="bold"] .pill {
-  border-radius: 4px;
-  font-family: var(--mono);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-[data-brand="bold"] .pill-solid {
-  background: var(--accent);
-  color: #fff;
-  border: 1px solid var(--accent);
-}
-[data-brand="bold"] .pill-solid:hover { background: #FF4858; }
-[data-brand="bold"] .pill-ghost {
-  background: transparent;
-  color: var(--ink);
-  border: 1px solid rgba(10,10,12,0.20);
-}
-[data-brand="bold"] .pill-ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-/* Nav links read dark on white */
-[data-brand="bold"] .nav-center a { color: var(--ink); }
-[data-brand="bold"] .brand { color: var(--ink); }
-
-/* Bold-mode brand-pill (the calm/bold toggle): white pill, dark active */
-[data-brand="bold"] .brand-pill {
-  background: rgba(10,10,12,0.05);
-  border: 1px solid rgba(10,10,12,0.10);
-}
-[data-brand="bold"] .brand-pill button { color: var(--ink); }
-[data-brand="bold"] .brand-pill button[aria-pressed="true"] {
-  background: var(--accent);
-  color: #fff;
-}
-[data-brand="bold"] .lang-pill {
-  background: rgba(10,10,12,0.05);
-  border: 1px solid rgba(10,10,12,0.10);
-}
-[data-brand="bold"] .lang-pill button { color: var(--ink); }
-[data-brand="bold"] .lang-pill button[aria-pressed="true"] {
-  background: var(--ink);
-  color: #fff;
-}
-
-/* Hide the calm river / scroll prompt in bold mode — they belong to the calm story */
-[data-brand="bold"] .river,
-[data-brand="bold"] .scroll-card,
-[data-brand="bold"] .side-badge { opacity: 0; pointer-events: none; }
-
-/* Marquee tone in bold mode — light strip on white */
-[data-brand="bold"] .marquee-band {
-  background: linear-gradient(180deg, transparent, rgba(10,10,12,0.04)) !important;
-  border-top: 1px solid rgba(230,57,70,0.4);
-  border-bottom: 1px solid rgba(230,57,70,0.4);
-  color: var(--ink);
-}
-[data-brand="bold"] .marquee-track { color: var(--ink); }
-
-/* Mobile: shrink the model-viewer (the old .bold-lockup font-size rule
-   was dead — see the removed block above). */
-@media (max-width: 720px) {
-  .bold-model-mount model-viewer {
-    width: 92vw;
-    height: 70vh;
-  }
-}
-
-/* ============ BOLD-MODE FULL-PAGE FLOW =================================
-   In bold mode the whole page is one continuous cinematic stage. Subsequent
-   sections become transparent so the fixed bold-stage (3D bottle, glow,
-   grid, flood) reads through behind every section. Each section also gets
-   a huge stroked parallax lockup that translateX-es with scroll. */
-
-[data-brand="bold"] #product,
-[data-brand="bold"] #trade,
-[data-brand="bold"] #impact,
-[data-brand="bold"] #contact,
-[data-brand="bold"] footer {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-[data-brand="bold"] #product::before { display: none !important; }
-
-/* per-section parallax lockup (data-bold-lockup attribute on section) */
-[data-brand="bold"] [data-bold-lockup] { position: relative; isolation: isolate; }
-[data-brand="bold"] [data-bold-lockup]::before {
-  content: attr(data-bold-lockup);
-  position: absolute;
-  left: -10vw; right: -10vw; top: 50%;
-  transform: translate3d(var(--lockup-x, 0px), -50%, 0);
-  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
-  font-size: clamp(140px, 26vw, 360px);
-  line-height: 1;
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
-  color: transparent;
-  -webkit-text-stroke: 1.5px rgba(10,10,12,0.10);
-          text-stroke: 1.5px rgba(10,10,12,0.10);
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: -1;
-  user-select: none;
-  will-change: transform;
-}
-
-/* Ambient tint dialed way back — was competing with content readability.
-   On a white stage these radial blobs were creating muddy pink washes. */
-[data-brand="bold"] #story::after,
-[data-brand="bold"] #product::after,
-[data-brand="bold"] #trade::after,
-[data-brand="bold"] #impact::after,
-[data-brand="bold"] #contact::after {
+[data-brand="bold"] .eyebrow::before {
   content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: -2;
-  background: radial-gradient(ellipse 50% 30% at var(--blob-x, 50%) var(--blob-y, 50%),
-              rgba(230,57,70,0.04) 0%, transparent 70%);
-  transition: --blob-x 200ms linear, --blob-y 200ms linear;
+  width: 32px; height: 2px;
+  background: currentColor;
+}
+[data-brand="bold"] .lede {
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: clamp(16px, 1.3vw, 20px);
+  line-height: 1.5;
+  color: var(--ink);
+  max-width: 520px;
 }
 
-/* punchier reveals on bold-mode cards: longer travel, crimson edge as they enter */
-[data-brand="bold"] .reveal {
-  transform: translate3d(0, 40px, 0) scale(0.98);
-  transition: transform 700ms cubic-bezier(.2,.7,.2,1), opacity 600ms ease;
+/* 8) Story section spec list — clean list of capability rows. */
+[data-brand="bold"] .spec-list {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
 }
-[data-brand="bold"] .reveal.in {
-  transform: translate3d(0, 0, 0) scale(1);
+[data-brand="bold"] .spec-list li {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 24px;
+  padding: 20px 0;
+  border-top: 1px solid rgba(0,0,0,0.10);
+  align-items: baseline;
 }
-[data-brand="bold"] .trade-card {
-  border: 1px solid rgba(10,10,12,0.10);
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transition: border-color 300ms ease, transform 600ms cubic-bezier(.2,.7,.2,1);
+[data-brand="bold"] .spec-list li:last-child {
+  border-bottom: 1px solid rgba(0,0,0,0.10);
 }
-[data-brand="bold"] .trade-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-4px);
-}
-[data-brand="bold"] .trade-card .n { color: var(--accent); }
-
-[data-brand="bold"] .product {
-  background: rgba(255,255,255,0.72);
-  border: 1px solid rgba(10,10,12,0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-/* Hide the calm-mode "Premium Water Colombia" gold-label SVG bottle inside
-   product cards while in bold mode — it's a different aesthetic. Replace
-   with a clean blank visual area until we drop in a bold-mode render. */
-[data-brand="bold"] .product .product-visual { display: none; }
-[data-brand="bold"] .product { padding: 32px 28px; min-height: 280px; }
-[data-brand="bold"] .product-meta { padding: 0; }
-[data-brand="bold"] .product-name { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
-[data-brand="bold"] .product-title {
-  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
-  font-weight: 400;
-  font-size: 36px;
+[data-brand="bold"] .spec-list li span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+[data-brand="bold"] .spec-list li em {
+  font-style: normal;
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* 9) Section heads centred and contained. */
+[data-brand="bold"] .section-head {
+  max-width: 1200px;
+  margin: 0 auto 64px;
+  text-align: left;
+}
+[data-brand="bold"] .section-head .lede {
+  margin-top: 24px;
+}
+
+/* 10) PRODUCT — three SKU cards with photo placeholder. */
+[data-brand="bold"] .product-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+[data-brand="bold"] .product {
+  background: #FFFFFF;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 4px;
+  padding: 40px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: transform 240ms cubic-bezier(.2,.7,.2,1), box-shadow 240ms;
+}
+[data-brand="bold"] .product:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 48px rgba(230,57,70,0.16);
+  border-color: rgba(230,57,70,0.30);
+}
+[data-brand="bold"] .product .product-visual { display: none; } /* hide gold SVG bottle */
+[data-brand="bold"] .product-meta { padding: 0; }
+[data-brand="bold"] .product-name {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+[data-brand="bold"] .product-title {
+  font-family: 'Anton', sans-serif;
+  font-size: 36px;
+  font-weight: 400;
   letter-spacing: -0.005em;
+  text-transform: uppercase;
   color: var(--ink);
 }
 [data-brand="bold"] .product-spec {
-  font-family: var(--mono);
+  font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  letter-spacing: 0.20em;
-  color: var(--accent);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: var(--accent);
 }
 [data-brand="bold"] .product p {
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--ink-2);
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--mute);
 }
-/* Trade-card titles: Anton uppercase in bold mode (was serif "Wholesale pricing") */
-[data-brand="bold"] .trade-card h3 {
-  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
-  font-weight: 400;
-  font-size: 24px;
-  text-transform: uppercase;
-  letter-spacing: -0.005em;
-  color: var(--ink);
-  margin-bottom: 10px;
+
+/* 11) TRADE — 4 benefit cards. */
+[data-brand="bold"] .trade-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+[data-brand="bold"] .trade-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 4px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform 240ms cubic-bezier(.2,.7,.2,1), box-shadow 240ms;
+}
+[data-brand="bold"] .trade-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255,255,255,0.07);
+  border-color: var(--accent);
+  box-shadow: 0 16px 40px rgba(230,57,70,0.20);
 }
 [data-brand="bold"] .trade-card .n {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--accent);
-  font-size: 11px;
-  letter-spacing: 0.24em;
-}
-
-/* Bold-mode contact form: glassy white so the label-zoom video reads through */
-[data-brand="bold"] .form-card,
-[data-brand="bold"] form.lead-form {
-  background: rgba(255,255,255,0.82) !important;
-  border: 1px solid rgba(10,10,12,0.10) !important;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-[data-brand="bold"] .stats em {
-  font-family: 'Anton', sans-serif;
-  color: var(--accent);
-}
-
-/* spec-list keys/values in bold should be crimson */
-[data-brand="bold"] .spec-list em { color: var(--ink, #fff); }
-[data-brand="bold"] .spec-list span { color: var(--accent); }
-
-/* keep the flood from accumulating its tiny baseline sliver at p=0 by
-   hiding the wave when --flood is at exactly 0% */
-.bold-flood[style*="--flood: 0%"] .bold-flood-wave { opacity: 0; }
-
-/* ============ FUTURISTIC STORYBOARD ELEMENTS =================== */
-
-/* Scan lines: subtle horizontal bands that pulse, monitor-like */
-.bold-scanlines {
-  position: absolute; inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    180deg,
-    rgba(255,255,255,0) 0,
-    rgba(255,255,255,0) 2px,
-    rgba(255,255,255,0.025) 3px,
-    rgba(255,255,255,0) 4px
-  );
-  mix-blend-mode: overlay;
-  opacity: 0.6;
-  animation: scanShift 9s linear infinite;
-  z-index: 1;
-}
-@keyframes scanShift { from { background-position: 0 0; } to { background-position: 0 60px; } }
-
-/* WATER POUR (Scene 1): lives INSIDE .bold-model-mount so it inherits the
-   bottle's translate+rotate transform — water emerges from the cap at the
-   top of the bottle, regardless of tilt. JS sets --pour-o (opacity). */
-/* Pour cascade — viewport-fixed in upper-left third where the entering
-   bottle's cap lands. Always renders at the same screen position so it's
-   guaranteed visible regardless of bottle translate/rotate. */
-.bold-pour {
-  position: absolute;
-  left: clamp(-40px, 12vw, 220px);
-  top: clamp(-20px, 4vh, 60px);
-  width: clamp(280px, 36vw, 480px);
-  height: clamp(360px, 70vh, 720px);
-  pointer-events: none;
-  z-index: 3;
-  opacity: var(--pour-o, 0);
-  transition: opacity 250ms ease;
-  filter: drop-shadow(0 0 16px rgba(230,57,70,0.7));
-  mix-blend-mode: screen;
-}
-.bold-model-mount model-viewer { z-index: 2; position: relative; }
-.bold-pour-stream {
-  stroke-dasharray: 30 22;
-  animation: pourFlow 1.0s linear infinite;
-}
-.bold-pour-stream.s2 { animation-duration: 0.8s; }
-.bold-pour-stream.s3 { animation-duration: 1.2s; }
-@keyframes pourFlow { to { stroke-dashoffset: -52; } }
-
-.bold-pour-drop {
-  animation: pourFall 1.4s cubic-bezier(.45,.05,.7,.4) infinite;
-  transform-origin: center;
-}
-@keyframes pourFall {
-  0%   { transform: translate(0, -200px) scale(0.4); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translate(50px, 200px) scale(1.1); opacity: 0; }
-}
-.bold-pour-puddle { animation: pourPuddle 1.4s ease-in-out infinite alternate; transform-origin: center; }
-@keyframes pourPuddle {
-  from { transform: scaleX(0.85); opacity: 0.4; }
-  to   { transform: scaleX(1.15); opacity: 0.75; }
-}
-
-/* Reaching hand — Meshy-rendered photographic hand. Slides in from right
-   during Act 3. scaleX(-1) flips it so palm/fingers face LEFT toward the
-   bottle. Soft radial mask + screen blend knocks out the studio bg. */
-.bold-hand {
-  position: absolute;
-  right: -8vw; top: 50%;
-  width: clamp(280px, 38vw, 540px);
-  height: auto;
-  transform: translate3d(var(--hand-x, 130%), -50%, 0) scaleX(-1) rotate(-8deg);
-  transform-origin: center;
-  transition: transform 140ms linear, opacity 220ms ease;
-  opacity: var(--hand-o, 0);
-  z-index: 3;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  /* Tight radial mask cuts the studio backdrop. Hand sits in the centre
-     of the 512x512 PNG so we mask aggressively. */
-  -webkit-mask-image: radial-gradient(ellipse 50% 55% at 50% 48%, #000 30%, rgba(0,0,0,0.55) 55%, transparent 80%);
-          mask-image: radial-gradient(ellipse 50% 55% at 50% 48%, #000 30%, rgba(0,0,0,0.55) 55%, transparent 80%);
-  /* Saturate the crimson rim down so it reads as dramatic light, not gore */
-  filter: saturate(0.65) brightness(1.05)
-          drop-shadow(0 0 22px rgba(230,57,70,0.45))
-          drop-shadow(0 12px 28px rgba(0,0,0,0.55));
-}
-
-/* ACT 4 cheers SWOOSH: horizontal streak that draws as the green bottle
-   sweeps in from the left. Sits behind the green bottle, full-stage width. */
-.bold-cheers-swoosh {
-  position: absolute;
-  left: 0; right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 100%;
-  height: clamp(120px, 18vh, 220px);
-  opacity: 0;
-  z-index: 1;
-  pointer-events: none;
-  filter: drop-shadow(0 0 18px rgba(120,255,80,0.55));
-  mix-blend-mode: screen;
-  transition: opacity 200ms ease;
-}
-
-/* Cheers — second bottle (lime-green 3D model). Slides in from right during
-   trade act, tilts toward main bottle. Same model-viewer treatment as the
-   primary, just mirrored / smaller. */
-.bold-bottle-cheers {
-  position: absolute;
-  left: 50%; top: 50%;
-  width: clamp(280px, 36vw, 540px);
-  height: clamp(420px, 60vh, 760px);
-  transform: translate3d(var(--cheers-x, 130%), -50%, 0) rotate(var(--cheers-r, -28deg));
-  transform-origin: 50% 70%;
-  transition: transform 120ms linear, opacity 200ms ease;
-  opacity: var(--cheers-o, 0);
-  z-index: 2;
-  pointer-events: none;
-  filter: drop-shadow(0 30px 40px rgba(0,0,0,0.55))
-          drop-shadow(0 0 60px rgba(120,255,80,0.35));
-}
-.bold-bottle-cheers model-viewer {
-  width: 100%; height: 100%;
-  --poster-color: transparent;
-  background: transparent;
-  pointer-events: none;
-}
-
-/* Clink burst sparks at the meeting point */
-.bold-clink {
-  position: absolute;
-  left: 50%; top: 50%;
-  width: 1px; height: 1px;
-  pointer-events: none;
-  z-index: 4;
-  opacity: var(--clink-o, 0);
-  transition: opacity 120ms ease;
-}
-.bold-clink span {
-  position: absolute;
-  left: 0; top: 0;
-  width: 4px; height: 4px;
-  background: var(--accent, #E63946);
-  border-radius: 50%;
-  box-shadow: 0 0 12px rgba(230,57,70,0.9);
-  animation: clinkBurst 1.4s ease-out infinite;
-}
-.bold-clink span:nth-child(1) { --ang:   0deg; animation-delay: 0.0s; }
-.bold-clink span:nth-child(2) { --ang:  45deg; animation-delay: 0.05s; }
-.bold-clink span:nth-child(3) { --ang:  90deg; animation-delay: 0.1s; }
-.bold-clink span:nth-child(4) { --ang: 135deg; animation-delay: 0.15s; }
-.bold-clink span:nth-child(5) { --ang: 180deg; animation-delay: 0.2s; }
-.bold-clink span:nth-child(6) { --ang: 225deg; animation-delay: 0.25s; }
-.bold-clink span:nth-child(7) { --ang: 270deg; animation-delay: 0.3s; }
-.bold-clink span:nth-child(8) { --ang: 315deg; animation-delay: 0.35s; }
-@keyframes clinkBurst {
-  0%   { transform: rotate(var(--ang)) translateX(0)   scale(1);   opacity: 1; }
-  60%  { opacity: 1; }
-  100% { transform: rotate(var(--ang)) translateX(80px) scale(0.4); opacity: 0; }
-}
-
-/* Reticle that frames the bottle */
-.bold-reticle {
-  position: absolute;
-  left: 50%; top: 50%;
-  width: clamp(220px, 28vw, 420px);
-  height: clamp(220px, 28vw, 420px);
-  transform: translate3d(calc(-50% + var(--reticle-x, 0)), -50%, 0) rotate(var(--reticle-r, 0deg));
-  pointer-events: none;
-  z-index: 3;
-  opacity: var(--reticle-o, 0.7);
-  animation: reticleSpin 14s linear infinite;
-}
-@keyframes reticleSpin { to { transform: translate3d(calc(-50% + var(--reticle-x, 0)), -50%, 0) rotate(360deg); } }
-
-/* Terminal-style data strip on the left */
-.bold-data {
-  position: absolute;
-  left: clamp(12px, 2vw, 28px);
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--mono, 'JetBrains Mono', monospace);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.65);
-  pointer-events: none;
-  z-index: 4;
-  display: grid;
-  gap: 10px;
-  opacity: var(--data-o, 0.85);
-}
-.bold-data-row {
-  display: grid;
-  grid-template-columns: 10px 60px 1fr;
-  gap: 8px;
-  align-items: center;
-}
-.bold-data-row i {
-  display: inline-block;
-  width: 6px; height: 6px;
-  background: var(--accent, #E63946);
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(230,57,70,0.85);
-  animation: dataTick 1.6s ease-in-out infinite;
-}
-.bold-data-row:nth-child(2) i { animation-delay: 0.1s; }
-.bold-data-row:nth-child(3) i { animation-delay: 0.2s; }
-.bold-data-row:nth-child(4) i { animation-delay: 0.3s; }
-.bold-data-row:nth-child(5) i { animation-delay: 0.4s; }
-.bold-data-row:nth-child(6) i { animation-delay: 0.5s; }
-@keyframes dataTick { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
-.bold-data-row em {
-  font-style: normal;
-  color: var(--accent, #E63946);
-  letter-spacing: 0.24em;
-}
-.bold-data-row span { color: rgba(255,255,255,0.85); }
-.bold-data-blink { animation: dataBlink 1.4s steps(2) infinite; }
-@keyframes dataBlink { 50% { opacity: 0; } }
-
-/* on small screens, hide the data strip — it would crowd the hero */
-@media (max-width: 720px) {
-  .bold-data { display: none; }
-  .bold-hand { width: 60vw; }
-  .bold-bottle-cheers { width: 56vw; }
-  .bold-reticle { width: 70vw; height: 70vw; }
-}
-
-/* ----- LABEL CALLOUT (Scene 4): top-left pin, arrow points down ----- */
-.bold-label-callout {
-  position: absolute;
-  left: clamp(12px, 3vw, 60px);
-  top: clamp(80px, 12vh, 140px);
-  transform: translate3d(0, var(--callout-y, -40px), 0);
-  opacity: var(--callout-o, 0);
-  transition: opacity 350ms ease, transform 500ms cubic-bezier(.2,.7,.2,1);
-  z-index: 5;
-  pointer-events: none;
-  display: grid;
-  grid-template-rows: auto 90px;
-  gap: 4px;
-  filter: drop-shadow(0 0 24px rgba(230,57,70,0.35));
-}
-.bold-label-arrow {
-  width: 80px; height: 90px;
-  display: block;
-  margin-left: 30px;
-}
-.bold-label-panel {
-  background: rgba(8,8,10,0.78);
-  border: 1px solid rgba(230,57,70,0.35);
-  border-radius: 6px;
-  padding: 18px 22px;
-  min-width: 240px;
-  font-family: var(--mono, 'JetBrains Mono', monospace);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.bold-label-panel-kicker {
-  font-size: 9px;
-  color: var(--accent, #E63946);
-  margin-bottom: 14px;
-  border-bottom: 1px solid rgba(230,57,70,0.25);
-  padding-bottom: 8px;
-}
-.bold-label-panel-row {
-  display: grid;
-  grid-template-columns: 86px 1fr;
-  gap: 12px;
-  font-size: 11px;
-  padding: 5px 0;
-  opacity: 0;
-  transform: translateX(8px);
-}
-.bold-label-callout[data-on="1"] .bold-label-panel-row {
-  animation: labelRowIn 420ms cubic-bezier(.2,.7,.2,1) forwards;
-  animation-delay: var(--d, 0s);
-}
-@keyframes labelRowIn {
-  to { opacity: 1; transform: translateX(0); }
-}
-.bold-label-panel-row em {
-  font-style: normal;
-  color: var(--accent, #E63946);
-}
-.bold-label-panel-row span {
-  color: rgba(255,255,255,0.95);
-}
-.bold-label-panel-foot {
-  margin-top: 14px;
-  font-size: 8px;
-  color: rgba(255,255,255,0.45);
   letter-spacing: 0.32em;
 }
+[data-brand="bold"] .trade-card h3 {
+  font-family: 'Anton', sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  line-height: 1.05;
+  margin: 0;
+}
+[data-brand="bold"] .trade-card p {
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.7);
+  margin: 0;
+}
+[data-brand="bold"] .trade-cta {
+  display: flex;
+  gap: 12px;
+  margin-top: 48px;
+  flex-wrap: wrap;
+}
 
-@media (max-width: 720px) {
-  .bold-label-callout {
-    right: 12px; left: 12px; top: auto; bottom: 8vh;
-    transform: translate3d(0, var(--callout-x, 60px), 0);
+/* 12) IMPACT — 4 stats + programs. */
+[data-brand="bold"] .stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto 80px;
+}
+[data-brand="bold"] .stats > div {
+  border-top: 2px solid var(--accent);
+  padding-top: 24px;
+}
+[data-brand="bold"] .stats em {
+  font-style: normal;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(56px, 8vw, 128px);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  display: block;
+  margin-bottom: 8px;
+}
+[data-brand="bold"] .stats span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+[data-brand="bold"] .programs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-top: 64px;
+  border-top: 1px solid rgba(0,0,0,0.10);
+}
+[data-brand="bold"] .programs > div em {
+  font-style: normal;
+  font-family: 'Anton', sans-serif;
+  font-size: 24px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+[data-brand="bold"] .programs > div p {
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--mute);
+}
+
+/* 13) CONTACT — split with form. */
+[data-brand="bold"] .contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 96px);
+  max-width: 1280px;
+  margin: 0 auto;
+  align-items: start;
+}
+[data-brand="bold"] .direct {
+  margin-top: 48px;
+  display: flex;
+  flex-direction: column;
+}
+[data-brand="bold"] .direct > div {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 24px;
+  padding: 20px 0;
+  border-top: 1px solid rgba(0,0,0,0.10);
+  align-items: baseline;
+}
+[data-brand="bold"] .direct > div:last-child {
+  border-bottom: 1px solid rgba(0,0,0,0.10);
+}
+[data-brand="bold"] .direct span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+[data-brand="bold"] .direct em {
+  font-style: normal;
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+[data-brand="bold"] .form-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 4px;
+  padding: 32px;
+}
+[data-brand="bold"] .form-head {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(230,57,70,0.20);
+}
+
+/* 14) Footer in bold mode. */
+[data-brand="bold"] footer {
+  background: #0A0A0C;
+  color: rgba(255,255,255,0.70);
+  padding: 48px clamp(24px, 5vw, 80px) 32px;
+}
+[data-brand="bold"] .foot-brand {
+  color: #FFFFFF;
+}
+[data-brand="bold"] .foot-brand i {
+  color: var(--accent);
+}
+[data-brand="bold"] .foot-links a,
+[data-brand="bold"] .foot-link-btn {
+  color: rgba(255,255,255,0.60);
+}
+[data-brand="bold"] .foot-links a:hover,
+[data-brand="bold"] .foot-link-btn:hover {
+  color: var(--accent);
+}
+
+/* 15) Mobile / responsive. */
+@media (max-width: 900px) {
+  [data-brand="bold"] .hero {
     grid-template-columns: 1fr;
-    gap: 8px;
+    text-align: center;
+    padding: 100px 24px 60px;
   }
-  .bold-label-arrow { display: none; }
-  .bold-label-panel { min-width: 0; }
+  [data-brand="bold"] .hero-eyebrow { padding-left: 0; }
+  [data-brand="bold"] .hero-eyebrow::before { display: none; }
+  [data-brand="bold"] .hero-actions { justify-content: center; }
+  [data-brand="bold"] .product-row { grid-template-columns: 1fr; }
+  [data-brand="bold"] .trade-grid { grid-template-columns: repeat(2, 1fr); }
+  [data-brand="bold"] .stats { grid-template-columns: repeat(2, 1fr); }
+  [data-brand="bold"] .programs { grid-template-columns: 1fr; }
+  [data-brand="bold"] .contact-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 540px) {
+  [data-brand="bold"] .hero-title { font-size: clamp(56px, 14vw, 96px); }
+  [data-brand="bold"] .h-display { font-size: clamp(40px, 11vw, 72px); }
+  [data-brand="bold"] .stats em { font-size: clamp(48px, 14vw, 80px); }
 }
