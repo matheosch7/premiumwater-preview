@@ -603,10 +603,14 @@
   }
 
   function applyCardStagger() {
-    // Sibling .reveal elements inside the same row get a cascade --mg-i.
+    // Sibling .reveal cards inside the same row get a cascading --mg-stagger-i.
     document.querySelectorAll('.product-row, .trade-grid, .stats, .impact-grid').forEach(row => {
-      const kids = Array.from(row.querySelectorAll('.reveal, .product, .trade-card, > div'));
-      kids.forEach((k, i) => k.style.setProperty('--mg-stagger-i', i));
+      // Combine class-based selectors with a :scope > div fallback for the
+      // .stats container (which uses bare <div> children).
+      const kids = new Set();
+      row.querySelectorAll('.reveal, .product, .trade-card').forEach(el => kids.add(el));
+      row.querySelectorAll(':scope > div').forEach(el => kids.add(el));
+      Array.from(kids).forEach((k, i) => k.style.setProperty('--mg-stagger-i', i));
     });
   }
 
@@ -1124,10 +1128,10 @@
   setupConsentBanner();
   initAnalytics();
   setupReveal();
-  // Motion graphics layer
-  applyHeroReveal();
-  applyCounters();
-  applyCardStagger();
-  applyCursorFollower();
+  // Motion graphics layer — each wrapped so a failure in one doesn't break others
+  try { applyHeroReveal(); }     catch (e) { console.warn('[mg] hero reveal failed', e); }
+  try { applyCounters(); }       catch (e) { console.warn('[mg] counters failed', e); }
+  try { applyCardStagger(); }    catch (e) { console.warn('[mg] card stagger failed', e); }
+  try { applyCursorFollower(); } catch (e) { console.warn('[mg] cursor failed', e); }
   updateCine();
 })();
