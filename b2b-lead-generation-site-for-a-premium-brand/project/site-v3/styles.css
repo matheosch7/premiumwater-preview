@@ -1691,26 +1691,13 @@ html[data-brand="bold"],
   mix-blend-mode: overlay;
 }
 
-/* huge typographic lockup behind the bottle — Liquid-Death-style */
-.bold-lockup {
-  position: absolute;
-  left: 0; right: 0; top: 50%;
-  transform: translateY(-50%);
-  text-align: center;
-  font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: clamp(110px, 22vw, 320px);
-  line-height: 0.86;
-  color: transparent;
-  -webkit-text-stroke: 2px rgba(255,255,255,0.10);
-          text-stroke: 2px rgba(255,255,255,0.10);
-  user-select: none;
-  pointer-events: none;
-  z-index: 1;
-}
-.bold-lockup-line { display: block; }
+/* (removed) The old `.bold-lockup` + `.bold-lockup-line` rules
+   targeted a gigantic Liquid-Death-style background phrase that no
+   longer exists in the HTML — current per-section parallax uses the
+   [data-bold-lockup] attribute via `[data-bold-lockup]::before` rules.
+   The dead class rules collided with the new pass-B `.bold-lockup`
+   typography overlays (left:0 + transform:translateY(-50%)), so they
+   were removed in favour of the new system above. */
 
 /* mounted model-viewer (centered, 3D bottle).
    Translate (sway/drift) AND rotate (tilt/pour pose) are both driven by
@@ -1957,9 +1944,9 @@ html[data-brand="bold"],
 }
 [data-brand="bold"] .marquee-track { color: var(--ink); }
 
-/* Mobile: shrink the lockup so it doesn't overwhelm a 375px screen */
+/* Mobile: shrink the model-viewer (the old .bold-lockup font-size rule
+   was dead — see the removed block above). */
 @media (max-width: 720px) {
-  .bold-lockup { font-size: clamp(80px, 24vw, 140px); }
   .bold-model-mount model-viewer {
     width: 92vw;
     height: 70vh;
