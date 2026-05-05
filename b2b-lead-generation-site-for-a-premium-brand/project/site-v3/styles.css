@@ -1470,15 +1470,26 @@ html[data-brand="bold"],
   color: var(--accent);
 }
 
-/* Hero photo (right column) — added inline via JS. */
+/* Hero photo (right column). The Veo source has a light-grey studio
+   backdrop that we mask away with a soft radial vignette so only the
+   bottle floats on the dark hero. mix-blend-mode 'lighten' on top of
+   the dark hero makes the light backplate fade into the dark, while
+   the matte-black bottle stays visible thanks to the radial mask. */
 [data-brand="bold"] .bold-hero-photo {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 540px;
+  max-width: 720px;
   height: auto;
   margin: 0 auto;
-  filter: drop-shadow(0 40px 80px rgba(230,57,70,0.30)) drop-shadow(0 0 60px rgba(230,57,70,0.18));
+  /* Radial mask: opaque in the centre (where the bottle is), fully
+     transparent at the edges so the studio backplate fades to black. */
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 28%, transparent 65%);
+          mask-image: radial-gradient(ellipse at center, #000 28%, transparent 65%);
+  filter:
+    drop-shadow(0 40px 80px rgba(0,0,0,0.50))
+    drop-shadow(0 0 80px rgba(230,57,70,0.30));
+  mix-blend-mode: lighten;
 }
 
 /* 5) Section transitions: alternating bg colours so each section reads
