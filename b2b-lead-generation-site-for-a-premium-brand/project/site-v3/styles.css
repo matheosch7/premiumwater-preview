@@ -1377,6 +1377,14 @@ body.mg-hero-ready .hero-lede   .mg-word {
 /* Make sure block has positioning context for the ::before line */
 [data-brand="bold"] section.block { position: relative; }
 
+/* Nav-overlap fix: the fixed .nav (top:18px, ~52px tall) sits above ~y=70.
+   When a section title lands at viewport top, push it down so it clears
+   the nav. scroll-margin-top handles anchor jumps; padding handles
+   continuous scroll where .block + .block had padding-top:0. */
+[data-brand="bold"] section.block { scroll-margin-top: 96px; }
+[data-brand="bold"] section.block + section.block { padding-top: clamp(96px, 12vh, 140px); }
+[data-brand="bold"] .section-head { scroll-margin-top: 96px; }
+
 /* Removed the per-section forced max-width offsets — they were squeezing
    content into narrow columns and creating awkward layouts. Sections now
    flow at natural widths, the video bottle plays its center role at the
