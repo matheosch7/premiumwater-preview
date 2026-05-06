@@ -1090,6 +1090,11 @@
   // beats so each section's copy gets clear breathing room on the
   // opposite side. Past the product section it fades out.
   //
+  // The bottle's *image* is a 60-frame pre-rendered 360° rotation
+  // sequence — as the visitor scrolls, the img.src is swapped to the
+  // frame index that matches scroll progress, so the bottle appears
+  // to physically rotate. The frames are preloaded once on init.
+  //
   // We mirror updateCine()'s pattern: passive scroll listener, read
   // anchor offsets on resize, lerp CSS custom props.
   let bottleRoadmapInit = false;
@@ -1110,13 +1115,62 @@
     const productEl = document.getElementById('product');
     if (!heroEl || !storyEl || !productEl) return;
 
+    // Frame sequence: 60 PNGs of the bottle rotating 360°. We preload
+    // them as Image objects so the browser caches them; src swaps then
+    // hit cache instantly. If the sequence isn't deployed yet, the JS
+    // simply skips the rotation and the original static photo remains.
+    const FRAME_COUNT = 60;
+    const FRAME_PREFIX = 'assets/bottle-sequence/bottle_';
+    const FRAME_SUFFIX = '.webp';
+    const frameUrls = [];
+    const preloaded = [];
+    let framesReady = false;
+    for (let i = 0; i < FRAME_COUNT; i++) {
+      const idx = String(i).padStart(3, '0');
+      frameUrls.push(`${FRAME_PREFIX}${idx}${FRAME_SUFFIX}`);
+    }
+    // Probe the first frame; if it 404s, skip the swap entirely.
+    const probe = new Image();
+    probe.onload = () => {
+      framesReady = true;
+      // Now preload the rest in the background.
+      frameUrls.forEach((url, i) => {
+        if (i === 0) { preloaded[0] = probe; return; }
+        const im = new Image();
+        im.src = url;
+        preloaded[i] = im;
+      });
+      // Set the initial frame on the visible img so it matches the
+      // first beat (HERO has rotation 0, so frame 0 is correct).
+      bottle.src = frameUrls[0];
+    };
+    probe.onerror = () => { framesReady = false; };
+    probe.src = frameUrls[0];
+
+    let lastFrameIndex = -1;
+    function setFrame(scrollProgress) {
+      if (!framesReady) return;
+      // Map scroll progress 0..1 (hero to product-bottom) to frame 0..N-1.
+      // Use full 360° rotation across the journey.
+      const t = clamp01(scrollProgress);
+      const idx = Math.min(FRAME_COUNT - 1, Math.floor(t * FRAME_COUNT));
+      if (idx === lastFrameIndex) return;
+      lastFrameIndex = idx;
+      const img = preloaded[idx];
+      if (img && img.complete) {
+        bottle.src = frameUrls[idx];
+      }
+    }
+
     // Beats: offsets in vw/vh from viewport center. Element is positioned
     // at top:50% / left:50% with a -50%/-50% recentering translate, so
-    // (0,0) here = perfectly centered.
+    // (0,0) here = perfectly centered. Note: r (CSS rotation) is now
+    // additive to the bottle's intrinsic rotation in the rendered frames
+    // — keep it small so it just adds tilt, not double-rotation.
     const BEATS = {
       HERO:     { x: 22,  y: 0,  s: 1.00, r: 0  },
-      STORY:    { x: -26, y: 0,  s: 0.85, r: -3 },
-      APPROACH: { x: 18,  y: 0,  s: 0.70, r: 2  },
+      STORY:    { x: -26, y: 0,  s: 0.85, r: 0  },
+      APPROACH: { x: 18,  y: 0,  s: 0.70, r: 0  },
       LANDED:   { x: 24,  y: -4, s: 0.55, r: 0  }
     };
 
@@ -1184,6 +1238,13 @@
       bottle.style.setProperty('--rb-y', pose.y.toFixed(2) + 'vh');
       bottle.style.setProperty('--rb-s', pose.s.toFixed(3));
       bottle.style.setProperty('--rb-r', pose.r.toFixed(2) + 'deg');
+
+      // Drive the rotation frame index from total scroll progress through
+      // the journey (hero top → product bottom). Full 360° revolution.
+      const journeyStart = heroTop;
+      const journeyEnd   = productBottom;
+      const journeyT = (sy - journeyStart) / Math.max(1, journeyEnd - journeyStart);
+      setFrame(journeyT);
 
       // Past the product section, hide so trade/impact/contact stay clean.
       if (sy > productBottom - window.innerHeight * 0.2) {

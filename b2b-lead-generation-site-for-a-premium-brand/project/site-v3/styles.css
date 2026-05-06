@@ -1504,11 +1504,11 @@ html[data-brand="bold"],
   transition:
     transform 220ms cubic-bezier(.2,.8,.2,1),
     opacity 240ms ease;
-  -webkit-mask-image: radial-gradient(ellipse at center, #000 24%, transparent 58%);
-          mask-image: radial-gradient(ellipse at center, #000 24%, transparent 58%);
+  /* Rendered frames already have transparent alpha — no mask needed.
+     Drop-shadows give the dark-hero glow + crimson rim. */
   filter:
-    drop-shadow(0 30px 60px rgba(0,0,0,0.45))
-    drop-shadow(0 0 60px rgba(230,57,70,0.25));
+    drop-shadow(0 40px 70px rgba(0,0,0,0.55))
+    drop-shadow(0 0 50px rgba(230,57,70,0.30));
 }
 [data-brand="bold"] .bold-hero-photo[data-rb-state="hidden"] {
   opacity: 0;
