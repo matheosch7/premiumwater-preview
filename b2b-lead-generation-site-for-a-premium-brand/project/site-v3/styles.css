@@ -1711,7 +1711,34 @@ html[data-brand="bold"],
   box-shadow: 0 20px 48px rgba(230,57,70,0.16);
   border-color: rgba(230,57,70,0.30);
 }
-[data-brand="bold"] .product .product-visual { display: none; } /* hide gold SVG bottle */
+/* Show a bottle in each card using three different rotation frames from
+   the same sequence the floating bottle uses, so the lineup feels live —
+   each card a different angle. The original calm-mode SVG is hidden in
+   favor of the rendered frame as a background image. */
+[data-brand="bold"] .product .product-visual {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  filter: drop-shadow(0 18px 32px rgba(0,0,0,0.18));
+}
+[data-brand="bold"] .product .product-visual svg { display: none; }
+[data-brand="bold"] .product-row .product:nth-child(1) .product-visual {
+  background-image: url('assets/bottle-sequence/bottle_005.webp');
+}
+[data-brand="bold"] .product-row .product:nth-child(2) .product-visual {
+  background-image: url('assets/bottle-sequence/bottle_025.webp');
+  /* The middle card is a 500ml — render slightly smaller in the slot. */
+  background-size: 78% auto;
+}
+[data-brand="bold"] .product-row .product:nth-child(3) .product-visual {
+  background-image: url('assets/bottle-sequence/bottle_045.webp');
+  /* The right card is the 330ml service size — even smaller. */
+  background-size: 62% auto;
+}
+
 [data-brand="bold"] .product-meta { padding: 0; }
 [data-brand="bold"] .product-name {
   display: flex;

@@ -1176,8 +1176,12 @@
     const BEATS = {
       HERO:     { x: 22, y:  0, s: 1.00, r: 0, op: 1.00 },
       STORY:    { x: 30, y:  0, s: 0.45, r: 0, op: 0.45 },
-      APPROACH: { x: 28, y:  0, s: 0.55, r: 0, op: 0.70 },
-      LANDED:   { x: 24, y: -4, s: 0.65, r: 0, op: 1.00 }
+      APPROACH: { x: 28, y:  0, s: 0.55, r: 0, op: 0.55 },
+      // LANDED fades the floating bottle out — the three static bottles
+      // in the product cards become the "landed" state. This makes the
+      // journey resolve cleanly into the lineup instead of having a
+      // 4th bottle hovering beside three identical card bottles.
+      LANDED:   { x: 24, y: -4, s: 0.55, r: 0, op: 0.00 }
     };
 
     let heroTop, storyTop, productTop, productBottom;
