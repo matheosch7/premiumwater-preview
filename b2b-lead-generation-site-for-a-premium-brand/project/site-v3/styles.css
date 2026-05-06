@@ -2042,11 +2042,157 @@ html[data-brand="bold"],
   [data-brand="bold"] .stats em { font-size: clamp(48px, 14vw, 80px); }
 }
 
-/* Disable the calm-mode .reveal opacity gate in bold mode — bold sections
-   should always be readable; the slide-up + fade reveal was a calm-mode
-   atmospheric effect that's been getting stuck mid-transition. */
+/* ============================================================
+   BOLD MODE — section entrance choreography
+   Driven by the IntersectionObserver in app.js (applySectionMotion):
+     - sections get `.section-in` when crossing viewport
+     - children get `--mg-section-i` index for staggered delay
+   We hook those for slide-up + fade animations on a per-element type basis.
+   Hero is excluded (it has its own bespoke entrance keyframes earlier).
+   ============================================================ */
+
+/* Reset the calm-mode .reveal disable — bold uses .section-in instead. */
 :root[data-brand="bold"] .reveal {
-  opacity: 1 !important;
-  transform: none !important;
-  transition: none !important;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* Base hidden state for Bold-mode entrance candidates (excluding hero) */
+:root[data-brand="bold"] .block .eyebrow,
+:root[data-brand="bold"] .block .h-display,
+:root[data-brand="bold"] .block .lede,
+:root[data-brand="bold"] .block .spec-list li,
+:root[data-brand="bold"] .block .trade-card,
+:root[data-brand="bold"] .block .product,
+:root[data-brand="bold"] .block .stats > div,
+:root[data-brand="bold"] .block .trade-cta {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 800ms cubic-bezier(.2,.8,.2,1),
+    transform 900ms cubic-bezier(.2,.8,.2,1);
+  transition-delay: calc(var(--mg-section-i, 0) * 70ms + 80ms);
+  will-change: opacity, transform;
+}
+
+/* Section enters — kids settle into place, staggered by their index */
+:root[data-brand="bold"] .block.section-in .eyebrow,
+:root[data-brand="bold"] .block.section-in .h-display,
+:root[data-brand="bold"] .block.section-in .lede,
+:root[data-brand="bold"] .block.section-in .spec-list li,
+:root[data-brand="bold"] .block.section-in .trade-card,
+:root[data-brand="bold"] .block.section-in .product,
+:root[data-brand="bold"] .block.section-in .stats > div,
+:root[data-brand="bold"] .block.section-in .trade-cta {
+  opacity: 1;
+  transform: none;
+}
+
+/* Eyebrow slides in from the left rather than up — feels more editorial */
+:root[data-brand="bold"] .block .eyebrow {
+  transform: translateX(-32px);
+}
+:root[data-brand="bold"] .block.section-in .eyebrow {
+  transform: none;
+}
+
+/* Headlines: per-word stagger, set up by JS that wraps each word in
+   <span class="b-word"><span>WORD</span></span>. The outer span is the
+   clip mask, the inner one is the part that translates. */
+:root[data-brand="bold"] .h-display .b-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.08em;  /* room for descenders without clipping */
+}
+:root[data-brand="bold"] .h-display .b-word > span {
+  display: inline-block;
+  transform: translateY(105%);
+  transition: transform 900ms cubic-bezier(.2,.8,.2,1);
+  transition-delay: calc(var(--b-word-i, 0) * 80ms + 200ms);
+  will-change: transform;
+}
+:root[data-brand="bold"] .block.section-in .h-display .b-word > span {
+  transform: translateY(0);
+}
+
+/* Trade-card cascade: each card lifts in slightly later than the last */
+:root[data-brand="bold"] .block .trade-card {
+  transition-delay: calc(var(--mg-section-i, 0) * 100ms + 200ms);
+}
+:root[data-brand="bold"] .block .product {
+  transition-delay: calc(var(--mg-section-i, 0) * 120ms + 200ms);
+}
+:root[data-brand="bold"] .block .spec-list li {
+  transition-delay: calc(var(--mg-section-i, 0) * 60ms + 300ms);
+}
+
+/* Respect prefers-reduced-motion — no entrance animation, just show */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-brand="bold"] .block .eyebrow,
+  :root[data-brand="bold"] .block .h-display,
+  :root[data-brand="bold"] .block .lede,
+  :root[data-brand="bold"] .block .spec-list li,
+  :root[data-brand="bold"] .block .trade-card,
+  :root[data-brand="bold"] .block .product,
+  :root[data-brand="bold"] .block .stats > div,
+  :root[data-brand="bold"] .block .trade-cta,
+  :root[data-brand="bold"] .h-display .b-word > span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ============================================================
+   BOLD SECTION BACKDROP — giant outlined word behind the floating can
+   Same pattern as .bold-hero-backdrop ("PREMIUM"). One per non-hero
+   section, content set via data-bold-backdrop attribute on the section.
+   Sits at z-index 1 so the floating can (z-index 5) passes in front of
+   it — that's the EMPIRE OF SHADOWS layering effect.
+   ============================================================ */
+.bold-section-backdrop { display: none; }
+:root[data-brand="bold"] .bold-section-backdrop {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% + var(--bsb-y, 0px)));
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: clamp(140px, 26vw, 440px);
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(10,10,12,0.10);
+          text-stroke: 1.5px rgba(10,10,12,0.10);
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  opacity: 0;
+  transition:
+    opacity 1100ms cubic-bezier(.2,.8,.2,1),
+    transform 1200ms cubic-bezier(.2,.8,.2,1);
+}
+:root[data-brand="bold"] .block.section-in .bold-section-backdrop {
+  opacity: 1;
+}
+/* On the dark Trade section, invert the stroke colour for visibility */
+:root[data-brand="bold"] #trade .bold-section-backdrop {
+  -webkit-text-stroke-color: rgba(255,255,255,0.10);
+          text-stroke-color: rgba(255,255,255,0.10);
+}
+/* Sections with a backdrop need positioning context */
+:root[data-brand="bold"] .block:has(.bold-section-backdrop) {
+  position: relative;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-brand="bold"] .bold-section-backdrop {
+    opacity: 0.6;
+    transition: none;
+  }
 }

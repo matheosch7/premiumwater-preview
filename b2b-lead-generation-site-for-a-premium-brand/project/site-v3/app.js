@@ -487,6 +487,10 @@
       document.body.classList.remove('mg-hero-ready');
       applyHeroReveal();
     }
+
+    // Re-run bold-mode word stagger — the i18n innerHTML rewrite above clobbers
+    // any .b-word wrapping the previous pass installed.
+    if (typeof applyBoldWordStagger === 'function') applyBoldWordStagger();
   }
 
   document.querySelectorAll('.lang-pill button').forEach(b => {
@@ -642,6 +646,87 @@
       });
     }, { rootMargin: '200px 0px 200px 0px', threshold: 0.01 });
     sections.forEach(s => sIo.observe(s));
+  }
+
+  // Bold-mode word stagger: wrap every word inside .h-display in
+  // <span class="b-word"><span>word</span></span>, with --b-word-i indexing
+  // each one. The CSS uses overflow:hidden + translateY(105%) → 0 to clip-
+  // reveal each word. Idempotent — safe to call after re-render.
+  function applyBoldWordStagger() {
+    if (root.getAttribute('data-brand') !== 'bold') return;
+    const heads = document.querySelectorAll('.block .h-display');
+    heads.forEach(h => {
+      // Skip if already processed
+      if (h.querySelector('.b-word')) return;
+      // Walk children: text nodes get word-split, <em>/<br> are preserved
+      // wholesale. <em> contents themselves get word-wrapped so emphasis
+      // colour is retained inside the .b-word mask.
+      let i = 0;
+      const wrap = (text, parent) => {
+        const tokens = text.split(/(\s+)/);
+        tokens.forEach(tok => {
+          if (!tok) return;
+          if (/^\s+$/.test(tok)) {
+            parent.appendChild(document.createTextNode(tok));
+          } else {
+            const outer = document.createElement('span');
+            outer.className = 'b-word';
+            outer.style.setProperty('--b-word-i', i++);
+            const inner = document.createElement('span');
+            inner.textContent = tok;
+            outer.appendChild(inner);
+            parent.appendChild(outer);
+          }
+        });
+      };
+      const newKids = [];
+      Array.from(h.childNodes).forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const frag = document.createDocumentFragment();
+          wrap(node.textContent, frag);
+          newKids.push(frag);
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.tagName === 'BR') {
+            newKids.push(node.cloneNode(true));
+          } else if (node.tagName === 'EM') {
+            const em = document.createElement('em');
+            wrap(node.textContent, em);
+            newKids.push(em);
+          } else {
+            newKids.push(node.cloneNode(true));
+          }
+        }
+      });
+      h.innerHTML = '';
+      newKids.forEach(k => h.appendChild(k));
+    });
+  }
+
+  // Bold-mode backdrop parallax: the giant outlined word in each section
+  // drifts vertically as the user scrolls past, giving the floating can
+  // a sense of moving through depth instead of past a static billboard.
+  let bsbRaf = 0;
+  function applyBoldBackdropParallax() {
+    if (root.getAttribute('data-brand') !== 'bold') return;
+    const backdrops = Array.from(document.querySelectorAll('.bold-section-backdrop'));
+    if (!backdrops.length) return;
+    const update = () => {
+      bsbRaf = 0;
+      const vh = window.innerHeight || 800;
+      backdrops.forEach(bd => {
+        const sec = bd.closest('section.block');
+        if (!sec) return;
+        const r = sec.getBoundingClientRect();
+        // Section progress: -1 (just entered from below) → 0 (centred) → +1 (exiting top)
+        const progress = (vh / 2 - (r.top + r.height / 2)) / (vh / 2 + r.height / 2);
+        const drift = Math.max(-1, Math.min(1, progress)) * 60;  // ±60px max
+        bd.style.setProperty('--bsb-y', `${drift}px`);
+      });
+    };
+    const onScroll = () => { if (!bsbRaf) bsbRaf = requestAnimationFrame(update); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    update();  // initial position
   }
 
   // Cursor follower — subtle accent dot trailing the cursor. Only on bold mode
@@ -1432,9 +1517,11 @@
   setupReveal();
   // Motion graphics layer — each wrapped so a failure in one doesn't break others
   try { applyHeroReveal(); }     catch (e) { console.warn('[mg] hero reveal failed', e); }
-  try { applyCounters(); }       catch (e) { console.warn('[mg] counters failed', e); }
-  try { applyCardStagger(); }    catch (e) { console.warn('[mg] card stagger failed', e); }
-  try { applySectionMotion(); }  catch (e) { console.warn('[mg] section motion failed', e); }
-  try { applyCursorFollower(); } catch (e) { console.warn('[mg] cursor failed', e); }
+  try { applyCounters(); }            catch (e) { console.warn('[mg] counters failed', e); }
+  try { applyCardStagger(); }         catch (e) { console.warn('[mg] card stagger failed', e); }
+  try { applySectionMotion(); }       catch (e) { console.warn('[mg] section motion failed', e); }
+  try { applyBoldWordStagger(); }     catch (e) { console.warn('[mg] word stagger failed', e); }
+  try { applyBoldBackdropParallax(); }catch (e) { console.warn('[mg] backdrop parallax failed', e); }
+  try { applyCursorFollower(); }      catch (e) { console.warn('[mg] cursor failed', e); }
   updateCine();
 })();
