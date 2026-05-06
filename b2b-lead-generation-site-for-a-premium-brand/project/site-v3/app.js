@@ -1164,14 +1164,20 @@
 
     // Beats: offsets in vw/vh from viewport center. Element is positioned
     // at top:50% / left:50% with a -50%/-50% recentering translate, so
-    // (0,0) here = perfectly centered. Note: r (CSS rotation) is now
-    // additive to the bottle's intrinsic rotation in the rendered frames
-    // — keep it small so it just adds tilt, not double-rotation.
+    // (0,0) here = perfectly centered.
+    //
+    // Layout reality: section copy in story/trade/impact is biased left,
+    // so the bottle stays right-of-center throughout to avoid colliding
+    // with text. It also shrinks + fades to a faint echo during reading
+    // sections so it doesn't compete for attention, then grows back as
+    // the visitor reaches the product lineup ("Three sizes, one volume").
+    // The frame index continues to advance with scroll either way, so the
+    // rotation is always live even when the bottle is small.
     const BEATS = {
-      HERO:     { x: 22,  y: 0,  s: 1.00, r: 0  },
-      STORY:    { x: -26, y: 0,  s: 0.85, r: 0  },
-      APPROACH: { x: 18,  y: 0,  s: 0.70, r: 0  },
-      LANDED:   { x: 24,  y: -4, s: 0.55, r: 0  }
+      HERO:     { x: 22, y:  0, s: 1.00, r: 0, op: 1.00 },
+      STORY:    { x: 30, y:  0, s: 0.45, r: 0, op: 0.45 },
+      APPROACH: { x: 28, y:  0, s: 0.55, r: 0, op: 0.70 },
+      LANDED:   { x: 24, y: -4, s: 0.65, r: 0, op: 1.00 }
     };
 
     let heroTop, storyTop, productTop, productBottom;
@@ -1192,10 +1198,11 @@
     function lerpBeat(a, b, t) {
       const e = easeInOutCubic(clamp01(t));
       return {
-        x: lerp(a.x, b.x, e),
-        y: lerp(a.y, b.y, e),
-        s: lerp(a.s, b.s, e),
-        r: lerp(a.r, b.r, e)
+        x:  lerp(a.x,  b.x,  e),
+        y:  lerp(a.y,  b.y,  e),
+        s:  lerp(a.s,  b.s,  e),
+        r:  lerp(a.r,  b.r,  e),
+        op: lerp(a.op, b.op, e)
       };
     }
 
@@ -1247,10 +1254,11 @@
       setFrame(journeyT);
 
       // Past the product section, hide so trade/impact/contact stay clean.
+      // Inline opacity wins over CSS, so we set it directly here.
       if (sy > productBottom - window.innerHeight * 0.2) {
-        bottle.setAttribute('data-rb-state', 'hidden');
+        bottle.style.opacity = '0';
       } else {
-        bottle.removeAttribute('data-rb-state');
+        bottle.style.opacity = pose.op.toFixed(3);
       }
     }
 
