@@ -2184,13 +2184,29 @@ html[data-brand="bold"],
 
 /* ============================================================
    BOLD PRODUCT LINEUP: floating can lands as the middle SKU
+   - The product section is given a tall min-height so the lineup
+     can STICK to the viewport while the user scrolls — without
+     this the cards scroll up while the (position: fixed) can stays
+     in viewport center, and they desync.
    - The middle card hides its static bottle image so the floating
      can serves as its visual.
    - Side cards (1 and 3) slide in from offscreen as the section
      enters view, flanking the docked can.
-   - The middle card's text/spec block stays so the can has a
-     proper SKU label below it like the other two.
    ============================================================ */
+@media (min-width: 901px) {
+  /* Tall section gives sticky a real "stuck" runway before zoom zone */
+  :root[data-brand="bold"] #product {
+    min-height: 180vh;
+  }
+  /* Pin the lineup to viewport so cards + docked can stay in formation
+     while the user scrolls toward the zoom zone. The clamp picks a
+     vertical position that aligns each card visual centre with the
+     DOCKED can centre across viewport heights from ~600 to ~1200px. */
+  :root[data-brand="bold"] #product .product-row {
+    position: sticky;
+    top: clamp(12vh, calc(50vh - 272px), 30vh);
+  }
+}
 @media (min-width: 901px) {
   :root[data-brand="bold"] .product-row .product:nth-child(2) .product-visual {
     visibility: hidden;
