@@ -1501,9 +1501,11 @@ html[data-brand="bold"],
     translate(var(--rb-x, 22vw), var(--rb-y, 0))
     scale(var(--rb-s, 1))
     rotate(var(--rb-r, 0deg));
-  transition:
-    transform 220ms cubic-bezier(.2,.8,.2,1),
-    opacity 240ms ease;
+  /* Only transform is transitioned. Opacity is set inline by the scroll
+     handler on every tick — adding a transition on it would cause the
+     scroll updates to fight the in-flight transition and the visual
+     value would lag behind the actual scroll position. */
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1);
   /* Rendered frames already have transparent alpha — no mask needed.
      Drop-shadows give the dark-hero glow + crimson rim. */
   filter:
