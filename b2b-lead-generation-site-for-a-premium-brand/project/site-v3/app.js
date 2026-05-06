@@ -1263,13 +1263,18 @@
       // middle of the page with the giant outline word behind it and
       // the copy/CTAs in the bottom corners. Bottle is the focal point.
       HERO:     { x:  0, y:  0, s: 1.05, r: 0, op: 1.00 },
-      STORY:    { x: 30, y:  0, s: 0.45, r: 0, op: 0.45 },
-      APPROACH: { x: 28, y:  0, s: 0.55, r: 0, op: 0.55 },
-      // LANDED fades the floating bottle out — the three static bottles
-      // in the product cards become the "landed" state. This makes the
-      // journey resolve cleanly into the lineup instead of having a
-      // 4th bottle hovering beside three identical card bottles.
-      LANDED:   { x: 24, y: -4, s: 0.55, r: 0, op: 0.00 },
+      // STORY: text occupies the left half of the frame (CSS clamps the
+      // .grid-2 to max-width: 50%); the can sits clearly to the right
+      // at full opacity so it reads as the product, not a faded ghost.
+      STORY:    { x: 28, y:  0, s: 0.55, r: 0, op: 1.00 },
+      APPROACH: { x: 18, y:  0, s: 0.55, r: 0, op: 1.00 },
+      // DOCKED: the can lands centred at product-card scale and stays
+      // visible throughout the product section — it IS the middle SKU
+      // in the lineup. The static bottle photo on the middle .product
+      // card is hidden in CSS so the floating can serves as its visual.
+      // The left + right product cards fade/slide in to its sides via
+      // their own .section-in transitions.
+      DOCKED:   { x:  0, y:  6, s: 0.46, r: 0, op: 1.00 },
       // ZOOM: as the visitor scrolls past the lineup into the
       // .bold-zoom-zone spacer, the bottle re-emerges centred and
       // scales up massively so the label fills the viewport — like
@@ -1341,29 +1346,29 @@
           pose = lerpBeat(BEATS.STORY, BEATS.APPROACH, t);
         }
       } else if (playhead <= productTop + window.innerHeight * 0.4) {
-        // APPROACH → LANDED: snap into the product section
+        // APPROACH → DOCKED: swing in to centre at product-card scale.
         const t = (playhead - productTop) / (window.innerHeight * 0.4);
-        pose = lerpBeat(BEATS.APPROACH, BEATS.LANDED, t);
+        pose = lerpBeat(BEATS.APPROACH, BEATS.DOCKED, t);
       } else if (zoomTop && sy < zoomTop) {
-        // Past LANDED, before zoom zone — bottle stays hidden.
-        pose = BEATS.LANDED;
+        // Past landing, before zoom zone — can stays docked as the
+        // middle product in the lineup, fully visible.
+        pose = BEATS.DOCKED;
       } else if (zoomTop && sy >= zoomTop && sy <= zoomBottom) {
         // Inside the zoom zone: bottle re-emerges centred and scales
-        // up massively so the label fills the screen. We split the zone
-        // into two halves: first half ramps from LANDED → ZOOM_IN
-        // (bottle materialises at 1.2x), second half ramps ZOOM_IN →
-        // ZOOM_OUT (scales to 6x and fades through the screen).
+        // up massively so the label fills the screen. First half ramps
+        // DOCKED → ZOOM_IN (smaller dock to 1.2x), second half ramps
+        // ZOOM_IN → ZOOM_OUT (6x and fades through screen).
         const zoomMid = (zoomTop + zoomBottom) / 2;
         if (sy <= zoomMid) {
           const t = (sy - zoomTop) / Math.max(1, zoomMid - zoomTop);
-          pose = lerpBeat(BEATS.LANDED, BEATS.ZOOM_IN, t);
+          pose = lerpBeat(BEATS.DOCKED, BEATS.ZOOM_IN, t);
         } else {
           const t = (sy - zoomMid) / Math.max(1, zoomBottom - zoomMid);
           pose = lerpBeat(BEATS.ZOOM_IN, BEATS.ZOOM_OUT, t);
         }
       } else {
-        // Past the zoom zone (or no zoom zone): bottle stays hidden.
-        pose = BEATS.LANDED;
+        // Past the zoom zone: hand off to the trade section, bottle hides.
+        pose = BEATS.ZOOM_OUT;
       }
 
       bottle.style.setProperty('--rb-x', pose.x.toFixed(2) + 'vw');

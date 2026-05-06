@@ -2146,6 +2146,80 @@ html[data-brand="bold"],
 }
 
 /* ============================================================
+   BOLD STORY: text-left / can-right composition
+   The .grid-2 collapses into the LEFT half of the viewport so the
+   floating can has clean territory on the right at the STORY beat
+   (x = 28vw). On narrow viewports this falls back to the default
+   single-column layout so text doesn't get squashed.
+   ============================================================ */
+@media (min-width: 901px) {
+  :root[data-brand="bold"] #story .grid-2 {
+    max-width: 50%;
+    margin-left: 0;
+    margin-right: auto;
+    gap: 32px;
+  }
+}
+
+/* ============================================================
+   BOLD PRODUCT LINEUP: floating can lands as the middle SKU
+   - The middle card hides its static bottle image so the floating
+     can serves as its visual.
+   - Side cards (1 and 3) slide in from offscreen as the section
+     enters view, flanking the docked can.
+   - The middle card's text/spec block stays so the can has a
+     proper SKU label below it like the other two.
+   ============================================================ */
+@media (min-width: 901px) {
+  :root[data-brand="bold"] .product-row .product:nth-child(2) .product-visual {
+    visibility: hidden;
+  }
+  /* Collapse the middle card's vertical real-estate so it doesn't
+     create a giant empty box — the floating can fills that space. */
+  :root[data-brand="bold"] .product-row .product:nth-child(2) {
+    background: transparent;
+    border-color: transparent;
+  }
+  :root[data-brand="bold"] .product-row .product:nth-child(2):hover {
+    transform: none;
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  /* Side cards: slide in from edges + fade. Initial state is offscreen. */
+  :root[data-brand="bold"] .product-row .product:nth-child(1),
+  :root[data-brand="bold"] .product-row .product:nth-child(3) {
+    opacity: 0;
+    transition:
+      opacity 900ms cubic-bezier(.2,.8,.2,1),
+      transform 1100ms cubic-bezier(.2,.8,.2,1);
+    will-change: opacity, transform;
+  }
+  :root[data-brand="bold"] .product-row .product:nth-child(1) {
+    transform: translateX(-60px);
+    transition-delay: 250ms;
+  }
+  :root[data-brand="bold"] .product-row .product:nth-child(3) {
+    transform: translateX(60px);
+    transition-delay: 450ms;
+  }
+  :root[data-brand="bold"] #product.section-in .product-row .product:nth-child(1),
+  :root[data-brand="bold"] #product.section-in .product-row .product:nth-child(3) {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-brand="bold"] .product-row .product:nth-child(1),
+    :root[data-brand="bold"] .product-row .product:nth-child(3) {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+/* ============================================================
    BOLD SECTION BACKDROP — giant outlined word behind the floating can
    Same pattern as .bold-hero-backdrop ("PREMIUM"). One per non-hero
    section, content set via data-bold-backdrop attribute on the section.
