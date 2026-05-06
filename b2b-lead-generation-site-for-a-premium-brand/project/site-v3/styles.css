@@ -2146,18 +2146,39 @@ html[data-brand="bold"],
 }
 
 /* ============================================================
-   BOLD STORY: text-left / can-right composition
-   The .grid-2 collapses into the LEFT half of the viewport so the
-   floating can has clean territory on the right at the STORY beat
-   (x = 28vw). On narrow viewports this falls back to the default
-   single-column layout so text doesn't get squashed.
+   BOLD STORY: editorial stacked layout, can floats on the right
+   .grid-2 collapses to a single vertical column anchored left.
+   Headline gets full width to breathe at huge scale; body + specs
+   are constrained to narrow columns so text isn't crammed. The
+   floating can lives in the right ~35vw of the viewport at the
+   STORY beat, never overlapping body copy.
    ============================================================ */
 @media (min-width: 901px) {
   :root[data-brand="bold"] #story .grid-2 {
-    max-width: 50%;
-    margin-left: 0;
-    margin-right: auto;
-    gap: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  /* Eyebrow + huge headline — wider, so the type can breathe and the
+     line-wrap reads as deliberate (3 lines instead of one word per line). */
+  :root[data-brand="bold"] #story .grid-2 > .reveal:first-child {
+    max-width: 65vw;
+    position: relative;
+    z-index: 2;
+  }
+  /* Body paragraph + spec list — constrained to a narrow editorial column. */
+  :root[data-brand="bold"] #story .grid-2 > .reveal:last-child {
+    max-width: 540px;
+    position: relative;
+    z-index: 2;
+  }
+  /* Headline scales up — the dominant element of the section */
+  :root[data-brand="bold"] #story .h-display {
+    font-size: clamp(64px, 9vw, 140px);
+    line-height: 0.88;
   }
 }
 

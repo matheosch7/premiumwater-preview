@@ -1270,17 +1270,19 @@
       APPROACH: { x: 18, y:  0, s: 0.55, r: 0, op: 1.00 },
       // DOCKED: the can lands centred at product-card scale and stays
       // visible throughout the product section — it IS the middle SKU
-      // in the lineup. The static bottle photo on the middle .product
-      // card is hidden in CSS so the floating can serves as its visual.
-      // The left + right product cards fade/slide in to its sides via
-      // their own .section-in transitions.
-      DOCKED:   { x:  0, y:  6, s: 0.46, r: 0, op: 1.00 },
+      // in the lineup. Sized to match the side card visuals (the side
+      // ones use background-size 100% / 78% / 62% — middle floating
+      // can lands roughly in the same visual band).
+      DOCKED:   { x:  0, y:  4, s: 0.65, r: 0, op: 1.00 },
       // ZOOM: as the visitor scrolls past the lineup into the
       // .bold-zoom-zone spacer, the bottle re-emerges centred and
       // scales up massively so the label fills the viewport — like
-      // diving into the product before the trade narrative begins.
-      ZOOM_IN:  { x:  0, y:  0, s: 1.20, r: 0, op: 1.00 },
-      ZOOM_OUT: { x:  0, y:  0, s: 6.00, r: 0, op: 0.00 }
+      // diving INTO the product before emerging in the trade narrative.
+      // ZOOM_IN: label fills mid-screen, opacity stays high.
+      // ZOOM_OUT: scales past the camera into oblivion, fading at the
+      // very end as the trade headline rises behind the dissolving label.
+      ZOOM_IN:  { x:  0, y:  0, s: 1.85, r: 0, op: 1.00 },
+      ZOOM_OUT: { x:  0, y:  0, s: 9.00, r: 0, op: 0.00 }
     };
 
     const zoomEl  = document.getElementById('zoomZone');
@@ -1354,16 +1356,23 @@
         // middle product in the lineup, fully visible.
         pose = BEATS.DOCKED;
       } else if (zoomTop && sy >= zoomTop && sy <= zoomBottom) {
-        // Inside the zoom zone: bottle re-emerges centred and scales
-        // up massively so the label fills the screen. First half ramps
-        // DOCKED → ZOOM_IN (smaller dock to 1.2x), second half ramps
-        // ZOOM_IN → ZOOM_OUT (6x and fades through screen).
-        const zoomMid = (zoomTop + zoomBottom) / 2;
-        if (sy <= zoomMid) {
-          const t = (sy - zoomTop) / Math.max(1, zoomMid - zoomTop);
+        // Inside the zoom zone the can re-emerges centred and scales
+        // up massively so the label fills the screen. Three phases:
+        //   0-55% : DOCKED → ZOOM_IN   (label rushes toward camera)
+        //   55-75%: HOLD at ZOOM_IN     (a beat to read the label)
+        //   75-100%: ZOOM_IN → ZOOM_OUT (label scales past, fades into trade)
+        // The hold gives the user a moment to actually SEE the label
+        // before the next section emerges behind it.
+        const zoneH   = zoomBottom - zoomTop;
+        const inEnd   = zoomTop + zoneH * 0.55;
+        const holdEnd = zoomTop + zoneH * 0.75;
+        if (sy <= inEnd) {
+          const t = (sy - zoomTop) / Math.max(1, inEnd - zoomTop);
           pose = lerpBeat(BEATS.DOCKED, BEATS.ZOOM_IN, t);
+        } else if (sy <= holdEnd) {
+          pose = BEATS.ZOOM_IN;
         } else {
-          const t = (sy - zoomMid) / Math.max(1, zoomBottom - zoomMid);
+          const t = (sy - holdEnd) / Math.max(1, zoomBottom - holdEnd);
           pose = lerpBeat(BEATS.ZOOM_IN, BEATS.ZOOM_OUT, t);
         }
       } else {
