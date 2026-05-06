@@ -1525,6 +1525,18 @@ html[data-brand="bold"],
    gates it to bold only. */
 .bold-hero-photo { display: none; }
 
+/* Bold-mode zoom-into-label scroll real-estate. Hidden in calm mode;
+   in bold mode it gives the JS roadmap ~120vh of scroll to play out
+   the bottle scaling up to fill the viewport (label-zoom transition
+   from product → trade). */
+.bold-zoom-zone { display: none; }
+[data-brand="bold"] .bold-zoom-zone {
+  display: block;
+  width: 100%;
+  height: 120vh;
+  background: #FFFFFF;
+}
+
 /* In bold mode the photo escapes the hero box and becomes a single
    fixed-position element that travels down the page. Its transform is
    driven by JS-set CSS vars (--rb-x, --rb-y, --rb-s, --rb-r), lerped

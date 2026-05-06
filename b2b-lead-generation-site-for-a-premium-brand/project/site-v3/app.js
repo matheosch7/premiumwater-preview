@@ -1184,16 +1184,32 @@
       // in the product cards become the "landed" state. This makes the
       // journey resolve cleanly into the lineup instead of having a
       // 4th bottle hovering beside three identical card bottles.
-      LANDED:   { x: 24, y: -4, s: 0.55, r: 0, op: 0.00 }
+      LANDED:   { x: 24, y: -4, s: 0.55, r: 0, op: 0.00 },
+      // ZOOM: as the visitor scrolls past the lineup into the
+      // .bold-zoom-zone spacer, the bottle re-emerges centred and
+      // scales up massively so the label fills the viewport — like
+      // diving into the product before the trade narrative begins.
+      ZOOM_IN:  { x:  0, y:  0, s: 1.20, r: 0, op: 1.00 },
+      ZOOM_OUT: { x:  0, y:  0, s: 6.00, r: 0, op: 0.00 }
     };
 
-    let heroTop, storyTop, productTop, productBottom;
+    const zoomEl  = document.getElementById('zoomZone');
+    const tradeEl = document.getElementById('trade');
+
+    let heroTop, storyTop, productTop, productBottom, zoomTop, zoomBottom, tradeTop;
     function cacheAnchors() {
       const sy = window.scrollY || window.pageYOffset || 0;
       heroTop       = heroEl.getBoundingClientRect().top + sy;
       storyTop      = storyEl.getBoundingClientRect().top + sy;
       productTop    = productEl.getBoundingClientRect().top + sy;
       productBottom = productTop + productEl.offsetHeight;
+      if (zoomEl) {
+        zoomTop    = zoomEl.getBoundingClientRect().top + sy;
+        zoomBottom = zoomTop + zoomEl.offsetHeight;
+      }
+      if (tradeEl) {
+        tradeTop = tradeEl.getBoundingClientRect().top + sy;
+      }
     }
 
     function lerp(a, b, t) { return a + (b - a) * t; }
@@ -1243,8 +1259,25 @@
         // APPROACH → LANDED: snap into the product section
         const t = (playhead - productTop) / (window.innerHeight * 0.4);
         pose = lerpBeat(BEATS.APPROACH, BEATS.LANDED, t);
+      } else if (zoomTop && sy < zoomTop) {
+        // Past LANDED, before zoom zone — bottle stays hidden.
+        pose = BEATS.LANDED;
+      } else if (zoomTop && sy >= zoomTop && sy <= zoomBottom) {
+        // Inside the zoom zone: bottle re-emerges centred and scales
+        // up massively so the label fills the screen. We split the zone
+        // into two halves: first half ramps from LANDED → ZOOM_IN
+        // (bottle materialises at 1.2x), second half ramps ZOOM_IN →
+        // ZOOM_OUT (scales to 6x and fades through the screen).
+        const zoomMid = (zoomTop + zoomBottom) / 2;
+        if (sy <= zoomMid) {
+          const t = (sy - zoomTop) / Math.max(1, zoomMid - zoomTop);
+          pose = lerpBeat(BEATS.LANDED, BEATS.ZOOM_IN, t);
+        } else {
+          const t = (sy - zoomMid) / Math.max(1, zoomBottom - zoomMid);
+          pose = lerpBeat(BEATS.ZOOM_IN, BEATS.ZOOM_OUT, t);
+        }
       } else {
-        // Past the landing point: hold at LANDED until past product bottom
+        // Past the zoom zone (or no zoom zone): bottle stays hidden.
         pose = BEATS.LANDED;
       }
 
@@ -1260,9 +1293,16 @@
       const journeyT = (sy - journeyStart) / Math.max(1, journeyEnd - journeyStart);
       setFrame(journeyT);
 
-      // Past the product section, hide so trade/impact/contact stay clean.
-      // Inline opacity wins over CSS, so we set it directly here.
-      if (sy > productBottom - window.innerHeight * 0.2) {
+      // Opacity rules:
+      //   - Inside the zoom zone: use pose.op (the lerp ramps it back
+      //     up to 1 then back down to 0 as the bottle scales through).
+      //   - Past the product section but NOT in the zoom zone: hide.
+      //   - Past the zoom zone: hide.
+      //   - Otherwise: use pose.op.
+      const inZoom = zoomTop && sy >= zoomTop && sy <= zoomBottom;
+      if (inZoom) {
+        bottle.style.opacity = pose.op.toFixed(3);
+      } else if (sy > productBottom - window.innerHeight * 0.2) {
         bottle.style.opacity = '0';
       } else {
         bottle.style.opacity = pose.op.toFixed(3);
