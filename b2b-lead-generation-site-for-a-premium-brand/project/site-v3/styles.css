@@ -1489,13 +1489,10 @@ html[data-brand="bold"],
   animation: bold-hero-fade-up 700ms cubic-bezier(.2,.8,.2,1) 1700ms forwards;
 }
 [data-brand="bold"] .hero-actions {
-  position: absolute;
-  right:  clamp(40px, 6vw, 120px);
-  bottom: clamp(60px, 8vh, 100px);
-  z-index: 3;
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  margin-top: clamp(8px, 1.5vh, 16px);
   opacity: 0;
   animation: bold-hero-fade-up 700ms cubic-bezier(.2,.8,.2,1) 1900ms forwards;
 }
