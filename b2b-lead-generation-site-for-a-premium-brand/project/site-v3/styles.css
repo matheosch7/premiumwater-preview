@@ -2194,9 +2194,14 @@ html[data-brand="bold"],
      enters view, flanking the docked can.
    ============================================================ */
 @media (min-width: 901px) {
-  /* Tall section gives sticky a real "stuck" runway before zoom zone */
+  /* Tall section + zero bottom padding gives sticky a comfortable
+     ~130vh "stuck" runway. Without the extra height the lineup only
+     pins for ~70vh and the user blows past it. The bottom padding has
+     to be zero too, otherwise the section's content box ends early
+     and starts pushing the row up while it's still meant to be stuck. */
   :root[data-brand="bold"] #product {
-    min-height: 180vh;
+    min-height: 230vh;
+    padding-bottom: 0;
   }
   /* Pin the lineup to viewport so cards + docked can stay in formation
      while the user scrolls toward the zoom zone. The clamp picks a
