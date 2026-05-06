@@ -8,6 +8,9 @@ node_modules/
 .claude/
 /tmp/
 
+# Blender render staging — final WebP frames live alongside, _v2/ is scratch
+b2b-lead-generation-site-for-a-premium-brand/project/site-v3/assets/bottle-sequence/_v2/
+
 # Source handoff zip & intermediate uploads — the site only needs site-v3/
 *.zip
 b2b-lead-generation-site-for-a-premium-brand/project/uploads/
