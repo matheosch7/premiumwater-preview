@@ -1174,7 +1174,10 @@
     // The frame index continues to advance with scroll either way, so the
     // rotation is always live even when the bottle is small.
     const BEATS = {
-      HERO:     { x: 22, y:  0, s: 1.00, r: 0, op: 1.00 },
+      // HERO is centred — the Puma-style stage puts the bottle in the
+      // middle of the page with the giant outline word behind it and
+      // the copy/CTAs in the bottom corners. Bottle is the focal point.
+      HERO:     { x:  0, y:  0, s: 1.05, r: 0, op: 1.00 },
       STORY:    { x: 30, y:  0, s: 0.45, r: 0, op: 0.45 },
       APPROACH: { x: 28, y:  0, s: 0.55, r: 0, op: 0.55 },
       // LANDED fades the floating bottle out — the three static bottles
