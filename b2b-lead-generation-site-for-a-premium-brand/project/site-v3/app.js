@@ -1274,17 +1274,17 @@
       // ones use background-size 100% / 78% / 62% — middle floating
       // can lands roughly in the same visual band).
       DOCKED:   { x:  0, y:  4, s: 0.65, r: 0, op: 1.00 },
-      // ZOOM: a dive INTO the label. The can stops feeling like a can
-      // and becomes the printed surface we're flying toward — the label
-      // is the destination, not a side effect of scaling.
-      //   ZOOM_IN: scale 3.5 — the front-face label fills the viewport
-      //            (no top rim, no bottom rim, just printed wrap).
-      //   ZOOM_OUT: same scale, opacity 0 — the dive lands on the label
-      //            and CROSSFADES to the trade section. We do NOT scale
-      //            past it (that felt like the can flying at the camera
-      //            instead of the camera diving into the label).
-      ZOOM_IN:  { x:  0, y:  0, s: 3.50, r: 0, op: 1.00 },
-      ZOOM_OUT: { x:  0, y:  0, s: 3.80, r: 0, op: 0.00 }
+      // ZOOM: the can does NOT move or scale during the zoom phase. It
+      // stays at DOCKED. The "zoom" is a separate iris-expand window
+      // that opens THROUGH the label (handled by .bold-label-window in
+      // CSS, driven by --label-window-progress on :root). The pose just
+      // fades the can out at the very end so it doesn't sit on top of
+      // the fully-opened window.
+      //   ZOOM_IN:  same as DOCKED — can stays exactly there
+      //   ZOOM_OUT: same as DOCKED, opacity 0 — fade the can as the
+      //             window completes its open
+      ZOOM_IN:  { x:  0, y:  4, s: 0.65, r: 0, op: 1.00 },
+      ZOOM_OUT: { x:  0, y:  4, s: 0.65, r: 0, op: 0.00 }
     };
 
     const zoomEl  = document.getElementById('zoomZone');
@@ -1385,6 +1385,18 @@
       bottle.style.setProperty('--rb-y', pose.y.toFixed(2) + 'vh');
       bottle.style.setProperty('--rb-s', pose.s.toFixed(3));
       bottle.style.setProperty('--rb-r', pose.r.toFixed(2) + 'deg');
+
+      // Iris expand: the label "window" opens through the can's label,
+      // growing from label-sized to viewport-sized as scroll moves through
+      // the zoom zone. Setting progress on :root lets CSS interpolate the
+      // window's width/height/opacity. Outside the zoom zone, progress is 0.
+      let windowProgress = 0;
+      if (zoomTop && sy >= zoomTop && sy <= zoomBottom) {
+        windowProgress = (sy - zoomTop) / Math.max(1, zoomBottom - zoomTop);
+      } else if (zoomBottom && sy > zoomBottom) {
+        windowProgress = 1;
+      }
+      root.style.setProperty('--label-window-progress', windowProgress.toFixed(4));
 
       // Drive the rotation frame index from total scroll progress through
       // the journey (hero top → product bottom). Full 360° revolution.

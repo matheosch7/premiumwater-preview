@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=59" />
+  <link rel="stylesheet" href="styles.css?v=60" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -328,6 +328,15 @@
        Zero height in calm mode; bold mode gives it ~120vh so the scroll
        has room to play out the zoom on the floating bottle. -->
   <div class="bold-zoom-zone" id="zoomZone" aria-hidden="true"></div>
+
+  <!-- BOLD-MODE: iris-expand "label window". Fixed-position black panel
+       that starts label-sized at the can's screen position and grows to
+       viewport-sized as the user scrolls through the zoom zone. Driven by
+       --label-window-progress on :root. The can stays exactly where it is;
+       this window makes the label feel like a doorway opening to trade. -->
+  <div class="bold-label-window" aria-hidden="true">
+    <div class="bold-label-window__hint" data-i18n="trade.eyebrow">03 · For venues</div>
+  </div>
 
   <!-- TRADE / DISTRIBUTOR -->
   <section class="block" id="trade">

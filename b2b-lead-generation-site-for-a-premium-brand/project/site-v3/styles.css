@@ -1530,6 +1530,73 @@ html[data-brand="bold"],
    the bottle scaling up to fill the viewport (label-zoom transition
    from product → trade). */
 .bold-zoom-zone { display: none; }
+/* ============================================================
+   BOLD MODE — IRIS EXPAND "LABEL WINDOW"
+   The can does not move during the zoom phase. Instead, this fixed-
+   position black panel sits centred on the label's screen position and
+   grows from label-sized to viewport-sized as scroll progresses through
+   the zoom zone. JS drives `--label-window-progress` on :root from 0 → 1.
+   At progress 0: tiny rectangle on the label, opacity 0 (invisible).
+   At progress 1: covers the entire viewport (the doorway has opened
+   fully and we're "inside" trade — the actual #trade section is in
+   normal flow right after, so scrolling continues into it cleanly).
+   ============================================================ */
+.bold-label-window { display: none; }
+:root[data-brand="bold"] .bold-label-window {
+  display: block;
+  position: fixed;
+  /* Centred on the can's docked position. The can is at viewport
+     centre + (--rb-x, --rb-y) which is (0vw, 4vh) at DOCKED — so
+     window centre should sit at (50%, 54%) of viewport. */
+  top: 54%;
+  left: 50%;
+  /* Width/height interpolate label-sized → viewport-sized via the
+     :root progress variable. min-w/h are roughly the visible label
+     rectangle on the docked can; max-w/h are 220vw/220vh so the
+     window comfortably overscans the viewport at peak. */
+  --p: var(--label-window-progress, 0);
+  --start-w: 200px;
+  --start-h: 90px;
+  --end-w: 220vw;
+  --end-h: 220vh;
+  width: calc(var(--start-w) + (var(--end-w) - var(--start-w)) * var(--p));
+  height: calc(var(--start-h) + (var(--end-h) - var(--start-h)) * var(--p));
+  transform: translate(-50%, -50%);
+  /* Brand-trade dark panel — matches #trade background so as the window
+     fills viewport the user is visually already in trade. */
+  background: #0A0A0C;
+  z-index: 7;  /* above the can (z-index 5) so the window covers it */
+  pointer-events: none;
+  /* Fade in fast (so the label-sized seed appears as soon as zoom
+     starts), peak opacity reached at progress 0.05+. */
+  opacity: clamp(0, calc(var(--p) * 20), 1);
+  /* Subtle red rim mirroring the LD label's red footer band, fades
+     out as the window expands past label-scale. */
+  box-shadow:
+    inset 0 0 0 calc(2px - var(--p) * 2px) rgba(230,57,70,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Avoid taking layout space when not used */
+  will-change: width, height, opacity;
+}
+:root[data-brand="bold"] .bold-label-window__hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(11px, calc(11px + var(--p) * 14px), 28px);
+  color: rgba(230,57,70,0.95);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 500;
+  /* Eyebrow only fully readable once window has grown ~30% */
+  opacity: clamp(0, calc((var(--p) - 0.25) * 4), 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-brand="bold"] .bold-label-window {
+    display: none;  /* skip the iris effect for reduced-motion users */
+  }
+}
+
 [data-brand="bold"] .bold-zoom-zone {
   display: block;
   width: 100%;
