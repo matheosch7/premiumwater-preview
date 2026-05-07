@@ -1535,6 +1535,14 @@ html[data-brand="bold"],
   width: 100%;
   height: 120vh;
   background: #FFFFFF;
+  /* Pull the zoom zone up into the products section so the zoom starts
+     RIGHT as the sticky lineup is disengaging. Without this overlap there
+     is a ~77vh empty period (sticky top + row height worth of scroll)
+     between the cards scrolling out and the zoom triggering — that empty
+     middle is what made the lineup feel "left behind" before the zoom. */
+  margin-top: -77vh;
+  position: relative;
+  z-index: 0;
 }
 
 /* In bold mode the photo escapes the hero box and becomes a single
