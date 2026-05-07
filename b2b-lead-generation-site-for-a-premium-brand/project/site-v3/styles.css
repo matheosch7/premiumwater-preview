@@ -1555,12 +1555,18 @@ html[data-brand="bold"],
      rectangle on the docked can; max-w/h are 220vw/220vh so the
      window comfortably overscans the viewport at peak. */
   --p: var(--label-window-progress, 0);
-  --start-w: 200px;
-  --start-h: 90px;
+  /* Cubic ease-in: window holds at label-size for a beat, then bursts
+     open. p^3 keeps growth gentle early (so the label seed sits on the
+     can visibly) and accelerates near the end (the doorway swings wide). */
+  --p3: calc(var(--p) * var(--p) * var(--p));
+  /* Seed sized to the label's visible rectangle on screen — matches the
+     proportions of the printed label region on the docked can. */
+  --start-w: 150px;
+  --start-h: 240px;
   --end-w: 220vw;
   --end-h: 220vh;
-  width: calc(var(--start-w) + (var(--end-w) - var(--start-w)) * var(--p));
-  height: calc(var(--start-h) + (var(--end-h) - var(--start-h)) * var(--p));
+  width: calc(var(--start-w) + (var(--end-w) - var(--start-w)) * var(--p3));
+  height: calc(var(--start-h) + (var(--end-h) - var(--start-h)) * var(--p3));
   transform: translate(-50%, -50%);
   /* Brand-trade dark panel — matches #trade background so as the window
      fills viewport the user is visually already in trade. */
