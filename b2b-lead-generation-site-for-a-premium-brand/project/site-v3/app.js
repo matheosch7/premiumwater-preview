@@ -1274,15 +1274,17 @@
       // ones use background-size 100% / 78% / 62% — middle floating
       // can lands roughly in the same visual band).
       DOCKED:   { x:  0, y:  4, s: 0.65, r: 0, op: 1.00 },
-      // ZOOM: as the visitor scrolls past the lineup into the
-      // .bold-zoom-zone spacer, the bottle re-emerges centred and
-      // scales up massively so the label fills the viewport — like
-      // diving INTO the product before emerging in the trade narrative.
-      // ZOOM_IN: label fills mid-screen, opacity stays high.
-      // ZOOM_OUT: scales past the camera into oblivion, fading at the
-      // very end as the trade headline rises behind the dissolving label.
-      ZOOM_IN:  { x:  0, y:  0, s: 1.85, r: 0, op: 1.00 },
-      ZOOM_OUT: { x:  0, y:  0, s: 9.00, r: 0, op: 0.00 }
+      // ZOOM: a dive INTO the label. The can stops feeling like a can
+      // and becomes the printed surface we're flying toward — the label
+      // is the destination, not a side effect of scaling.
+      //   ZOOM_IN: scale 3.5 — the front-face label fills the viewport
+      //            (no top rim, no bottom rim, just printed wrap).
+      //   ZOOM_OUT: same scale, opacity 0 — the dive lands on the label
+      //            and CROSSFADES to the trade section. We do NOT scale
+      //            past it (that felt like the can flying at the camera
+      //            instead of the camera diving into the label).
+      ZOOM_IN:  { x:  0, y:  0, s: 3.50, r: 0, op: 1.00 },
+      ZOOM_OUT: { x:  0, y:  0, s: 3.80, r: 0, op: 0.00 }
     };
 
     const zoomEl  = document.getElementById('zoomZone');
@@ -1356,16 +1358,15 @@
         // middle product in the lineup, fully visible.
         pose = BEATS.DOCKED;
       } else if (zoomTop && sy >= zoomTop && sy <= zoomBottom) {
-        // Inside the zoom zone the can re-emerges centred and scales
-        // up massively so the label fills the screen. Three phases:
-        //   0-55% : DOCKED → ZOOM_IN   (label rushes toward camera)
-        //   55-75%: HOLD at ZOOM_IN     (a beat to read the label)
-        //   75-100%: ZOOM_IN → ZOOM_OUT (label scales past, fades into trade)
-        // The hold gives the user a moment to actually SEE the label
-        // before the next section emerges behind it.
+        // The dive INTO the label. Three phases tuned for "camera flying
+        // into the printed surface" rather than "can flying at camera":
+        //   0-70% : DOCKED → ZOOM_IN — the dive itself, sustained motion
+        //   70-90%: HOLD at ZOOM_IN — the label fills the frame, readable
+        //   90-100%: ZOOM_IN → ZOOM_OUT — the label crossfades to trade
+        //           (no scaling past; ZOOM_OUT is the same scale with opacity 0)
         const zoneH   = zoomBottom - zoomTop;
-        const inEnd   = zoomTop + zoneH * 0.55;
-        const holdEnd = zoomTop + zoneH * 0.75;
+        const inEnd   = zoomTop + zoneH * 0.70;
+        const holdEnd = zoomTop + zoneH * 0.90;
         if (sy <= inEnd) {
           const t = (sy - zoomTop) / Math.max(1, inEnd - zoomTop);
           pose = lerpBeat(BEATS.DOCKED, BEATS.ZOOM_IN, t);
