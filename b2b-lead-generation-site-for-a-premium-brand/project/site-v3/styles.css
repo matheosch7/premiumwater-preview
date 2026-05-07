@@ -1534,7 +1534,10 @@ html[data-brand="bold"],
   display: block;
   width: 100%;
   height: 120vh;
-  background: #FFFFFF;
+  /* Transparent — the zoom zone overlaps the products section by 77vh so
+     a white background here would cover the cards during the lineup
+     transition. Body/section background shows through instead. */
+  background: transparent;
   /* Pull the zoom zone up into the products section so the zoom starts
      RIGHT as the sticky lineup is disengaging. Without this overlap there
      is a ~77vh empty period (sticky top + row height worth of scroll)
@@ -1542,7 +1545,8 @@ html[data-brand="bold"],
      middle is what made the lineup feel "left behind" before the zoom. */
   margin-top: -77vh;
   position: relative;
-  z-index: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* In bold mode the photo escapes the hero box and becomes a single
