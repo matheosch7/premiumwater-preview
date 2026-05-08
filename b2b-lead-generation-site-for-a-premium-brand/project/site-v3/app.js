@@ -1394,17 +1394,23 @@
       bottle.style.setProperty('--rb-s', pose.s.toFixed(3));
       bottle.style.setProperty('--rb-r', pose.r.toFixed(2) + 'deg');
 
-      // Iris expand: the label "window" opens through the can's label,
-      // growing from label-sized to viewport-sized as scroll moves through
-      // the zoom zone. Setting progress on :root lets CSS interpolate the
-      // window's width/height/opacity. Outside the zoom zone, progress is 0.
+      // Can-split: --label-window-progress drives the halves' translateX
+      // and the trade-reveal panel's opacity. Once past the zoom zone,
+      // a separate --reveal-exit-mult fades the reveal panel + halves
+      // OUT over the next 40vh of scroll so the user can reach the
+      // actual #trade and #impact sections behind.
       let windowProgress = 0;
+      let revealExitMult = 1;
       if (zoomTop && sy >= zoomTop && sy <= zoomBottom) {
         windowProgress = (sy - zoomTop) / Math.max(1, zoomBottom - zoomTop);
       } else if (zoomBottom && sy > zoomBottom) {
         windowProgress = 1;
+        // Fade the reveal panel out over 40vh once past the zoom zone.
+        const exitDistance = window.innerHeight * 0.4;
+        revealExitMult = Math.max(0, 1 - (sy - zoomBottom) / exitDistance);
       }
       root.style.setProperty('--label-window-progress', windowProgress.toFixed(4));
+      root.style.setProperty('--reveal-exit-mult', revealExitMult.toFixed(4));
 
       // Drive the rotation frame index from total scroll progress through
       // the journey (hero top → product bottom). Full 360° revolution.
