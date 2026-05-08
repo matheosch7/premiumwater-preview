@@ -1548,7 +1548,7 @@ html[data-brand="bold"],
   max-width: 480px;
   height: auto;
   pointer-events: none;
-  z-index: 6;       /* above the trade-reveal panel (5) and original can (5) */
+  z-index: 60;      /* above the trade-reveal panel (50) so halves slide visibly OVER it */
   will-change: transform, opacity;
   /* Halves only become visible during the split phase — opacity ramps
      up fast as progress moves off zero. They're hidden during lineup
@@ -1591,7 +1591,7 @@ html[data-brand="bold"],
   padding: 64px;
   position: fixed;
   inset: 0;
-  z-index: 5;       /* below halves (6) so halves visibly slide OVER it */
+  z-index: 50;       /* above products section content but below halves (60) */
   pointer-events: none;
   background: #0A0A0C;
   text-align: center;
@@ -1611,8 +1611,8 @@ html[data-brand="bold"],
   text-transform: uppercase;
   font-weight: 500;
   transform: scale(var(--content-scale));
-  /* Eyebrow appears slightly later than the panel itself */
-  opacity: clamp(0, calc((var(--p) - 0.20) * 4), 1);
+  /* Eyebrow becomes readable as the gap between halves grows enough */
+  opacity: clamp(0, calc((var(--p) - 0.10) * 5), 1);
 }
 :root[data-brand="bold"] .bold-trade-reveal__headline {
   font-family: 'Anton', sans-serif;
@@ -1625,8 +1625,8 @@ html[data-brand="bold"],
   margin: 0;
   max-width: 1000px;
   transform: scale(var(--content-scale));
-  /* Headline appears latest — hit during the second half of the split */
-  opacity: clamp(0, calc((var(--p) - 0.30) * 3), 1);
+  /* Headline ramps in slightly after eyebrow — readable by p=0.40 */
+  opacity: clamp(0, calc((var(--p) - 0.20) * 5), 1);
 }
 :root[data-brand="bold"] .bold-trade-reveal__headline em {
   font-style: normal;
