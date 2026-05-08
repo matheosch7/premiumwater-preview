@@ -1423,21 +1423,24 @@
         windowProgress = (sy - zoomTop) / Math.max(1, zoomBottom - zoomTop);
       } else if (zoomBottom && sy > zoomBottom) {
         windowProgress = 1;
-        // Travel + bg-fade phase, retimed so the reveal panel actually
-        // gets out of the user's way before they reach the #trade content.
-        //   - Travel: 18vh — text glides from centered to the #trade
-        //     headline position quickly, finishing right around the time
-        //     #trade scrolls into the upper viewport.
-        //   - Hold:   panel stays mostly opaque for the first 18vh so
-        //     the user can SEE the landing.
-        //   - Fade:   from 18vh to 30vh past zoomBottom the panel
-        //     opacity ramps to 0 so the trade cards underneath become
-        //     readable. Beyond that the panel is fully gone.
+        // Travel + bg-fade phase, retimed so the reveal panel disappears
+        // BEFORE the trade cards become the focal point. Earlier the
+        // panel was lingering at low opacity over the cards, giving them
+        // a dim/washed-out look the user couldn't read.
+        //   - Travel: 0–14vh — text glides from centered to the #trade
+        //     headline position.
+        //   - Hold:   0–12vh — panel stays opaque so the landing is
+        //     visible.
+        //   - Fade:   12–18vh — panel fades to 0 quickly, overlapping
+        //     the tail of the travel so the user sees the text merge
+        //     with the actual #trade headline as the curtain lifts.
+        //   - Beyond 18vh past zoomBottom: panel fully gone, trade
+        //     cards render at full brightness.
         const past = sy - zoomBottom;
-        const travelDistance = window.innerHeight * 0.18;
+        const travelDistance = window.innerHeight * 0.14;
         travelT = Math.min(1, past / travelDistance);
-        const fadeStart = window.innerHeight * 0.18;
-        const fadeEnd   = window.innerHeight * 0.30;
+        const fadeStart = window.innerHeight * 0.12;
+        const fadeEnd   = window.innerHeight * 0.18;
         if (past < fadeStart) revealExitMult = 1;
         else if (past < fadeEnd) revealExitMult = 1 - (past - fadeStart) / (fadeEnd - fadeStart);
         else revealExitMult = 0;
