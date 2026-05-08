@@ -1396,23 +1396,67 @@
 
       // Can-split: --label-window-progress drives the halves' translateX
       // and the trade-reveal panel's opacity. Once past the zoom zone,
-      // a separate --reveal-exit-mult fades the reveal panel + halves
-      // OUT over the next 40vh of scroll so the user can reach the
-      // actual #trade and #impact sections behind.
+      // we don't simply fade — the reveal text TRAVELS from its centered
+      // position to land where the actual #trade headline+eyebrow sit
+      // in the page. The handoff feels intentional: the text is the same
+      // text, it just moved into its home in the next section.
       let windowProgress = 0;
-      let revealExitMult = 1;
+      let travelT = 0;       // 0 = centered (during split), 1 = landed at #trade
+      let revealExitMult = 1; // panel bg fade (still used for backdrop)
       if (zoomTop && sy >= zoomTop && sy <= zoomBottom) {
         windowProgress = (sy - zoomTop) / Math.max(1, zoomBottom - zoomTop);
       } else if (zoomBottom && sy > zoomBottom) {
         windowProgress = 1;
-        // Snappier exit: fade reveal+halves over only 18vh past zoom so
-        // the user doesn't see both the reveal panel AND the actual
-        // #trade section simultaneously for long.
-        const exitDistance = window.innerHeight * 0.18;
-        revealExitMult = Math.max(0, 1 - (sy - zoomBottom) / exitDistance);
+        // Travel + bg-fade phase. Travel completes over 35vh. Background
+        // fade lags behind travel so the text is in position before bg
+        // disappears (ensures user sees the "landing" moment).
+        const travelDistance = window.innerHeight * 0.35;
+        travelT = Math.min(1, (sy - zoomBottom) / travelDistance);
+        const bgExitDistance = window.innerHeight * 0.45;
+        revealExitMult = Math.max(0, 1 - (sy - zoomBottom) / bgExitDistance);
       }
       root.style.setProperty('--label-window-progress', windowProgress.toFixed(4));
       root.style.setProperty('--reveal-exit-mult', revealExitMult.toFixed(4));
+
+      // Travel: morph the reveal headline+eyebrow from centered to the
+      // ACTUAL #trade .h-display + .eyebrow positions on each tick. JS
+      // handles this because the target moves with scroll (page is
+      // scrolling underneath the fixed reveal). Apply transform deltas
+      // directly on the reveal text elements.
+      const revealHeadline = document.querySelector('.bold-trade-reveal__headline');
+      const revealEyebrow  = document.querySelector('.bold-trade-reveal__eyebrow');
+      const tradeHeadline  = document.querySelector('#trade .h-display');
+      const tradeEyebrow   = document.querySelector('#trade .eyebrow');
+      if (revealHeadline && tradeHeadline && revealEyebrow && tradeEyebrow) {
+        if (travelT <= 0) {
+          // No travel — let CSS handle (centered transform inside reveal).
+          revealHeadline.style.transform = '';
+          revealEyebrow.style.transform  = '';
+        } else {
+          // Get current source vs target rects; compute delta.
+          const srcH = revealHeadline.getBoundingClientRect();
+          const tgtH = tradeHeadline.getBoundingClientRect();
+          const dxH = (tgtH.left + tgtH.width/2) - (srcH.left + srcH.width/2);
+          const dyH = (tgtH.top + tgtH.height/2) - (srcH.top + srcH.height/2);
+          const scH = tgtH.width / Math.max(1, srcH.width);
+          // Ease-out for landing — slow down at the end
+          const tEase = 1 - Math.pow(1 - travelT, 2);
+          const txH = dxH * tEase;
+          const tyH = dyH * tEase;
+          const sH  = 1 + (scH - 1) * tEase;
+          revealHeadline.style.transform = `translate(${txH}px, ${tyH}px) scale(${sH})`;
+
+          const srcE = revealEyebrow.getBoundingClientRect();
+          const tgtE = tradeEyebrow.getBoundingClientRect();
+          const dxE = (tgtE.left + tgtE.width/2) - (srcE.left + srcE.width/2);
+          const dyE = (tgtE.top + tgtE.height/2) - (srcE.top + srcE.height/2);
+          const scE = tgtE.width / Math.max(1, srcE.width);
+          const txE = dxE * tEase;
+          const tyE = dyE * tEase;
+          const sE  = 1 + (scE - 1) * tEase;
+          revealEyebrow.style.transform = `translate(${txE}px, ${tyE}px) scale(${sE})`;
+        }
+      }
 
       // Drive the rotation frame index from total scroll progress through
       // the journey (hero top → product bottom). Full 360° revolution.
