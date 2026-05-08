@@ -197,19 +197,19 @@
       } else if (typeof updateBold === 'function') {
         updateBold();
       }
-      // Eye-catch: play a one-shot entrance animation on the can when
-      // Bold mode activates. Inspired by the Olipop/can-reveal video —
-      // bottle starts small + rotated, scales/rotates into HERO with a
-      // slight overshoot and lands at the standard hero pose. Triggered
-      // by a CSS class on :root that runs a keyframe; JS removes the
-      // class once the animation completes so the scroll-driven roadmap
-      // takes over cleanly.
-      requestAnimationFrame(() => {
-        root.classList.add('bold-entrance-playing');
-        setTimeout(() => {
-          root.classList.remove('bold-entrance-playing');
-        }, 1700);
-      });
+      // Eye-catch entrance: only when we're at the TOP of the page —
+      // this is meant to greet the user at the hero. If they activate
+      // Bold while scrolled down, the bottle is doing its scroll-driven
+      // pose and an entrance keyframe would be jarring.
+      const sy = window.scrollY || window.pageYOffset || 0;
+      if (sy < 120) {
+        requestAnimationFrame(() => {
+          root.classList.add('bold-entrance-playing');
+          setTimeout(() => {
+            root.classList.remove('bold-entrance-playing');
+          }, 2100);
+        });
+      }
     } else if (typeof updateBold === 'function') {
       // Reset the mount transform so a later toggle back doesn't inherit a stale offset.
       const mount = document.getElementById('boldModelMount');

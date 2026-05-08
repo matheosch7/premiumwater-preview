@@ -1722,7 +1722,9 @@ html[data-brand="bold"],
   }
 }
 :root[data-brand="bold"].bold-entrance-playing .bold-hero-photo {
-  animation: bold-can-entrance 1600ms cubic-bezier(.2,.7,.2,1) 80ms forwards;
+  /* 2000ms gives the eye-catch enough time to register without dragging.
+     150ms delay ensures the page has settled visually before kickoff. */
+  animation: bold-can-entrance 2000ms cubic-bezier(.18,.7,.2,1) 150ms forwards;
 }
 
 /* Floating particles: a few brand-red sparks drift past during the
@@ -1751,7 +1753,7 @@ html[data-brand="bold"],
   opacity: 0;
 }
 :root[data-brand="bold"].bold-entrance-playing .bold-hero-particles span {
-  animation: bold-particle-drift 1800ms cubic-bezier(.2,.7,.2,1) forwards;
+  animation: bold-particle-drift 2200ms cubic-bezier(.2,.7,.2,1) forwards;
 }
 @keyframes bold-particle-drift {
   0% {
