@@ -1405,8 +1405,10 @@
         windowProgress = (sy - zoomTop) / Math.max(1, zoomBottom - zoomTop);
       } else if (zoomBottom && sy > zoomBottom) {
         windowProgress = 1;
-        // Fade the reveal panel out over 40vh once past the zoom zone.
-        const exitDistance = window.innerHeight * 0.4;
+        // Snappier exit: fade reveal+halves over only 18vh past zoom so
+        // the user doesn't see both the reveal panel AND the actual
+        // #trade section simultaneously for long.
+        const exitDistance = window.innerHeight * 0.18;
         revealExitMult = Math.max(0, 1 - (sy - zoomBottom) / exitDistance);
       }
       root.style.setProperty('--label-window-progress', windowProgress.toFixed(4));
