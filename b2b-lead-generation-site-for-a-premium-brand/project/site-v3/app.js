@@ -1232,6 +1232,12 @@
     probe.onerror = () => { framesReady = false; };
     probe.src = frameUrls[0];
 
+    // Cache the can-half elements (used by the split transition during
+    // the zoom phase). Halves render the same frame as the main bottle
+    // so the visual handoff at split=0 is seamless.
+    const canHalfLeft  = document.querySelector('.bold-can-half--left');
+    const canHalfRight = document.querySelector('.bold-can-half--right');
+
     let lastFrameIndex = -1;
     function setFrame(scrollProgress) {
       if (!framesReady) return;
@@ -1244,6 +1250,8 @@
       const img = preloaded[idx];
       if (img && img.complete) {
         bottle.src = frameUrls[idx];
+        if (canHalfLeft)  canHalfLeft.src  = frameUrls[idx];
+        if (canHalfRight) canHalfRight.src = frameUrls[idx];
       }
     }
 
@@ -1406,14 +1414,17 @@
       setFrame(journeyT);
 
       // Opacity rules:
-      //   - Inside the zoom zone: use pose.op (the lerp ramps it back
-      //     up to 1 then back down to 0 as the bottle scales through).
+      //   - Inside the zoom zone: original bottle fades out fast as the
+      //     can-split halves take over. Halves are seamless clones at
+      //     split=0, so the swap is invisible. Multiplied with pose.op.
       //   - Past the product section but NOT in the zoom zone: hide.
-      //   - Past the zoom zone: hide.
       //   - Otherwise: use pose.op.
       const inZoom = zoomTop && sy >= zoomTop && sy <= zoomBottom;
       if (inZoom) {
-        bottle.style.opacity = pose.op.toFixed(3);
+        // Fade original quickly so by ~10% progress the halves carry
+        // the visual entirely.
+        const splitFade = Math.max(0, 1 - windowProgress * 10);
+        bottle.style.opacity = (pose.op * splitFade).toFixed(3);
       } else if (sy > productBottom - window.innerHeight * 0.2) {
         bottle.style.opacity = '0';
       } else {

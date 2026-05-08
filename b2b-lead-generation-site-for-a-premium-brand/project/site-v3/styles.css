@@ -1531,133 +1531,120 @@ html[data-brand="bold"],
    from product → trade). */
 .bold-zoom-zone { display: none; }
 /* ============================================================
-   BOLD MODE — IRIS EXPAND "LABEL WINDOW"
-   The can does not move during the zoom phase. Instead, this fixed-
-   position black panel sits centred on the label's screen position and
-   grows from label-sized to viewport-sized as scroll progresses through
-   the zoom zone. JS drives `--label-window-progress` on :root from 0 → 1.
-   At progress 0: tiny rectangle on the label, opacity 0 (invisible).
-   At progress 1: covers the entire viewport (the doorway has opened
-   fully and we're "inside" trade — the actual #trade section is in
-   normal flow right after, so scrolling continues into it cleanly).
+   BOLD MODE — CAN-SPLIT TRANSITION
+   The lineup-pinned can splits in half as the user scrolls past the
+   sticky moment. Two clones of the bottle img, each clipped to one
+   side, overlay the original at the docked position. As progress
+   grows they slide outward (left → -100vw, right → +100vw),
+   revealing the trade-reveal panel positioned behind them.
    ============================================================ */
-.bold-label-window { display: none; }
-:root[data-brand="bold"] .bold-label-window {
+.bold-can-half { display: none; }
+:root[data-brand="bold"] .bold-can-half {
   display: block;
   position: fixed;
-  /* Centred on the can's docked position. The can is at viewport
-     centre + (--rb-x, --rb-y) which is (0vw, 4vh) at DOCKED — so
-     window centre should sit at (50%, 54%) of viewport. */
-  top: 54%;
-  left: 50%;
-  /* Width/height interpolate label-sized → viewport-sized via the
-     :root progress variable. min-w/h are roughly the visible label
-     rectangle on the docked can; max-w/h are 220vw/220vh so the
-     window comfortably overscans the viewport at peak. */
-  --p: var(--label-window-progress, 0);
-  /* Cubic ease-in: window holds at label-size for a beat, then bursts
-     open. p^3 keeps growth gentle early (so the label seed sits on the
-     can visibly) and accelerates near the end (the doorway swings wide). */
-  --p3: calc(var(--p) * var(--p) * var(--p));
-  /* Seed sized to match the label's actual visible rectangle on the
-     docked can — wider than tall (the printed label wraps the front
-     ~120° of the can, so its visible width on screen is greater than
-     its height). */
-  --start-w: 200px;
-  --start-h: 170px;
-  --end-w: 220vw;
-  --end-h: 220vh;
-  width: calc(var(--start-w) + (var(--end-w) - var(--start-w)) * var(--p3));
-  height: calc(var(--start-h) + (var(--end-h) - var(--start-h)) * var(--p3));
-  /* Critical: clip the inner content. The content is rendered at full
-     viewport size always — the iris is a "window" that reveals more of
-     the underlying trade scene as it grows. */
-  overflow: hidden;
-  transform: translate(-50%, -50%);
-  /* Brand-trade dark panel — matches #trade background so as the window
-     fills viewport the user is visually already in trade. */
-  background: #0A0A0C;
-  z-index: 100;  /* well above can (5) and everything else */
-  /* Spotlight vignette: the box-shadow spread outwards darkens the
-     world around the iris. Ramp the darkness FASTER so the dive feels
-     immersive — by progress 0.30 the surroundings are nearly black,
-     not just at peak. Uses sqrt curve (p^0.5) to accelerate early. */
-  box-shadow:
-    inset 0 0 0 calc(2px - var(--p) * 2px) rgba(230,57,70,0.85),
-    0 0 0 100vmax rgba(0, 0, 0, calc(min(1, var(--p) * 3)));
-  pointer-events: none;
-  /* Fade in fast (so the label-sized seed appears as soon as zoom
-     starts), peak opacity reached at progress 0.05+. */
-  opacity: clamp(0, calc(var(--p) * 20), 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Avoid taking layout space when not used */
-  will-change: width, height, opacity;
-}
-/* Trade preview INSIDE the iris is rendered at FULL VIEWPORT size and
-   centered. The iris (parent) clips it — like looking into the next
-   room through a peephole that grows. We also SCALE this content with
-   progress so it feels like the camera is FLYING TOWARD the trade
-   headline (content scales from 0.6 → 1.2; combined with iris clip,
-   gives true camera-dive feel). */
-:root[data-brand="bold"] .bold-label-window__content {
-  --p: var(--label-window-progress, 0);
-  position: absolute;
   top: 50%;
   left: 50%;
-  /* The translate(-50%, -50%) centres on iris centre; the scale runs
-     0.6 → 1.2 across the dive — small at start (we're FAR from the
-     scene, looking through a peephole) → larger at end (we're CLOSE
-     to the trade headline as the window has grown to viewport-size). */
-  transform: translate(-50%, -50%) scale(calc(0.60 + var(--p) * 0.60));
-  width: 100vw;
-  height: 100vh;
+  width: 38vw;
+  max-width: 480px;
+  height: auto;
+  pointer-events: none;
+  z-index: 6;       /* above the trade-reveal panel (5) and original can (5) */
+  will-change: transform, opacity;
+  /* Halves only become visible during the split phase — opacity ramps
+     up fast as progress moves off zero. They're hidden during lineup
+     so the original .bold-hero-photo carries the visual. */
+  --p: var(--label-window-progress, 0);
+  opacity: clamp(0, calc(var(--p) * 12), 1);
+  /* Drop-shadow gives the halves the same lit-from-front depth as the
+     original bottle so the handoff is visually seamless. */
+  filter:
+    drop-shadow(0 40px 70px rgba(0,0,0,0.55))
+    drop-shadow(0 0 50px rgba(230,57,70,0.30));
+}
+:root[data-brand="bold"] .bold-can-half--left {
+  /* Show only the left half of the can image */
+  clip-path: inset(0 50% 0 0);
+  transform:
+    translate(-50%, -50%)
+    translate(0, 4vh)        /* match DOCKED y-offset */
+    scale(0.65)              /* match DOCKED scale */
+    translateX(calc(var(--p) * -120vw));  /* slide left as progress grows */
+}
+:root[data-brand="bold"] .bold-can-half--right {
+  clip-path: inset(0 0 0 50%);
+  transform:
+    translate(-50%, -50%)
+    translate(0, 4vh)
+    scale(0.65)
+    translateX(calc(var(--p) * 120vw));
+}
+
+/* Trade-reveal: the dark "next room" the can opens onto. Fades in
+   between the splitting halves as they separate. */
+.bold-trade-reveal { display: none; }
+:root[data-brand="bold"] .bold-trade-reveal {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 32px;
+  gap: 24px;
   padding: 64px;
+  position: fixed;
+  inset: 0;
+  z-index: 5;       /* below halves (6) so halves visibly slide OVER it */
+  pointer-events: none;
+  background: #0A0A0C;
   text-align: center;
-  /* Content opacity fades in delayed — we don't want trade text fragments
-     poking through while the cards are still mid-slide. Fully visible at
-     progress 0.25+. */
-  opacity: clamp(0, calc((var(--p) - 0.10) * 6.5), 1);
+  --p: var(--label-window-progress, 0);
+  /* Fades in starting at p=0.05; fully opaque by p=0.50 */
+  opacity: clamp(0, calc((var(--p) - 0.05) * 2.2), 1);
+  /* Subtle scale-up of the contents emphasises forward motion */
+  --content-scale: calc(0.85 + var(--p) * 0.20);
 }
-:root[data-brand="bold"] .bold-label-window__eyebrow {
+:root[data-brand="bold"] .bold-trade-reveal__eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 14px;
   color: rgba(230,57,70,0.95);
   letter-spacing: 0.32em;
   text-transform: uppercase;
   font-weight: 500;
-  margin-bottom: 16px;
+  transform: scale(var(--content-scale));
+  /* Eyebrow appears slightly later than the panel itself */
+  opacity: clamp(0, calc((var(--p) - 0.20) * 4), 1);
 }
-:root[data-brand="bold"] .bold-label-window__headline {
+:root[data-brand="bold"] .bold-trade-reveal__headline {
   font-family: 'Anton', sans-serif;
   font-weight: 400;
-  /* Trade-section headline scale — full size. Iris clips this when small. */
   font-size: clamp(56px, 8vw, 120px);
   line-height: 0.92;
   letter-spacing: -0.01em;
   text-transform: uppercase;
   color: #FFFFFF;
+  margin: 0;
   max-width: 1000px;
+  transform: scale(var(--content-scale));
+  /* Headline appears latest — hit during the second half of the split */
+  opacity: clamp(0, calc((var(--p) - 0.30) * 3), 1);
 }
-:root[data-brand="bold"] .bold-label-window__headline em {
+:root[data-brand="bold"] .bold-trade-reveal__headline em {
   font-style: normal;
   color: var(--accent);
 }
 
-/* Vignette is now handled by the iris's own box-shadow (above) which
-   spreads 100vmax outward with rgba(0,0,0, p*0.97). That keeps the
-   spotlight effect tied to the iris's rendering so iris content can
-   never be tinted by stacking-context bleed. */
+/* Original .bold-hero-photo fades out as the split begins so the halves
+   take over visually. JS already controls the bottle's opacity; this is
+   a CSS guard that ensures the original disappears once split is active.
+   The halves are seamless clones at split=0 so the swap is invisible. */
+:root[data-brand="bold"] .bold-hero-photo {
+  /* The opacity in CSS combines with the inline value JS sets; we use
+     a multiplicative effect via mix-blend-mode hack would be tricky, so
+     we rely on JS in app.js to fade the bottle when --label-window-progress > 0. */
+}
 
 @media (prefers-reduced-motion: reduce) {
-  :root[data-brand="bold"] .bold-label-window {
-    display: none;  /* skip the iris effect for reduced-motion users */
+  :root[data-brand="bold"] .bold-can-half,
+  :root[data-brand="bold"] .bold-trade-reveal {
+    display: none;
   }
 }
 
