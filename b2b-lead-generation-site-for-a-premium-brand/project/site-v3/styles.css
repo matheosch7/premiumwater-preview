@@ -1569,6 +1569,10 @@ html[data-brand="bold"],
   --end-h: 220vh;
   width: calc(var(--start-w) + (var(--end-w) - var(--start-w)) * var(--p3));
   height: calc(var(--start-h) + (var(--end-h) - var(--start-h)) * var(--p3));
+  /* Critical: clip the inner content. The content is rendered at full
+     viewport size always — the iris is a "window" that reveals more of
+     the underlying trade scene as it grows. */
+  overflow: hidden;
   transform: translate(-50%, -50%);
   /* Brand-trade dark panel — matches #trade background so as the window
      fills viewport the user is visually already in trade. */
@@ -1588,48 +1592,50 @@ html[data-brand="bold"],
   /* Avoid taking layout space when not used */
   will-change: width, height, opacity;
 }
-/* Trade preview content inside the iris — eyebrow + headline. As the
-   window grows the content fades in, scaling up subtly so it feels like
-   we're moving INTO the trade scene through the label. */
+/* Trade preview INSIDE the iris is always rendered at FULL VIEWPORT
+   size and centered. The iris (parent) just clips it — like looking
+   into the next room through a peephole that grows. As the iris widens,
+   more of the same fixed scene is revealed. This gives a real "window
+   into a world" feel rather than a panel that grows with content. */
 :root[data-brand="bold"] .bold-label-window__content {
   --p: var(--label-window-progress, 0);
+  position: absolute;
+  /* Center the content's center on the iris center. Iris is at top:54%,
+     left:50% and uses translate(-50%, -50%); the content here uses the
+     same anchor so its centre coincides with the iris centre. */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* Full-viewport canvas — the iris just clips a portion of this. */
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(8px, calc(8px + var(--p) * 24px), 32px);
-  width: 100%;
-  height: 100%;
-  padding: clamp(8px, calc(8px + var(--p) * 56px), 64px);
-  /* Camera-dive feel: content scales subtly UP as the window opens —
-     gives the impression that we're getting closer to the trade scene
-     visible inside the doorway. */
-  transform: scale(calc(0.85 + var(--p) * 0.15));
-  transform-origin: 50% 50%;
+  gap: 32px;
+  padding: 64px;
   text-align: center;
 }
 :root[data-brand="bold"] .bold-label-window__eyebrow {
   font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(10px, calc(10px + var(--p) * 8px), 18px);
+  font-size: 14px;
   color: rgba(230,57,70,0.95);
   letter-spacing: 0.32em;
   text-transform: uppercase;
   font-weight: 500;
-  /* Visible once window has grown ~10% */
-  opacity: clamp(0, calc((var(--p) - 0.10) * 4), 1);
+  margin-bottom: 16px;
 }
 :root[data-brand="bold"] .bold-label-window__headline {
   font-family: 'Anton', sans-serif;
   font-weight: 400;
-  font-size: clamp(16px, calc(16px + var(--p) * 80px), 96px);
+  /* Trade-section headline scale — full size. Iris clips this when small. */
+  font-size: clamp(56px, 8vw, 120px);
   line-height: 0.92;
   letter-spacing: -0.01em;
   text-transform: uppercase;
   color: #FFFFFF;
-  /* Headline appears later in the open as the doorway widens enough
-     for it to fit at readable size. */
-  opacity: clamp(0, calc((var(--p) - 0.35) * 3), 1);
-  max-width: 90%;
+  max-width: 1000px;
 }
 :root[data-brand="bold"] .bold-label-window__headline em {
   font-style: normal;
@@ -1670,13 +1676,6 @@ html[data-brand="bold"],
    reads on both the dark hero and the light story/product backgrounds.
    mix-blend-mode is intentionally absent here — `lighten` would erase
    the dark bottle on light sections. */
-/* 3D context for the camera-dive: perspective on the html element so
-   the position:fixed bottle below participates in 3D space. translateZ
-   on the bottle then moves it toward/away from the camera. */
-:root[data-brand="bold"] {
-  perspective: 1500px;
-  perspective-origin: 50% 54%;  /* matches DOCKED label position */
-}
 [data-brand="bold"] .bold-hero-photo {
   display: block;
   position: fixed;
@@ -1688,13 +1687,9 @@ html[data-brand="bold"],
   pointer-events: none;
   z-index: 5;
   will-change: transform, opacity;
-  /* translateZ is the camera-dive: as --rb-z grows, the bottle moves
-     toward the camera (perspective makes it appear larger and pass
-     through the viewer). The bottle stays at viewport centre in X/Y. */
   transform:
     translate(-50%, -50%)
     translate(var(--rb-x, 22vw), var(--rb-y, 0))
-    translateZ(var(--rb-z, 0px))
     scale(var(--rb-s, 1))
     rotate(var(--rb-r, 0deg));
   /* Only transform is transitioned. Opacity is set inline by the scroll
