@@ -1648,10 +1648,10 @@ html[data-brand="bold"],
 }
 
 /* Vignette: darkens the world OUTSIDE the iris as the iris grows.
-   Implemented via a fixed pseudo-overlay on body that's transparent in
-   a circular region around the iris and dark elsewhere. As progress
-   grows, the dark portion intensifies — focus narrows on the doorway,
-   the rest of the page recedes. */
+   Strengthened so the trade peek-through below products and any other
+   visual noise recedes into black during the dive. By peak progress
+   the surrounding world is essentially black, focus is on the iris
+   alone, and as the iris fills viewport the user is fully "in" trade. */
 :root[data-brand="bold"]::after {
   --p: var(--label-window-progress, 0);
   content: "";
@@ -1660,13 +1660,14 @@ html[data-brand="bold"],
   z-index: 6;  /* below iris (7) but above the can (5) and cards */
   pointer-events: none;
   /* Radial gradient: transparent at iris centre, darkens outward.
-     Center of gradient at 50% 54% (matches iris/can centre). */
+     The dark band reaches near-opaque at peak progress so the trade
+     section visible below products + any other elements fade to black. */
   background: radial-gradient(
     ellipse 60vmin 60vmin at 50% 54%,
     transparent 0%,
-    transparent 30%,
-    rgba(0,0,0,calc(var(--p) * 0.55)) 80%,
-    rgba(0,0,0,calc(var(--p) * 0.65)) 100%
+    transparent 25%,
+    rgba(0,0,0,calc(var(--p) * 0.85)) 70%,
+    rgba(0,0,0,calc(var(--p) * 0.97)) 100%
   );
   opacity: clamp(0, calc(var(--p) * 4), 1);
   transition: opacity 200ms cubic-bezier(.2,.8,.2,1);
@@ -2416,6 +2417,13 @@ html[data-brand="bold"],
   :root[data-brand="bold"] #product.section-in .product-row .product:nth-child(3) {
     opacity: 1;
     transform: translateX(calc(var(--label-window-progress, 0) * 120vw));
+  }
+  /* Middle card's meta block fades out as iris opens — otherwise its
+     "TABLE / 500ML / The everyday hospitality size..." text stays
+     visible at the top during the dive and competes with the iris. */
+  :root[data-brand="bold"] #product.section-in .product-row .product:nth-child(2) .product-meta {
+    opacity: clamp(0, calc(1 - var(--label-window-progress, 0) * 5), 1);
+    transition: opacity 200ms cubic-bezier(.2,.8,.2,1);
   }
 
   @media (prefers-reduced-motion: reduce) {
