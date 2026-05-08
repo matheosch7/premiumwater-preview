@@ -1579,12 +1579,12 @@ html[data-brand="bold"],
   background: #0A0A0C;
   z-index: 100;  /* well above can (5) and everything else */
   /* Spotlight vignette: the box-shadow spread outwards darkens the
-     world around the iris. Since it's part of the iris's own painting,
-     it can never tint the iris's content (unlike a separate pseudo
-     overlay which kept bleeding through stacking contexts). */
+     world around the iris. Ramp the darkness FASTER so the dive feels
+     immersive — by progress 0.30 the surroundings are nearly black,
+     not just at peak. Uses sqrt curve (p^0.5) to accelerate early. */
   box-shadow:
     inset 0 0 0 calc(2px - var(--p) * 2px) rgba(230,57,70,0.85),
-    0 0 0 100vmax rgba(0, 0, 0, calc(var(--p) * 0.97));
+    0 0 0 100vmax rgba(0, 0, 0, calc(min(1, var(--p) * 3)));
   pointer-events: none;
   /* Fade in fast (so the label-sized seed appears as soon as zoom
      starts), peak opacity reached at progress 0.05+. */
