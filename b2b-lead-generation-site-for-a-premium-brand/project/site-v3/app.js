@@ -200,14 +200,17 @@
       // Eye-catch entrance: only when we're at the TOP of the page —
       // this is meant to greet the user at the hero. If they activate
       // Bold while scrolled down, the bottle is doing its scroll-driven
-      // pose and an entrance keyframe would be jarring.
+      // pose and an entrance keyframe would be jarring. Also skip when
+      // the user has asked for reduced motion — the keyframe is large
+      // (scale + rotation) and would defeat the preference.
       const sy = window.scrollY || window.pageYOffset || 0;
-      if (sy < 120) {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (sy < 120 && !reducedMotion) {
         requestAnimationFrame(() => {
           root.classList.add('bold-entrance-playing');
           setTimeout(() => {
             root.classList.remove('bold-entrance-playing');
-          }, 2100);
+          }, 2200);
         });
       }
     } else if (typeof updateBold === 'function') {
