@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=74" />
+  <link rel="stylesheet" href="styles.css?v=75" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -329,6 +329,19 @@
        has room to play out the zoom on the floating bottle. -->
   <div class="bold-zoom-zone" id="zoomZone" aria-hidden="true"></div>
 
+  <!-- BOLD-MODE ENTRANCE: floating particle sparks for the eye-catch
+       on Bold-mode activation. Hidden in Calm mode. -->
+  <div class="bold-hero-particles" aria-hidden="true">
+    <span style="left: 30%; --dx: -8vw;  --dy: -100vh; animation-delay: 0ms;"></span>
+    <span style="left: 45%; --dx: 12vw;  --dy: -110vh; animation-delay: 80ms;"></span>
+    <span style="left: 55%; --dx: -14vw; --dy: -95vh;  animation-delay: 40ms;"></span>
+    <span style="left: 65%; --dx: 6vw;   --dy: -105vh; animation-delay: 200ms;"></span>
+    <span style="left: 70%; --dx: -10vw; --dy: -120vh; animation-delay: 120ms;"></span>
+    <span style="left: 38%; --dx: 16vw;  --dy: -90vh;  animation-delay: 260ms;"></span>
+    <span style="left: 50%; --dx: -4vw;  --dy: -115vh; animation-delay: 160ms;"></span>
+    <span style="left: 60%; --dx: 8vw;   --dy: -100vh; animation-delay: 0ms;"></span>
+  </div>
+
   <!-- BOLD-MODE: can-split transition. Two clones of the bottle clipped
        to left / right halves overlay the original can at the docked
        position. As --label-window-progress grows, the halves slide
@@ -526,6 +539,6 @@
   <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12.04 2.5c-5.25 0-9.5 4.25-9.5 9.5 0 1.67.44 3.3 1.27 4.75L2.5 21.5l4.9-1.28a9.48 9.48 0 0 0 4.64 1.19c5.25 0 9.5-4.25 9.5-9.5s-4.25-9.41-9.5-9.41zm5.55 13.45c-.24.67-1.39 1.28-1.93 1.32-.5.03-1.13.05-1.82-.11-.42-.1-.96-.27-1.65-.57-2.9-1.26-4.8-4.18-4.95-4.38-.14-.2-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.43.26-.3.58-.37.77-.37l.55.01c.18 0 .42-.07.65.5.24.59.81 2.03.88 2.18.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.18-.32.4-.45.54-.15.15-.31.31-.13.6.18.3.79 1.3 1.7 2.1 1.17 1.04 2.15 1.37 2.44 1.52.3.15.47.13.64-.08.18-.2.74-.86.94-1.16.2-.3.4-.25.67-.15.27.1 1.72.81 2.01.96.3.15.5.22.57.35.07.13.07.77-.17 1.44z"/></svg>
 </a>
 
-<script src="app.js?v=33"></script>
+<script src="app.js?v=34"></script>
 </body>
 </html>

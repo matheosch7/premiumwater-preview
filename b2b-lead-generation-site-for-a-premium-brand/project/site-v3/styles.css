@@ -1686,6 +1686,87 @@ html[data-brand="bold"],
    reads on both the dark hero and the light story/product backgrounds.
    mix-blend-mode is intentionally absent here — `lighten` would erase
    the dark bottle on light sections. */
+/* ============================================================
+   BOLD-MODE ENTRANCE: when Bold activates, run a one-shot
+   scale+rotate animation on the bottle so it dramatically arrives
+   at the hero pose. Mirrors the Olipop-style "can drops in" feel
+   from the inspiration video — small/rotated → overshoot → land.
+   The keyframe overrides the bottle's transform during the 1.6s
+   window; afterward the scroll-driven roadmap resumes control.
+   ============================================================ */
+@keyframes bold-can-entrance {
+  0% {
+    transform: translate(-50%, -50%) scale(0.20) rotate(-200deg);
+    opacity: 0;
+    filter:
+      drop-shadow(0 0 0 rgba(0,0,0,0))
+      drop-shadow(0 0 60px rgba(230,57,70,0.65));
+  }
+  55% {
+    transform: translate(-50%, -50%) scale(1.20) rotate(20deg);
+    opacity: 1;
+    filter:
+      drop-shadow(0 40px 70px rgba(0,0,0,0.55))
+      drop-shadow(0 0 80px rgba(230,57,70,0.55));
+  }
+  78% {
+    transform: translate(-50%, -50%) scale(0.98) rotate(-6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.05) rotate(0deg);
+    opacity: 1;
+    filter:
+      drop-shadow(0 40px 70px rgba(0,0,0,0.55))
+      drop-shadow(0 0 50px rgba(230,57,70,0.30));
+  }
+}
+:root[data-brand="bold"].bold-entrance-playing .bold-hero-photo {
+  animation: bold-can-entrance 1600ms cubic-bezier(.2,.7,.2,1) 80ms forwards;
+}
+
+/* Floating particles: a few brand-red sparks drift past during the
+   entrance, echoing the Olipop video's flying petals. They fade
+   out as the entrance completes. */
+.bold-hero-particles { display: none; }
+:root[data-brand="bold"] .bold-hero-particles {
+  display: block;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;       /* below the bottle (5) so particles drift behind it */
+  overflow: hidden;
+  opacity: 0;
+}
+:root[data-brand="bold"].bold-entrance-playing .bold-hero-particles {
+  opacity: 1;
+  transition: opacity 200ms ease-out;
+}
+:root[data-brand="bold"] .bold-hero-particles span {
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(230,57,70,0.85);
+  box-shadow: 0 0 12px rgba(230,57,70,0.6);
+  opacity: 0;
+}
+:root[data-brand="bold"].bold-entrance-playing .bold-hero-particles span {
+  animation: bold-particle-drift 1800ms cubic-bezier(.2,.7,.2,1) forwards;
+}
+@keyframes bold-particle-drift {
+  0% {
+    transform: translate(0, 60vh) scale(0.4);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx, 0), var(--dy, -80vh)) scale(1);
+    opacity: 0;
+  }
+}
+
 [data-brand="bold"] .bold-hero-photo {
   display: block;
   position: fixed;
