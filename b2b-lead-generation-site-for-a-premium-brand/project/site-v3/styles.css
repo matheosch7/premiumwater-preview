@@ -1592,21 +1592,22 @@ html[data-brand="bold"],
   /* Avoid taking layout space when not used */
   will-change: width, height, opacity;
 }
-/* Trade preview INSIDE the iris is always rendered at FULL VIEWPORT
-   size and centered. The iris (parent) just clips it — like looking
-   into the next room through a peephole that grows. As the iris widens,
-   more of the same fixed scene is revealed. This gives a real "window
-   into a world" feel rather than a panel that grows with content. */
+/* Trade preview INSIDE the iris is rendered at FULL VIEWPORT size and
+   centered. The iris (parent) clips it — like looking into the next
+   room through a peephole that grows. We also SCALE this content with
+   progress so it feels like the camera is FLYING TOWARD the trade
+   headline (content scales from 0.6 → 1.2; combined with iris clip,
+   gives true camera-dive feel). */
 :root[data-brand="bold"] .bold-label-window__content {
   --p: var(--label-window-progress, 0);
   position: absolute;
-  /* Center the content's center on the iris center. Iris is at top:54%,
-     left:50% and uses translate(-50%, -50%); the content here uses the
-     same anchor so its centre coincides with the iris centre. */
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  /* Full-viewport canvas — the iris just clips a portion of this. */
+  /* The translate(-50%, -50%) centres on iris centre; the scale runs
+     0.6 → 1.2 across the dive — small at start (we're FAR from the
+     scene, looking through a peephole) → larger at end (we're CLOSE
+     to the trade headline as the window has grown to viewport-size). */
+  transform: translate(-50%, -50%) scale(calc(0.60 + var(--p) * 0.60));
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -1616,6 +1617,10 @@ html[data-brand="bold"],
   gap: 32px;
   padding: 64px;
   text-align: center;
+  /* Content opacity fades in delayed — we don't want trade text fragments
+     poking through while the cards are still mid-slide. Fully visible at
+     progress 0.30+. */
+  opacity: clamp(0, calc((var(--p) - 0.20) * 5), 1);
 }
 :root[data-brand="bold"] .bold-label-window__eyebrow {
   font-family: 'JetBrains Mono', monospace;
@@ -1640,6 +1645,31 @@ html[data-brand="bold"],
 :root[data-brand="bold"] .bold-label-window__headline em {
   font-style: normal;
   color: var(--accent);
+}
+
+/* Vignette: darkens the world OUTSIDE the iris as the iris grows.
+   Implemented via a fixed pseudo-overlay on body that's transparent in
+   a circular region around the iris and dark elsewhere. As progress
+   grows, the dark portion intensifies — focus narrows on the doorway,
+   the rest of the page recedes. */
+:root[data-brand="bold"]::after {
+  --p: var(--label-window-progress, 0);
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 6;  /* below iris (7) but above the can (5) and cards */
+  pointer-events: none;
+  /* Radial gradient: transparent at iris centre, darkens outward.
+     Center of gradient at 50% 54% (matches iris/can centre). */
+  background: radial-gradient(
+    ellipse 60vmin 60vmin at 50% 54%,
+    transparent 0%,
+    transparent 30%,
+    rgba(0,0,0,calc(var(--p) * 0.55)) 80%,
+    rgba(0,0,0,calc(var(--p) * 0.65)) 100%
+  );
+  opacity: clamp(0, calc(var(--p) * 4), 1);
+  transition: opacity 200ms cubic-bezier(.2,.8,.2,1);
 }
 
 @media (prefers-reduced-motion: reduce) {
