@@ -1398,6 +1398,17 @@
       }
       root.style.setProperty('--label-window-progress', windowProgress.toFixed(4));
 
+      // 3D camera-dive: as the iris opens, the bottle is pushed toward
+      // the camera in Z space. Combined with the perspective on :root,
+      // this makes the can grow with REAL perspective distortion (not
+      // just a scale). translateZ ramps from 0 to ~1100px (just shy of
+      // the 1500px perspective so the bottle reaches max apparent size
+      // without flipping behind the camera). Easing matches the iris's
+      // cubic ease-in so they move together.
+      const wp3 = windowProgress * windowProgress * windowProgress;
+      const rbZ = wp3 * 1100;  // 0px → 1100px over the zoom phase
+      bottle.style.setProperty('--rb-z', rbZ.toFixed(1) + 'px');
+
       // Drive the rotation frame index from total scroll progress through
       // the journey (hero top → product bottom). Full 360° revolution.
       const journeyStart = heroTop;

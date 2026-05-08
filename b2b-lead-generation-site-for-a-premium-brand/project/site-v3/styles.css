@@ -1559,10 +1559,12 @@ html[data-brand="bold"],
      open. p^3 keeps growth gentle early (so the label seed sits on the
      can visibly) and accelerates near the end (the doorway swings wide). */
   --p3: calc(var(--p) * var(--p) * var(--p));
-  /* Seed sized to the label's visible rectangle on screen — matches the
-     proportions of the printed label region on the docked can. */
-  --start-w: 150px;
-  --start-h: 240px;
+  /* Seed sized to match the label's actual visible rectangle on the
+     docked can — wider than tall (the printed label wraps the front
+     ~120° of the can, so its visible width on screen is greater than
+     its height). */
+  --start-w: 200px;
+  --start-h: 170px;
   --end-w: 220vw;
   --end-h: 220vh;
   width: calc(var(--start-w) + (var(--end-w) - var(--start-w)) * var(--p3));
@@ -1668,6 +1670,13 @@ html[data-brand="bold"],
    reads on both the dark hero and the light story/product backgrounds.
    mix-blend-mode is intentionally absent here — `lighten` would erase
    the dark bottle on light sections. */
+/* 3D context for the camera-dive: perspective on the html element so
+   the position:fixed bottle below participates in 3D space. translateZ
+   on the bottle then moves it toward/away from the camera. */
+:root[data-brand="bold"] {
+  perspective: 1500px;
+  perspective-origin: 50% 54%;  /* matches DOCKED label position */
+}
 [data-brand="bold"] .bold-hero-photo {
   display: block;
   position: fixed;
@@ -1679,9 +1688,13 @@ html[data-brand="bold"],
   pointer-events: none;
   z-index: 5;
   will-change: transform, opacity;
+  /* translateZ is the camera-dive: as --rb-z grows, the bottle moves
+     toward the camera (perspective makes it appear larger and pass
+     through the viewer). The bottle stays at viewport centre in X/Y. */
   transform:
     translate(-50%, -50%)
     translate(var(--rb-x, 22vw), var(--rb-y, 0))
+    translateZ(var(--rb-z, 0px))
     scale(var(--rb-s, 1))
     rotate(var(--rb-r, 0deg));
   /* Only transform is transitioned. Opacity is set inline by the scroll
