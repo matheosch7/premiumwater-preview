@@ -1423,24 +1423,26 @@
         windowProgress = (sy - zoomTop) / Math.max(1, zoomBottom - zoomTop);
       } else if (zoomBottom && sy > zoomBottom) {
         windowProgress = 1;
-        // Travel + bg-fade phase, retimed so the reveal panel disappears
-        // BEFORE the trade cards become the focal point. Earlier the
-        // panel was lingering at low opacity over the cards, giving them
-        // a dim/washed-out look the user couldn't read.
-        //   - Travel: 0–14vh — text glides from centered to the #trade
-        //     headline position.
-        //   - Hold:   0–12vh — panel stays opaque so the landing is
-        //     visible.
-        //   - Fade:   12–18vh — panel fades to 0 quickly, overlapping
-        //     the tail of the travel so the user sees the text merge
-        //     with the actual #trade headline as the curtain lifts.
-        //   - Beyond 18vh past zoomBottom: panel fully gone, trade
-        //     cards render at full brightness.
+        // Travel + bg-fade phase, tightly timed so the reveal panel is
+        // completely gone right as the user reaches the scroll position
+        // where the *whole* trade section reads as a single composed
+        // view (headline + lede + four cards + CTA all in one viewport).
+        // That sweet spot is roughly 6vh past zoomBottom — anything
+        // longer leaves the panel lingering while the trade headline
+        // has already scrolled past the top of the viewport, breaking
+        // the "intact section" feeling.
+        //   - Travel: 0–5vh — text glides from centered straight to
+        //     the #trade headline position.
+        //   - Fade:   3–6vh — panel fades to 0 with a small overlap
+        //     so the user sees the text "merge" with the actual
+        //     #trade headline as the curtain lifts.
+        //   - Beyond 6vh past zoomBottom: panel fully gone, the trade
+        //     section appears as a complete intact view.
         const past = sy - zoomBottom;
-        const travelDistance = window.innerHeight * 0.14;
+        const travelDistance = window.innerHeight * 0.05;
         travelT = Math.min(1, past / travelDistance);
-        const fadeStart = window.innerHeight * 0.12;
-        const fadeEnd   = window.innerHeight * 0.18;
+        const fadeStart = window.innerHeight * 0.03;
+        const fadeEnd   = window.innerHeight * 0.06;
         if (past < fadeStart) revealExitMult = 1;
         else if (past < fadeEnd) revealExitMult = 1 - (past - fadeStart) / (fadeEnd - fadeStart);
         else revealExitMult = 0;
