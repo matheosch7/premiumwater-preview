@@ -1723,8 +1723,11 @@ html[data-brand="bold"],
 }
 :root[data-brand="bold"].bold-entrance-playing .bold-hero-photo {
   /* 2000ms gives the eye-catch enough time to register without dragging.
-     150ms delay ensures the page has settled visually before kickoff. */
-  animation: bold-can-entrance 2000ms cubic-bezier(.18,.7,.2,1) 150ms forwards;
+     `both` fill: the 0% keyframe applies during the 150ms delay (so the
+     bottle is small/rotated/invisible BEFORE the animation kicks in,
+     instead of flashing at HERO scale during the delay), and the 100%
+     keyframe persists after completion. */
+  animation: bold-can-entrance 2000ms cubic-bezier(.18,.7,.2,1) 150ms both;
 }
 
 /* Floating particles: a few brand-red sparks drift past during the
