@@ -1898,12 +1898,35 @@ html[data-brand="bold"],
 /* In bold mode the reveal headline is the trade section header.
    Hide the calm-mode serif title + eyebrow but preserve layout space
    so the reveal headline (which tracks these elements via JS) lands
-   in exactly the right slot.  The reveal headline persists at
-   opacity 1 once the panel background fades, taking the place of
-   these hidden elements. */
+   in exactly the right slot.
+
+   CRITICAL: the hidden .h-display + .eyebrow must use the SAME
+   font/size/letter-spacing as the reveal headline + eyebrow. The
+   reveal text lands by translating onto these elements' rect; if
+   their natural sizes differ, the JS would have to scale to
+   compensate, and a scale change mid-transition is what made the
+   handoff feel rough. Matched metrics → translate-only travel. */
 [data-brand="bold"] #trade .section-head .eyebrow,
 [data-brand="bold"] #trade .section-head .h-display {
   visibility: hidden;
+}
+[data-brand="bold"] #trade .section-head .h-display {
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: clamp(56px, 8vw, 120px);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+[data-brand="bold"] #trade .section-head .eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
 /* Impact — white. */

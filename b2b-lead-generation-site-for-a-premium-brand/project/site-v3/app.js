@@ -1423,25 +1423,21 @@
         windowProgress = (sy - zoomTop) / Math.max(1, zoomBottom - zoomTop);
       } else if (zoomBottom && sy > zoomBottom) {
         windowProgress = 1;
-        // Travel + bg-fade phase, tightly timed so the reveal panel is
-        // completely gone right as the user reaches the scroll position
-        // where the *whole* trade section reads as a single composed
-        // view (headline + lede + four cards + CTA all in one viewport).
-        // That sweet spot is roughly 6vh past zoomBottom — anything
-        // longer leaves the panel lingering while the trade headline
-        // has already scrolled past the top of the viewport, breaking
-        // the "intact section" feeling.
-        //   - Travel: 0–5vh — text glides from centered straight to
-        //     the #trade headline position.
-        //   - Fade:   3–6vh — panel fades to 0 with a small overlap
-        //     so the user sees the text "merge" with the actual
-        //     #trade headline as the curtain lifts.
-        //   - Beyond 6vh past zoomBottom: panel fully gone, the trade
-        //     section appears as a complete intact view.
+        // Travel + bg-fade, sequenced so each property gets its own
+        // beat instead of all animating simultaneously (which made
+        // the handoff feel rough — the eye couldn't track three
+        // animations in 50px of scroll).
+        //   - Travel: 0–5vh — text translates from centered to the
+        //     #trade .h-display slot. NO scale change (the slot is
+        //     now sized to match the reveal's natural rendering, so
+        //     translate alone is enough). Stronger ease-out curve.
+        //   - Fade:   4–6vh — panel background fades to 0, starting
+        //     just before travel completes (1vh overlap) so the
+        //     curtain lifts as the headline arrives.
         const past = sy - zoomBottom;
         const travelDistance = window.innerHeight * 0.05;
         travelT = Math.min(1, past / travelDistance);
-        const fadeStart = window.innerHeight * 0.03;
+        const fadeStart = window.innerHeight * 0.04;
         const fadeEnd   = window.innerHeight * 0.06;
         if (past < fadeStart) revealExitMult = 1;
         else if (past < fadeEnd) revealExitMult = 1 - (past - fadeStart) / (fadeEnd - fadeStart);
@@ -1475,28 +1471,37 @@
           revealEyebrow.style.transform  = '';
         } else {
           // Clear current transforms, measure layout-source rects, then
-          // compute and apply fresh transform.
+          // compute and apply fresh translate-only transform.
+          //
+          // No scale: the .h-display + .eyebrow slots in #trade are
+          // now sized to match the reveal text's natural rendering
+          // (matched font-family, font-size, letter-spacing in
+          // bold-mode CSS), so the reveal lands at the right size by
+          // simple translation. Eliminating the scale change is what
+          // makes the handoff feel smooth — the headline doesn't
+          // balloon up mid-flight.
+          //
+          // Easing: cubic ease-out (`1 - (1-t)^3`) is stronger than
+          // the previous quadratic and matches the shape of
+          // `cubic-bezier(0.23, 1, 0.32, 1)` — instant initial
+          // response, gentle settle.
           revealHeadline.style.transform = '';
           revealEyebrow.style.transform  = '';
           const srcH = revealHeadline.getBoundingClientRect();
           const srcE = revealEyebrow.getBoundingClientRect();
           const tgtH = tradeHeadline.getBoundingClientRect();
           const tgtE = tradeEyebrow.getBoundingClientRect();
-          const tEase = 1 - Math.pow(1 - travelT, 2);
+          const tEase = 1 - Math.pow(1 - travelT, 3);
 
           const dxH = (tgtH.left + tgtH.width/2)  - (srcH.left + srcH.width/2);
           const dyH = (tgtH.top  + tgtH.height/2) - (srcH.top  + srcH.height/2);
-          const scH = tgtH.width / Math.max(1, srcH.width);
           revealHeadline.style.transform =
-            `translate(${(dxH * tEase).toFixed(2)}px, ${(dyH * tEase).toFixed(2)}px) ` +
-            `scale(${(1 + (scH - 1) * tEase).toFixed(4)})`;
+            `translate(${(dxH * tEase).toFixed(2)}px, ${(dyH * tEase).toFixed(2)}px)`;
 
           const dxE = (tgtE.left + tgtE.width/2)  - (srcE.left + srcE.width/2);
           const dyE = (tgtE.top  + tgtE.height/2) - (srcE.top  + srcE.height/2);
-          const scE = tgtE.width / Math.max(1, srcE.width);
           revealEyebrow.style.transform =
-            `translate(${(dxE * tEase).toFixed(2)}px, ${(dyE * tEase).toFixed(2)}px) ` +
-            `scale(${(1 + (scE - 1) * tEase).toFixed(4)})`;
+            `translate(${(dxE * tEase).toFixed(2)}px, ${(dyE * tEase).toFixed(2)}px)`;
         }
       }
 
