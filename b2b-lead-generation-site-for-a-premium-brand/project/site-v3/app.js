@@ -1423,13 +1423,24 @@
         windowProgress = (sy - zoomTop) / Math.max(1, zoomBottom - zoomTop);
       } else if (zoomBottom && sy > zoomBottom) {
         windowProgress = 1;
-        // Travel + bg-fade phase. Travel completes over 35vh. Background
-        // fade lags behind travel so the text is in position before bg
-        // disappears (ensures user sees the "landing" moment).
-        const travelDistance = window.innerHeight * 0.35;
-        travelT = Math.min(1, (sy - zoomBottom) / travelDistance);
-        const bgExitDistance = window.innerHeight * 0.45;
-        revealExitMult = Math.max(0, 1 - (sy - zoomBottom) / bgExitDistance);
+        // Travel + bg-fade phase, retimed so the reveal panel actually
+        // gets out of the user's way before they reach the #trade content.
+        //   - Travel: 18vh — text glides from centered to the #trade
+        //     headline position quickly, finishing right around the time
+        //     #trade scrolls into the upper viewport.
+        //   - Hold:   panel stays mostly opaque for the first 18vh so
+        //     the user can SEE the landing.
+        //   - Fade:   from 18vh to 30vh past zoomBottom the panel
+        //     opacity ramps to 0 so the trade cards underneath become
+        //     readable. Beyond that the panel is fully gone.
+        const past = sy - zoomBottom;
+        const travelDistance = window.innerHeight * 0.18;
+        travelT = Math.min(1, past / travelDistance);
+        const fadeStart = window.innerHeight * 0.18;
+        const fadeEnd   = window.innerHeight * 0.30;
+        if (past < fadeStart) revealExitMult = 1;
+        else if (past < fadeEnd) revealExitMult = 1 - (past - fadeStart) / (fadeEnd - fadeStart);
+        else revealExitMult = 0;
       }
       root.style.setProperty('--label-window-progress', windowProgress.toFixed(4));
       root.style.setProperty('--reveal-exit-mult', revealExitMult.toFixed(4));
@@ -1439,6 +1450,15 @@
       // handles this because the target moves with scroll (page is
       // scrolling underneath the fixed reveal). Apply transform deltas
       // directly on the reveal text elements.
+      //
+      // CRITICAL: getBoundingClientRect() returns the element's RENDERED
+      // box including any current transform. If we measured the source
+      // with last tick's transform still applied, each frame's "remaining
+      // delta" would shrink, the transform would oscillate around a
+      // partial value and the headline would never actually reach the
+      // target. We clear the transform before measuring so the source
+      // rect is the true layout (untransformed) position, then re-apply
+      // a fresh full-delta * easing transform.
       const revealHeadline = document.querySelector('.bold-trade-reveal__headline');
       const revealEyebrow  = document.querySelector('.bold-trade-reveal__eyebrow');
       const tradeHeadline  = document.querySelector('#trade .h-display');
@@ -1449,28 +1469,29 @@
           revealHeadline.style.transform = '';
           revealEyebrow.style.transform  = '';
         } else {
-          // Get current source vs target rects; compute delta.
+          // Clear current transforms, measure layout-source rects, then
+          // compute and apply fresh transform.
+          revealHeadline.style.transform = '';
+          revealEyebrow.style.transform  = '';
           const srcH = revealHeadline.getBoundingClientRect();
-          const tgtH = tradeHeadline.getBoundingClientRect();
-          const dxH = (tgtH.left + tgtH.width/2) - (srcH.left + srcH.width/2);
-          const dyH = (tgtH.top + tgtH.height/2) - (srcH.top + srcH.height/2);
-          const scH = tgtH.width / Math.max(1, srcH.width);
-          // Ease-out for landing — slow down at the end
-          const tEase = 1 - Math.pow(1 - travelT, 2);
-          const txH = dxH * tEase;
-          const tyH = dyH * tEase;
-          const sH  = 1 + (scH - 1) * tEase;
-          revealHeadline.style.transform = `translate(${txH}px, ${tyH}px) scale(${sH})`;
-
           const srcE = revealEyebrow.getBoundingClientRect();
+          const tgtH = tradeHeadline.getBoundingClientRect();
           const tgtE = tradeEyebrow.getBoundingClientRect();
-          const dxE = (tgtE.left + tgtE.width/2) - (srcE.left + srcE.width/2);
-          const dyE = (tgtE.top + tgtE.height/2) - (srcE.top + srcE.height/2);
+          const tEase = 1 - Math.pow(1 - travelT, 2);
+
+          const dxH = (tgtH.left + tgtH.width/2)  - (srcH.left + srcH.width/2);
+          const dyH = (tgtH.top  + tgtH.height/2) - (srcH.top  + srcH.height/2);
+          const scH = tgtH.width / Math.max(1, srcH.width);
+          revealHeadline.style.transform =
+            `translate(${(dxH * tEase).toFixed(2)}px, ${(dyH * tEase).toFixed(2)}px) ` +
+            `scale(${(1 + (scH - 1) * tEase).toFixed(4)})`;
+
+          const dxE = (tgtE.left + tgtE.width/2)  - (srcE.left + srcE.width/2);
+          const dyE = (tgtE.top  + tgtE.height/2) - (srcE.top  + srcE.height/2);
           const scE = tgtE.width / Math.max(1, srcE.width);
-          const txE = dxE * tEase;
-          const tyE = dyE * tEase;
-          const sE  = 1 + (scE - 1) * tEase;
-          revealEyebrow.style.transform = `translate(${txE}px, ${tyE}px) scale(${sE})`;
+          revealEyebrow.style.transform =
+            `translate(${(dxE * tEase).toFixed(2)}px, ${(dyE * tEase).toFixed(2)}px) ` +
+            `scale(${(1 + (scE - 1) * tEase).toFixed(4)})`;
         }
       }
 
