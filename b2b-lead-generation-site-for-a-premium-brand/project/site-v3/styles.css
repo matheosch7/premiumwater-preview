@@ -1610,11 +1610,14 @@ html[data-brand="bold"],
   letter-spacing: 0.32em;
   text-transform: uppercase;
   font-weight: 500;
-  /* JS overrides this transform during the travel phase to morph the
-     eyebrow toward the actual #trade .eyebrow position. During the
-     split phase JS leaves it empty and CSS provides the centered scale. */
+  /* JS sets transform directly each scroll tick during travel. NO
+     CSS transition on transform — a transition would make the element
+     lag behind the JS-set value, and when the next tick clears the
+     transform to remeasure the source rect, the element would still
+     be mid-transition. getBoundingClientRect would then return a
+     partial position, and the computed delta would shrink each frame
+     so the headline would never reach the target. */
   transform-origin: center;
-  transition: transform 60ms linear;
   /* Eyebrow becomes readable as the gap between halves grows enough */
   opacity: clamp(0, calc((var(--p) - 0.10) * 5), 1);
 }
@@ -1628,11 +1631,9 @@ html[data-brand="bold"],
   color: #FFFFFF;
   margin: 0;
   max-width: 1000px;
-  /* JS controls transform during the travel/landing phase; centred
-     during the split phase by virtue of being inside the flex-centered
-     reveal panel. */
+  /* JS sets transform directly each scroll tick — same reasoning as
+     the eyebrow above, NO transition on transform. */
   transform-origin: center;
-  transition: transform 60ms linear;
   /* Headline ramps in slightly after eyebrow — readable by p=0.40 */
   opacity: clamp(0, calc((var(--p) - 0.20) * 5), 1);
 }
