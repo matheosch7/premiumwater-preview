@@ -1577,7 +1577,9 @@ html[data-brand="bold"],
   /* Brand-trade dark panel — matches #trade background so as the window
      fills viewport the user is visually already in trade. */
   background: #0A0A0C;
-  z-index: 7;  /* above the can (z-index 5) so the window covers it */
+  z-index: 100;  /* well above can (5) AND vignette (6); iris content
+                    must render fully opaque inside, not be tinted by
+                    the vignette's stacking */
   pointer-events: none;
   /* Fade in fast (so the label-sized seed appears as soon as zoom
      starts), peak opacity reached at progress 0.05+. */
@@ -1619,8 +1621,8 @@ html[data-brand="bold"],
   text-align: center;
   /* Content opacity fades in delayed — we don't want trade text fragments
      poking through while the cards are still mid-slide. Fully visible at
-     progress 0.30+. */
-  opacity: clamp(0, calc((var(--p) - 0.20) * 5), 1);
+     progress 0.25+. */
+  opacity: clamp(0, calc((var(--p) - 0.10) * 6.5), 1);
 }
 :root[data-brand="bold"] .bold-label-window__eyebrow {
   font-family: 'JetBrains Mono', monospace;
