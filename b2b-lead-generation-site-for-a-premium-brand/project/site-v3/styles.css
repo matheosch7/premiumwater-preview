@@ -1953,7 +1953,13 @@ html[data-brand="bold"],
    don't have an awkward gap between them. */
 [data-brand="bold"] #trade {
   padding-top: 120px;
-  padding-bottom: 32px;
+  /* Bottom padding pushes the impact section's white background
+     entirely below the fold at the panel-exit scroll position
+     (sy=4761). Without this, the impact eyebrow + headline poked
+     54px into the viewport bottom, making two sections compete
+     for attention in the same frame. The user wants ONLY the
+     trade section visible when the curtain lifts. */
+  padding-bottom: 100px;
 }
 [data-brand="bold"] #trade .section-head {
   margin-bottom: 32px;
