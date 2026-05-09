@@ -1363,9 +1363,14 @@ main#top { position: relative; z-index: 2; }
   padding: 0 6vw 8vh 6vw;       /* breathe in from the band edges */
   pointer-events: none;
   z-index: 2;
-  /* Fade out as user scrolls past the transition so the real #impact
-     headline below reads cleanly without a ghost. */
-  opacity: clamp(0, calc(1 - (var(--wf-land, 0) - 0.6) * 5), 1);
+  /* Fade out cleanly as the band exits so the real #impact headline
+     below doesn't read as a ghosted duplicate. Linear fade across
+     the entire --wf-land phase (scroll progress 0.85 → 1.00):
+       progress 0.85: opacity 1   (overlay still primary)
+       progress 0.92: opacity 0.5 (handing off)
+       progress 1.00: opacity 0   (real #impact takes over) */
+  opacity: calc(1 - var(--wf-land, 0));
+  transition: opacity 80ms linear;
 }
 .calm-waterfall-headline__text {
   font-family: var(--sans);
