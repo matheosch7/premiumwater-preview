@@ -1928,20 +1928,32 @@ html[data-brand="bold"],
   text-transform: uppercase;
   font-weight: 500;
 }
-/* Compact bold-mode trade section so the whole composition (eyebrow
-   + headline + lede + 4 cards + CTA) fits in a single viewport. The
-   user wants to see the full trade section in one frame, but the
-   default .block padding (140px top + 140px bottom) plus the 64px
-   section-head bottom margin pushed the section past 917px tall on
-   an 839px viewport. Trim:
-     - top padding: clamp 100→40
-     - bottom padding: 140→64
-     - section-head bottom margin: 64→32
-     - lede→grid gap: tighten via section-head bottom margin
-   New total fits comfortably (~775px), leaving breathing room. */
+/* Bold-mode trade section spacing.
+
+   Two competing constraints:
+     1. The whole composition (eyebrow + headline + lede + 4 cards +
+        CTA) should be readable in a single viewport when the panel
+        exits. Default .block padding (140 top + 140 bottom) plus
+        64px section-head bottom margin made the section 917px tall
+        on an 839px viewport — couldn't fit.
+     2. The section shouldn't feel "anchored to the top". With only
+        40px top padding, the title was 41px below the nav and the
+        content's vertical center sat 62px above viewport center —
+        which read as "too high in the screen", with the dead black
+        space falling below the CTA.
+
+   Fix: 120px top padding (gives the title breathing room and pulls
+   the content's vertical center down to roughly viewport centre),
+   32px bottom padding (the trade section ends right around the
+   viewport bottom, with the impact section starting just below the
+   fold — that's intentional, the user shouldn't see two sections
+   competing in the same frame).
+
+   Section-head margin tightened from 64→32 so headline and lede
+   don't have an awkward gap between them. */
 [data-brand="bold"] #trade {
-  padding-top: 40px;
-  padding-bottom: 64px;
+  padding-top: 120px;
+  padding-bottom: 32px;
 }
 [data-brand="bold"] #trade .section-head {
   margin-bottom: 32px;
