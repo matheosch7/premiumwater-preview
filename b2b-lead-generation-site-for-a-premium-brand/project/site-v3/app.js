@@ -189,6 +189,13 @@
       b.setAttribute('aria-pressed', b.dataset.brand === mode ? 'true' : 'false');
     });
     if (mode === 'bold') {
+      // Calm-mode waterfall isn't visible in bold (CSS display:none) but
+      // we still pause the video, reset its currentTime, and clear the
+      // --wf-* CSS vars on root so a later toggle back to calm starts
+      // from a clean state and doesn't leave the splash pulse stuck on.
+      if (typeof window.__pwResetWaterfall === 'function') {
+        window.__pwResetWaterfall();
+      }
       ensureModelViewer();
       if (typeof setupBottleRoadmap === 'function') setupBottleRoadmap();
       if (isFrameLocked()) {
@@ -217,6 +224,11 @@
       // Reset the mount transform so a later toggle back doesn't inherit a stale offset.
       const mount = document.getElementById('boldModelMount');
       if (mount) mount.style.transform = '';
+      // Re-prime the calm waterfall from the current scroll position so
+      // it's already showing the right frame when calm mode renders.
+      if (typeof window.__pwReprimeWaterfall === 'function') {
+        window.__pwReprimeWaterfall();
+      }
     }
     // re-render i18n so bold-mode copy overrides take effect
     if (typeof applyLang === 'function') applyLang(currentLang);
@@ -875,6 +887,129 @@
 
   window.addEventListener('scroll', updateCine, { passive: true });
   window.addEventListener('resize', updateCine);
+
+  // ---------- calm-mode water-falling transition (Trade → Impact) ----------
+  // Mirrors the cineVideo scrub primitive (above) for a second video stage
+  // that lives between #trade and #impact in calm mode. Active only when
+  // data-brand === 'calm'. Bold mode hides the whole section via CSS, so
+  // scroll runway disappears and bold's choreography is unaffected.
+  //
+  // Architecture:
+  //   - Section #calmWaterFall is the runway (~180vh tall in CSS).
+  //   - Inside, .calm-waterfall-stage is sticky (top:0 height:100vh).
+  //   - <video> seeks via currentTime = clamp(p, 0, 0.92) * duration.
+  //     The 0.92 cap holds the last visible frame for the final 8% of
+  //     scroll, so the water "settles" rather than running off the end.
+  //   - Phase-keyed CSS custom properties (--wf-progress, --wf-enter,
+  //     --wf-flow, --wf-land) are written to :root for declarative styling.
+  //   - --wf-land drives the splash pulse on #impact .h-display.
+  const waterStage = document.getElementById('calmWaterFall');
+  const waterVideo = document.getElementById('calmWaterfallVideo');
+  let waterFrameQueued = false;
+  let waterUnlocked    = false; // iOS gesture unlock latch
+
+  function waterScrubbable() {
+    return waterVideo && isFinite(waterVideo.duration) && waterVideo.duration > 0;
+  }
+
+  function waterProgress() {
+    if (!waterStage) return 0;
+    const r = waterStage.getBoundingClientRect();
+    const sectionTop = r.top + window.scrollY;
+    const sectionH   = waterStage.offsetHeight;
+    const vh         = window.innerHeight || 800;
+    // 0 when the section's top is at the viewport bottom (just appearing);
+    // 1 when the section's bottom is at the viewport top (gone).
+    const raw = (window.scrollY + vh - sectionTop) / Math.max(sectionH + vh, 1);
+    return clamp(raw, 0, 1);
+  }
+
+  function clearWaterfallVars() {
+    root.style.removeProperty('--wf-progress');
+    root.style.removeProperty('--wf-enter');
+    root.style.removeProperty('--wf-flow');
+    root.style.removeProperty('--wf-land');
+  }
+
+  function updateWaterfall() {
+    if (!waterStage) return;
+    if (root.getAttribute('data-brand') !== 'calm') {
+      // In bold mode the section is display:none; clear vars in case
+      // we just toggled away from calm so the splash-pulse rule reads 0.
+      clearWaterfallVars();
+      return;
+    }
+    if (reducedMotion) {
+      clearWaterfallVars();
+      return;
+    }
+    const p = waterProgress();
+    if (waterScrubbable()) {
+      // Cap the seek so the last 8% of scroll holds the splash frame.
+      const seekT = Math.min(p, 0.92);
+      try { waterVideo.currentTime = seekT * waterVideo.duration; } catch (e) {}
+    }
+    root.style.setProperty('--wf-progress', p.toFixed(4));
+    root.style.setProperty('--wf-enter',    smoothstep(0.00, 0.20, p).toFixed(4));
+    root.style.setProperty('--wf-flow',     smoothstep(0.20, 0.75, p).toFixed(4));
+    root.style.setProperty('--wf-land',     smoothstep(0.85, 1.00, p).toFixed(4));
+  }
+
+  function rafUpdateWaterfall() {
+    if (waterFrameQueued) return;
+    waterFrameQueued = true;
+    requestAnimationFrame(() => {
+      waterFrameQueued = false;
+      updateWaterfall();
+    });
+  }
+
+  // iOS Safari requires the video to have been played at least once
+  // before currentTime seeks work reliably. Latch a single one-shot
+  // play→pause on the first user gesture.
+  function unlockWaterVideo() {
+    if (waterUnlocked || !waterVideo) return;
+    waterUnlocked = true;
+    const playPromise = waterVideo.play();
+    if (playPromise && typeof playPromise.then === 'function') {
+      playPromise.then(() => waterVideo.pause()).catch(() => {});
+    } else {
+      try { waterVideo.pause(); } catch (e) {}
+    }
+    window.removeEventListener('pointerdown', unlockWaterVideo);
+    window.removeEventListener('scroll', unlockWaterVideo);
+  }
+
+  if (waterVideo && !reducedMotion) {
+    waterVideo.autoplay = false;
+    waterVideo.loop = false;
+    try { waterVideo.pause(); } catch (e) {}
+    const primeWaterfall = () => {
+      try { waterVideo.currentTime = 0; } catch (e) {}
+      updateWaterfall();
+    };
+    if (waterVideo.readyState >= 1) primeWaterfall();
+    else waterVideo.addEventListener('loadedmetadata', primeWaterfall, { once: true });
+    window.addEventListener('pointerdown', unlockWaterVideo, { once: true, passive: true });
+    window.addEventListener('scroll',      unlockWaterVideo, { once: true, passive: true });
+  }
+
+  window.addEventListener('scroll', rafUpdateWaterfall, { passive: true });
+  window.addEventListener('resize', rafUpdateWaterfall);
+
+  // Expose so applyBrand() can re-prime when toggling calm/bold.
+  // (Defined here, called from inside applyBrand above via window lookup
+  // since applyBrand sits earlier in the file scope.)
+  window.__pwResetWaterfall = function () {
+    if (!waterVideo) return;
+    try { waterVideo.pause(); waterVideo.currentTime = 0; } catch (e) {}
+    clearWaterfallVars();
+  };
+  window.__pwReprimeWaterfall = function () {
+    if (waterVideo && waterVideo.readyState >= 1 && !reducedMotion) {
+      updateWaterfall();
+    }
+  };
 
   // ---------- bold-mode scroll choreography (full page) ----------
   // The whole page is one continuous cinematic stage in bold mode. The fixed

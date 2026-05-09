@@ -1250,6 +1250,163 @@ main#top { position: relative; z-index: 2; }
 :root:not([data-brand]) footer { background: var(--bg-d, #0E0C08); }
 
 /* ==========================================================================
+   CALM-MODE WATER-FALLING TRANSITION (Trade → Impact)
+   ========================================================================== */
+/* Hidden everywhere except calm. The outer section is the scroll runway
+   (~180vh desktop, ~140vh mobile). The inner stage is sticky-pinned so the
+   centred 9:16 video stays anchored at the viewport top while progress
+   advances. updateWaterfall() in app.js writes:
+     --wf-progress (0..1 across the whole runway)
+     --wf-enter    (smoothstep 0.00..0.20)
+     --wf-flow     (smoothstep 0.20..0.75)
+     --wf-land     (smoothstep 0.85..1.00) ← drives the headline splash pulse
+   onto :root, so styling stays declarative.
+
+   Calm mode uses --bg-d as both surrounding section bg AND the runway bg,
+   so there's no color seam — the video appears INSIDE the same dark page,
+   like a column of water cut into the world, then dissolves into impact. */
+
+.calm-water-transition { display: none; }
+
+:root[data-brand="calm"] .calm-water-transition,
+:root:not([data-brand]) .calm-water-transition {
+  display: block;
+  position: relative;
+  width: 100%;
+  background: var(--bg-d, #0E0C08);
+  /* 180vh = 100vh of sticky pin + 80vh of additional scroll travel during
+     which the user is still pinned but progress advances 0 → 1. */
+  height: var(--waterfall-runway, 180vh);
+  /* Match the .block + .block { padding-top:0 } seam compensation so
+     this insert doesn't introduce a gap between #trade and #impact. */
+  padding: 0;
+  margin: 0;
+  /* Don't double up bottom padding under #impact's padding-top either. */
+  overflow: visible;
+}
+
+/* Seam fix: when our transition sits between two .blocks, kill the
+   adjacent block's top padding (mirrors `.block + .block { padding-top: 0 }`
+   at line ~530). Without this, #impact gets its full 140px top padding
+   back and there's a dark gap between the water releasing and the
+   headline appearing. */
+.calm-water-transition + .block { padding-top: 0; }
+
+.calm-waterfall-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--bg-d, #0E0C08);
+}
+
+.calm-waterfall-video {
+  /* Desktop: a centred vertical column of water. 9:16 source means the
+     column is ~56vh wide on a 16:9 viewport — about 1/3 of the screen.
+     Side bleed = the page background, so the video seamlessly inhabits
+     the dark world rather than being framed in a box. */
+  height: 100%;
+  width: auto;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  display: block;
+  /* Promote to its own GPU layer so scrubbing is buttery smooth on
+     low-end devices and avoids triggering layout on currentTime writes. */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Soft radial vignette hides the seam where the video edge meets the
+   dark page background, so the column looks like it's emerging from
+   the void rather than sitting on top of it. */
+.calm-waterfall-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 50%, transparent 50%, var(--bg-d, #0E0C08) 95%);
+}
+
+/* Headline splash pulse: when the water "lands" (progress 0.85 → 1.0),
+   pulse the impact headline subtly — brightness up + 1.02× scale —
+   to suggest the drop hitting the words. Reversible by scroll because
+   --wf-land is scroll-derived, not animation-driven. */
+:root[data-brand="calm"] #impact .h-display,
+:root:not([data-brand]) #impact .h-display {
+  transform-origin: center center;
+  transition: transform 240ms ease-out, filter 240ms ease-out;
+  transform: scale(calc(1 + var(--wf-land, 0) * 0.02));
+  filter: brightness(calc(1 + var(--wf-land, 0) * 0.18));
+}
+
+/* Tablet: keep the centred-column shape, allow up to 60vw width. */
+@media (min-width: 601px) and (max-width: 1023px) {
+  .calm-waterfall-video {
+    max-width: 60vw;
+  }
+}
+
+/* Mobile: portrait viewport already roughly matches the 9:16 source,
+   so cover-cropping is minimal. Use full-bleed and shorten the runway
+   so slow scrolls don't make the transition feel punishing. */
+@media (max-width: 600px) {
+  :root[data-brand="calm"] .calm-water-transition,
+  :root:not([data-brand]) .calm-water-transition {
+    height: var(--waterfall-runway-mobile, 140vh);
+  }
+  .calm-waterfall-video {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: auto;
+    object-fit: cover;
+  }
+  .calm-waterfall-vignette {
+    /* Tighter vignette on mobile since the video is full-bleed and we
+       don't want to dim the centre of the frame. */
+    background:
+      radial-gradient(140% 100% at 50% 50%, transparent 60%, var(--bg-d, #0E0C08) 100%);
+  }
+}
+
+/* Reduced motion: hide the video, show the static poster as the stage
+   background, shorten the runway. The .reveal IntersectionObserver still
+   fires for #impact normally — no headline pulse animation though, so
+   the brightness/scale formulas above naturally read 0 (since
+   updateWaterfall short-circuits when reducedMotion is true). */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-brand="calm"] .calm-water-transition,
+  :root:not([data-brand]) .calm-water-transition {
+    height: 80vh;
+  }
+  .calm-waterfall-video { display: none; }
+  .calm-waterfall-stage {
+    background:
+      var(--bg-d, #0E0C08)
+      url('assets/water-falling-poster.jpg')
+      center / contain
+      no-repeat;
+  }
+  /* Kill the splash pulse under reduced motion. */
+  :root[data-brand="calm"] #impact .h-display,
+  :root:not([data-brand]) #impact .h-display {
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
+
+/* Bold mode: this whole transition is suppressed. Bold has its own
+   trade→impact handoff (sticky-pinned reveal headline, panel fade —
+   shipped at commit b15244f). We must NOT add scroll height in bold
+   mode or we'd push the impact section away from where the bold
+   choreography expects it. */
+[data-brand="bold"] .calm-water-transition { display: none; }
+[data-brand="bold"] #calmWaterFall { display: none; }
+
+/* ==========================================================================
    MOTION GRAPHICS LAYER
    Premium polish — hero word reveal, card stagger, hover lift, cursor follower.
    Each effect respects prefers-reduced-motion (instant final state).
