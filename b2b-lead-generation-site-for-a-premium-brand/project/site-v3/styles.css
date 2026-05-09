@@ -1335,11 +1335,16 @@ main#top { position: relative; z-index: 2; }
   /* Promote to GPU layer for smooth motion */
   will-change: transform, opacity;
 }
+/* Translate in viewport units so the droplets actually traverse the
+   visible band height. Percentage units in CSS transforms on SVG
+   <circle> elements resolve against the circle's own bounding box
+   (which is tiny) — they barely move. vh resolves against the
+   viewport, which is what we want for a falling-droplet effect. */
 @keyframes cascade-fall {
-  0%   { transform: translateY(-15%); opacity: 0; }
+  0%   { transform: translateY(-10vh); opacity: 0; }
   10%  { opacity: 0.55; }
   85%  { opacity: 0.85; }
-  100% { transform: translateY(115%); opacity: 0; }
+  100% { transform: translateY(110vh); opacity: 0; }
 }
 
 /* ─── Overlay headline: Allura water-script with SVG filter distort ───
