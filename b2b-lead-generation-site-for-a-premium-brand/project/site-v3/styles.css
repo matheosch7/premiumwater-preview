@@ -1303,97 +1303,88 @@ main#top { position: relative; z-index: 2; }
   background: var(--bg-d, #0E0C08);
 }
 
-.calm-waterfall-video {
-  /* Desktop: a full-width horizontal BAND that the water unfolds
-     through as the user scrolls — the visual translation of the
-     user's "line connecting trade to impact" diagram. Source is
-     820×380 (~41:19 ≈ 2.16:1 aspect) after rotation+crop, so when
-     displayed at 100vw the band's height is auto-derived from the
-     aspect ratio: ~46vh on a 1456×786 viewport. Dark surrounds
-     above and below match var(--bg-d), so the band reads as a
-     horizontal slice cut into the dark page — water entering at
-     the top of the band, droplets falling through, exiting at
-     the bottom. */
-  width: 100vw;
-  height: auto;
-  aspect-ratio: 820 / 380;
-  max-height: 100vh;
-  object-fit: cover;
-  display: block;
-  /* Promote to its own GPU layer so scrubbing is buttery smooth on
-     low-end devices and avoids triggering layout on currentTime writes. */
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* Soft vignette hides the seams where the band's edges meet the
-   dark page above/below and to the left/right, so the band looks
-   like a horizontal slice of water cut into the void rather than
-   a video pasted on top. Stronger fade on the horizontal edges
-   (top + bottom of band) so the water visually "drips into" the
-   surrounding dark, while keeping the central action crisp. */
-.calm-waterfall-vignette {
+/* ─── Cascade of falling droplets ──────────────────────────────────
+   SVG circles in a viewBox spanning 0..100 horizontally and 0..100
+   vertically. Each circle has --d (animation-duration) and --t
+   (animation-delay) on its inline style. The cascade-fall keyframe
+   translates the circle from y=-15% above the viewBox to y=115%
+   below, with a slight horizontal drift, so droplets appear to fall
+   continuously through the band.
+   Group opacity is tied to --wf-flow (scroll 0.20 → 0.75) so the
+   cascade fades in as the user enters the band, peaks mid-band,
+   and dissolves before the band exits. */
+.calm-waterfall-cascade {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, var(--bg-d, #0E0C08) 0%, transparent 12%, transparent 88%, var(--bg-d, #0E0C08) 100%),
-    linear-gradient(90deg,  var(--bg-d, #0E0C08) 0%, transparent  6%, transparent 94%, var(--bg-d, #0E0C08) 100%);
+  z-index: 1;
+  /* Opacity follows --wf-flow so the cascade is only visible mid-band */
+  opacity: var(--wf-flow, 0);
+  transition: opacity 120ms linear;
+  /* Slight cool-cream fill on the droplets — matches calm palette */
+  fill: #DDE8EE;
+  /* Subtle bloom so droplets read against the dark world */
+  filter: drop-shadow(0 0 1px rgba(220, 232, 240, 0.6));
+}
+.calm-waterfall-cascade circle {
+  transform-origin: center;
+  animation: cascade-fall var(--d, 2s) linear infinite;
+  animation-delay: var(--t, 0s);
+  /* Promote to GPU layer for smooth motion */
+  will-change: transform, opacity;
+}
+@keyframes cascade-fall {
+  0%   { transform: translateY(-15%); opacity: 0; }
+  10%  { opacity: 0.55; }
+  85%  { opacity: 0.85; }
+  100% { transform: translateY(115%); opacity: 0; }
 }
 
-/* Overlay headline — duplicate of #impact .h-display, positioned where
-   the Blender water trails LAND in the band. The reveal mask grows
-   from the splash impact point so the headline appears to be drawn
-   by the water itself. Choreography:
-
-     --text-reveal:  0 → 1 over scroll progress 0.30 → 0.85 (set by JS)
-     splashpoint:    50% horizontally, 60% vertically of the band
-     mask:           radial circle that grows from splashpoint outward,
-                     covering the headline as the water trails would draw it.
-
-   Once the user scrolls past the band, the overlay fades and the real
-   #impact .h-display takes over (fully accessible HTML headline).
+/* ─── Overlay headline: Allura water-script with SVG filter distort ───
+   Re-enabled (was display:none in the embedded-video iteration). The
+   inline #water-distort filter at the top of <body> gently bends the
+   strokes via feDisplacementMap + feTurbulence for the glassy
+   refractive look. The radial reveal mask still grows from the splash
+   impact point as scroll progresses (--text-reveal 0.33 → 0.85).
 */
 .calm-waterfall-headline {
-  /* DISABLED — the new "Water Shapes One Liter Forward" video has the
-     headline baked in as glassy water-script. The HTML overlay would
-     duplicate. Kept in the markup as aria-hidden for the accessibility
-     fallback path; visibility:hidden so it occupies layout but never
-     shows on screen. The real #impact .h-display below the band stays
-     accessible. */
-  display: none;
+  display: flex;
   position: absolute;
   inset: 0;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 0 6vw 8vh 6vw;
+  padding: 0 4vw;
   pointer-events: none;
   z-index: 2;
   /* Fade out cleanly as the band exits so the real #impact headline
-     below doesn't read as a ghosted duplicate. Linear fade across
-     the entire --wf-land phase (scroll progress 0.85 → 1.00):
-       progress 0.85: opacity 1   (overlay still primary)
-       progress 0.92: opacity 0.5 (handing off)
-       progress 1.00: opacity 0   (real #impact takes over) */
+     below doesn't read as a ghosted duplicate. */
   opacity: calc(1 - var(--wf-land, 0));
   transition: opacity 80ms linear;
 }
 .calm-waterfall-headline__text {
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: clamp(44px, 5.5vw, 84px);
-  line-height: 1;
-  letter-spacing: -0.025em;
-  color: #FFFFFF;
+  /* Allura — formal flourishing English script. Visually small per em
+     (script fonts have low x-height), so font-size runs much larger
+     than the sans body equivalents. */
+  font-family: 'Allura', cursive;
+  font-weight: 400;
+  font-size: clamp(72px, 11vw, 180px);
+  line-height: 0.95;
+  color: #F2EBDF;
   text-align: center;
   margin: 0;
-  max-width: 1200px;
+  max-width: 1400px;
+  /* Apply the inline SVG filter for glassy water distortion. The filter
+     itself is animated via JS (updateWaterTurbulence in app.js)
+     advancing the feTurbulence seed each rAF tick. */
+  filter: url(#water-distort) drop-shadow(0 0 12px rgba(242, 235, 223, 0.18));
   /* Reveal mask: start of band → text invisible. As scroll progresses,
      the mask circle expands from the splash point and uncovers the
      headline. By --text-reveal=1 the whole headline is visible. */
   --reveal: var(--text-reveal, 0);
   --splash-x: 50%;
-  --splash-y: 60%;
+  --splash-y: 55%;
   -webkit-mask-image: radial-gradient(
     circle at var(--splash-x) var(--splash-y),
     #000 calc(var(--reveal) * 110%),
@@ -1405,13 +1396,11 @@ main#top { position: relative; z-index: 2; }
     transparent calc(var(--reveal) * 110% + 8%)
   );
 }
-/* Match the calm-mode italic-gold treatment on "forward" so the
-   overlay reads identical to the real #impact headline. */
+/* Italic 'forward' accent — Allura supports italics naturally; just
+   tint to the brand accent so the word stays distinct. */
 .calm-waterfall-headline__text em {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 400;
-  color: var(--accent);
+  font-style: normal;        /* Allura is already script — italic is redundant */
+  color: var(--accent, #C8A872);
 }
 
 /* Headline splash pulse: when the water "lands" (progress 0.85 → 1.0),
@@ -1426,58 +1415,43 @@ main#top { position: relative; z-index: 2; }
   filter: brightness(calc(1 + var(--wf-land, 0) * 0.18));
 }
 
-/* Tablet: keep the centred-column shape, allow up to 60vw width. */
-@media (min-width: 601px) and (max-width: 1023px) {
-  .calm-waterfall-video {
-    max-width: 60vw;
-  }
-}
-
-/* Mobile: portrait viewport already roughly matches the 9:16 source,
-   so cover-cropping is minimal. Use full-bleed and shorten the runway
-   so slow scrolls don't make the transition feel punishing. */
+/* Mobile: shorten the runway so slow scrolls don't make the transition
+   feel punishing. Reduce headline size, slow the cascade slightly, and
+   ease the SVG filter so it stays affordable on weaker GPUs. */
 @media (max-width: 600px) {
   :root[data-brand="calm"] .calm-water-transition,
   :root:not([data-brand]) .calm-water-transition {
     height: var(--waterfall-runway-mobile, 140vh);
   }
-  .calm-waterfall-video {
-    width: 100vw;
-    height: 100vh;
-    aspect-ratio: auto;
-    object-fit: cover;
-  }
-  .calm-waterfall-vignette {
-    /* Tighter vignette on mobile since the video is full-bleed and we
-       don't want to dim the centre of the frame. */
-    background:
-      radial-gradient(140% 100% at 50% 50%, transparent 60%, var(--bg-d, #0E0C08) 100%);
-  }
   .calm-waterfall-headline {
-    padding: 0 5vw 12vh 5vw;
+    padding: 0 6vw;
   }
   .calm-waterfall-headline__text {
-    font-size: clamp(38px, 8vw, 64px);
+    font-size: clamp(56px, 14vw, 96px);
+    /* Drop the SVG filter on mobile — feDisplacementMap is the most
+       expensive op and on entry-level Android it can stutter. The
+       script font alone still reads as elegant water-text. */
+    filter: drop-shadow(0 0 10px rgba(242, 235, 223, 0.18));
   }
 }
 
-/* Reduced motion: hide the video, show the static poster as the stage
-   background, shorten the runway. The .reveal IntersectionObserver still
-   fires for #impact normally — no headline pulse animation though, so
-   the brightness/scale formulas above naturally read 0 (since
-   updateWaterfall short-circuits when reducedMotion is true). */
+/* Reduced motion: kill the cascade animation, render the headline plain
+   (no SVG distortion), short runway. Real #impact headline below still
+   reveals via standard .reveal IntersectionObserver. */
 @media (prefers-reduced-motion: reduce) {
   :root[data-brand="calm"] .calm-water-transition,
   :root:not([data-brand]) .calm-water-transition {
     height: 80vh;
   }
-  .calm-waterfall-video { display: none; }
-  .calm-waterfall-stage {
-    background:
-      var(--bg-d, #0E0C08)
-      url('assets/water-trails-poster.jpg?v=2')
-      center / contain
-      no-repeat;
+  .calm-waterfall-cascade { display: none; }
+  .calm-waterfall-headline__text {
+    /* No SVG filter under reduced motion — turbulence + displacement is
+       motion that can trigger vestibular discomfort. Static water-script
+       reading still conveys the aesthetic. */
+    filter: none;
+    -webkit-mask-image: none;
+            mask-image: none;
+    opacity: 1;
   }
   /* Kill the splash pulse under reduced motion. */
   :root[data-brand="calm"] #impact .h-display,
@@ -1485,12 +1459,6 @@ main#top { position: relative; z-index: 2; }
     transform: none;
     filter: none;
     transition: none;
-  }
-  /* Reduced motion: hide the overlay headline entirely so it doesn't
-     duplicate the real impact headline below. The transition becomes
-     a quiet poster fade with no scroll-driven reveal. */
-  .calm-waterfall-headline {
-    display: none;
   }
 }
 

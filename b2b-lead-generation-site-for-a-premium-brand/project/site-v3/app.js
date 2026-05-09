@@ -894,23 +894,23 @@
   // data-brand === 'calm'. Bold mode hides the whole section via CSS, so
   // scroll runway disappears and bold's choreography is unaffected.
   //
-  // Architecture:
+  // Architecture (procedural version — no <video>):
   //   - Section #calmWaterFall is the runway (~180vh tall in CSS).
   //   - Inside, .calm-waterfall-stage is sticky (top:0 height:100vh).
-  //   - <video> seeks via currentTime = clamp(p, 0, 0.92) * duration.
-  //     The 0.92 cap holds the last visible frame for the final 8% of
-  //     scroll, so the water "settles" rather than running off the end.
+  //   - SVG #calmWaterfallCascade contains 60 falling-droplet circles,
+  //     each running a CSS keyframe loop at varied durations/delays.
+  //     Cascade group opacity is driven by --wf-flow (CSS).
+  //   - .calm-waterfall-headline is an Allura water-script overlay
+  //     filtered through SVG #water-distort. JS rotates the
+  //     <feTurbulence seed> on a slow tick so the distortion gently
+  //     flows.
   //   - Phase-keyed CSS custom properties (--wf-progress, --wf-enter,
-  //     --wf-flow, --wf-land) are written to :root for declarative styling.
+  //     --wf-flow, --wf-land, --text-reveal) are written to :root each
+  //     scroll tick for declarative styling.
   //   - --wf-land drives the splash pulse on #impact .h-display.
-  const waterStage = document.getElementById('calmWaterFall');
-  const waterVideo = document.getElementById('calmWaterfallVideo');
-  let waterFrameQueued = false;
-  let waterUnlocked    = false; // iOS gesture unlock latch
-
-  function waterScrubbable() {
-    return waterVideo && isFinite(waterVideo.duration) && waterVideo.duration > 0;
-  }
+  const waterStage      = document.getElementById('calmWaterFall');
+  const waterTurbulence = document.getElementById('waterTurbulence');
+  let waterFrameQueued  = false;
 
   function waterProgress() {
     if (!waterStage) return 0;
@@ -945,21 +945,14 @@
       return;
     }
     const p = waterProgress();
-    if (waterScrubbable()) {
-      // Cap the seek so the last 8% of scroll holds the splash frame.
-      const seekT = Math.min(p, 0.92);
-      try { waterVideo.currentTime = seekT * waterVideo.duration; } catch (e) {}
-    }
     root.style.setProperty('--wf-progress', p.toFixed(4));
     root.style.setProperty('--wf-enter',    smoothstep(0.00, 0.20, p).toFixed(4));
     root.style.setProperty('--wf-flow',     smoothstep(0.20, 0.75, p).toFixed(4));
     root.style.setProperty('--wf-land',     smoothstep(0.85, 1.00, p).toFixed(4));
     // Headline reveal on the overlay inside the band: starts at the
-    // splash moment (0.33 = frame 60 of 180 in the Blender render —
-    // the actual frame the drop hits the obstacle plate) and completes
-    // by 0.85, leaving a tail before --wf-land fades the overlay out.
-    // Tuned so the HTML overlay headline reveal syncs to the visible
-    // splash in the water-trails video.
+    // splash moment (~0.33 of scroll progress, when the cascade is at
+    // peak intensity) and completes by 0.85, leaving a tail before
+    // --wf-land fades the overlay out as the band exits.
     root.style.setProperty('--text-reveal', smoothstep(0.33, 0.85, p).toFixed(4));
   }
 
@@ -972,59 +965,33 @@
     });
   }
 
-  // iOS Safari requires the video to have been played at least once
-  // before currentTime seeks work reliably. Latch a single one-shot
-  // play→pause on the first user gesture.
-  function unlockWaterVideo() {
-    if (waterUnlocked || !waterVideo) return;
-    waterUnlocked = true;
-    const playPromise = waterVideo.play();
-    if (playPromise && typeof playPromise.then === 'function') {
-      playPromise.then(() => waterVideo.pause()).catch(() => {});
-    } else {
-      try { waterVideo.pause(); } catch (e) {}
-    }
-    window.removeEventListener('pointerdown', unlockWaterVideo);
-    window.removeEventListener('scroll', unlockWaterVideo);
+  // Slow turbulence-seed animator. Updating the <feTurbulence seed>
+  // attribute changes the noise pattern, so the displacement applied
+  // to the water-script headline gently shifts — the strokes look
+  // like they're flowing rather than being a static distortion. A
+  // ~120ms cadence is fine; faster strobes the text uncomfortably.
+  // Skipped under reduced motion (filter is disabled by CSS too).
+  let turbSeed = 1;
+  function updateWaterTurbulence() {
+    if (!waterTurbulence) return;
+    if (reducedMotion) return;
+    if (root.getAttribute('data-brand') !== 'calm') return;
+    turbSeed = (turbSeed + 1) % 999;
+    waterTurbulence.setAttribute('seed', turbSeed);
   }
-
-  if (waterVideo && !reducedMotion) {
-    waterVideo.autoplay = false;
-    waterVideo.loop = false;
-    // Don't pause() on init — that signals the browser this is "paused
-    // user-paused" content and Chrome will defer fetching. Just leave
-    // it alone (it's already not playing because autoplay=false) and
-    // call load() to explicitly kick off the fetch. preload="auto" in
-    // the HTML alone wasn't reliably triggering the fetch on this
-    // page (likely because of competing media work for #cineVideo).
-    try { waterVideo.load(); } catch (e) {}
-    const primeWaterfall = () => {
-      try { waterVideo.currentTime = 0; } catch (e) {}
-      updateWaterfall();
-    };
-    if (waterVideo.readyState >= 1) primeWaterfall();
-    else waterVideo.addEventListener('loadedmetadata', primeWaterfall, { once: true });
-    // Also re-run on canplay so we get a real frame painted ASAP
-    waterVideo.addEventListener('canplay', () => updateWaterfall(), { once: true });
-    window.addEventListener('pointerdown', unlockWaterVideo, { once: true, passive: true });
-    window.addEventListener('scroll',      unlockWaterVideo, { once: true, passive: true });
+  if (waterTurbulence && !reducedMotion) {
+    setInterval(updateWaterTurbulence, 120);
   }
 
   window.addEventListener('scroll', rafUpdateWaterfall, { passive: true });
   window.addEventListener('resize', rafUpdateWaterfall);
 
   // Expose so applyBrand() can re-prime when toggling calm/bold.
-  // (Defined here, called from inside applyBrand above via window lookup
-  // since applyBrand sits earlier in the file scope.)
   window.__pwResetWaterfall = function () {
-    if (!waterVideo) return;
-    try { waterVideo.pause(); waterVideo.currentTime = 0; } catch (e) {}
     clearWaterfallVars();
   };
   window.__pwReprimeWaterfall = function () {
-    if (waterVideo && waterVideo.readyState >= 1 && !reducedMotion) {
-      updateWaterfall();
-    }
+    if (!reducedMotion) updateWaterfall();
   };
 
   // ---------- bold-mode scroll choreography (full page) ----------
