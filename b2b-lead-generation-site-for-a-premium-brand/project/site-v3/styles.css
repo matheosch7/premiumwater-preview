@@ -1355,12 +1355,18 @@ main#top { position: relative; z-index: 2; }
    #impact .h-display takes over (fully accessible HTML headline).
 */
 .calm-waterfall-headline {
+  /* DISABLED — the new "Water Shapes One Liter Forward" video has the
+     headline baked in as glassy water-script. The HTML overlay would
+     duplicate. Kept in the markup as aria-hidden for the accessibility
+     fallback path; visibility:hidden so it occupies layout but never
+     shows on screen. The real #impact .h-display below the band stays
+     accessible. */
+  display: none;
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: flex-end;        /* sit at the bottom of the band */
+  align-items: flex-end;
   justify-content: center;
-  padding: 0 6vw 8vh 6vw;       /* breathe in from the band edges */
+  padding: 0 6vw 8vh 6vw;
   pointer-events: none;
   z-index: 2;
   /* Fade out cleanly as the band exits so the real #impact headline
@@ -1469,7 +1475,7 @@ main#top { position: relative; z-index: 2; }
   .calm-waterfall-stage {
     background:
       var(--bg-d, #0E0C08)
-      url('assets/water-trails-poster.jpg?v=1')
+      url('assets/water-trails-poster.jpg?v=2')
       center / contain
       no-repeat;
   }
