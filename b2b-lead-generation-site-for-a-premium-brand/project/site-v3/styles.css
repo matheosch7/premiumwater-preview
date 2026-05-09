@@ -1278,11 +1278,13 @@ main#top { position: relative; z-index: 2; }
      adds no extra "stuck on cascade" scroll travel. */
   height: var(--waterfall-runway, 100vh);
   padding: 0;
-  /* Aggressive negative top margin pulls the band high enough that
-     even the mask's transparent top fade zone is overlapping trade's
-     bottom padding — so the cascade's *visible* top edge sits right
-     against the trade CTAs, not below a strip of dead space. */
-  margin: -300px 0 0 0;
+  /* Negative top margin pulls the band up over trade's bottom
+     padding — but capped so the *visible* cascade content (after
+     the 8% mask top fade) does NOT cover the trade card text.
+     -180px overlaps the 140px trade padding + ~40px of mask fade
+     buffer, so cards stay legible and the cascade still hugs
+     them tight. */
+  margin: -180px 0 0 0;
   overflow: visible;
 }
 
