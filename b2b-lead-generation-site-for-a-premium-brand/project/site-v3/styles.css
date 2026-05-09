@@ -1928,6 +1928,24 @@ html[data-brand="bold"],
   text-transform: uppercase;
   font-weight: 500;
 }
+/* Compact bold-mode trade section so the whole composition (eyebrow
+   + headline + lede + 4 cards + CTA) fits in a single viewport. The
+   user wants to see the full trade section in one frame, but the
+   default .block padding (140px top + 140px bottom) plus the 64px
+   section-head bottom margin pushed the section past 917px tall on
+   an 839px viewport. Trim:
+     - top padding: clamp 100→40
+     - bottom padding: 140→64
+     - section-head bottom margin: 64→32
+     - lede→grid gap: tighten via section-head bottom margin
+   New total fits comfortably (~775px), leaving breathing room. */
+[data-brand="bold"] #trade {
+  padding-top: 40px;
+  padding-bottom: 64px;
+}
+[data-brand="bold"] #trade .section-head {
+  margin-bottom: 32px;
+}
 
 /* Impact — white. */
 [data-brand="bold"] #impact { background: #FFFFFF; }
