@@ -1,25 +1,26 @@
 """
-build_waterfall.py — Render the calm-mode trade→impact water-falling transition.
+build_waterfall.py — Render the calm-mode trade→impact "water-text" hero.
 
-Produces a 6-second cream/white water-drop+splash sequence that integrates
-with the calm-mode .calm-water-transition band. Splash impact lands at
-frame 60 (~33% of duration) so the HTML mask reveal in app.js (anchored
-at scroll progress 0.30) syncs visually with the splash moment.
+Two-line headline ("ONE LITER IN,\\nONE LITER FORWARD.") rendered as
+extruded 3D text with a glassy cream-water material, with a single
+drop falling from above and splashing into a thin pool below the text.
 
-Test (1 frame, ~30s):
-    blender --background --python tools/build_waterfall.py -- --test
+The text IS the water — the splash is a flourish that lands at frame 60
+(=2s, =33% of duration), syncing with the HTML mask reveal in app.js.
 
-Bake fluid sim only (~5-15 min):
-    blender --background --python tools/build_waterfall.py -- --bake-only
+Usage:
+  blender --background --python tools/build_waterfall.py -- --test --diagnostic
+    Pure white emissive material — verify text geometry is in frame.
+  blender --background --python tools/build_waterfall.py -- --test
+    Render frame 60 only with real material (~30-60s).
+  blender --background --python tools/build_waterfall.py
+    Full render (180 frames, ~30-90 min depending on samples & caustics).
 
-Full bake + render (1-2 hours):
-    blender --background --python tools/build_waterfall.py
-
-Outputs PNG sequence to tools/_artifacts/waterfall_render/. Encode to MP4 with:
-    ffmpeg -framerate 30 -i tools/_artifacts/waterfall_render/####.png \\
-        -c:v libx264 -profile:v main -pix_fmt yuv420p \\
-        -movflags +faststart -g 15 -an \\
-        b2b-lead-generation-site-for-a-premium-brand/project/site-v3/assets/water-trails.mp4
+Encode output PNGs to MP4:
+  ffmpeg -framerate 30 -i tools/_artifacts/waterfall_render/####.png \\
+    -c:v libx264 -profile:v main -pix_fmt yuv420p \\
+    -movflags +faststart -g 15 -an \\
+    b2b-lead-generation-site-for-a-premium-brand/project/site-v3/assets/water-trails.mp4
 """
 
 import argparse
@@ -30,7 +31,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Allow `from PIL import` etc. if needed later
 _USER_SITE = site.getusersitepackages()
 for _p in (_USER_SITE, os.path.expanduser("~/.local/lib/python3.13/site-packages")):
     if _p and _p not in sys.path:
@@ -47,6 +47,9 @@ CACHE_DIR = ARTIFACTS / "waterfall_cache"
 for d in (ARTIFACTS, RENDER_DIR, CACHE_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
+# Built-in macOS font for the headline text.
+FONT_PATH = "/System/Library/Fonts/HelveticaNeue.ttc"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Args
@@ -58,11 +61,33 @@ def parse_args():
     p.add_argument("--test", action="store_true", help="Render only one frame near the splash")
     p.add_argument("--bake-only", action="store_true", help="Bake fluid sim, skip render")
     p.add_argument("--diagnostic", action="store_true", help="Pure white emissive material — confirm geometry is in frame")
-    p.add_argument("--samples", type=int, default=32, help="Cycles samples per frame")
+    p.add_argument("--samples", type=int, default=64, help="Cycles samples per frame")
     p.add_argument("--width", type=int, default=1280)
     p.add_argument("--height", type=int, default=720)
-    p.add_argument("--res", type=int, default=128, help="Fluid domain resolution (higher = slower bake)")
+    p.add_argument("--res", type=int, default=96, help="Fluid domain resolution (higher = slower bake)")
     return p.parse_args(argv)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Frame range / timing
+# ─────────────────────────────────────────────────────────────────────────────
+FPS = 30
+DURATION_SEC = 6
+TOTAL_FRAMES = FPS * DURATION_SEC          # 180 frames
+SPLASH_FRAME = int(TOTAL_FRAMES * 0.33)    # ~frame 60 — splash impact moment
+
+# Scene units. Domain large enough for splash spread above the text.
+DOMAIN_W = 12.0
+DOMAIN_D = 6.0
+DOMAIN_H = 7.0
+
+SPLASH_Z = 1.2       # invisible obstacle plane — drop bounces off here, ABOVE text
+DROP_SPAWN_Z = 2.8   # drop spawns at top of frame
+GRAVITY_Z = -0.8     # tuned so 1.6 units of free fall takes 2 sec → frame 60
+CAMERA_Z = -0.2      # camera at center of text composition
+
+TEXT_LINE_1 = "One liter in,"
+TEXT_LINE_2 = "one liter forward."
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -78,38 +103,16 @@ def clear_scene():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Frame range / timing
-# ─────────────────────────────────────────────────────────────────────────────
-FPS = 30
-DURATION_SEC = 6
-TOTAL_FRAMES = FPS * DURATION_SEC          # 180 frames
-SPLASH_FRAME = int(TOTAL_FRAMES * 0.33)    # ~frame 60 — splash impact moment
-
-# Scene units: domain is 8 units wide × 4.5 tall × 8 deep (16:9-ish).
-# Drop spawns at top, hits invisible obstacle at y=-1.5 (lower-middle).
-DOMAIN_W = 8.0
-DOMAIN_H = 4.5
-DOMAIN_D = 8.0
-SPLASH_Z = -0.6                            # impact z (so splash sits at 60% from top of camera frame)
-DROP_SPAWN_Z = 1.0                         # drop spawns just inside the top of camera frame
-GRAVITY_Z = -0.8                           # tuned so drop free-falls from spawn → splash exactly at SPLASH_FRAME
-CAMERA_Z = -0.32                           # places camera so splash lands at 60% from top of frame
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Materials
 # ─────────────────────────────────────────────────────────────────────────────
-def make_water_material(diagnostic=False):
-    """Cream/white water. Against a near-black world, a fully-transparent
-    glass shader would be invisible — we'd just see the dark background
-    refracted. Solution: mix a glossy reflection over a brighter cream
-    diffuse base so the water has visible surface AND a hint of refractive
-    transmission. Plus a small emission so the water reads even where the
-    key light doesn't directly hit it.
+def make_water_glass(diagnostic=False, gold=False):
+    """Glass-like cream water for both text + splash. With caustics enabled
+    in Cycles, refraction produces the cinematic 'liquid letterforms' look
+    seen in the reference 'Splash' image.
 
-    diagnostic mode: pure white emissive — used to validate geometry is
-    actually in frame before tuning the real material."""
-    mat = bpy.data.materials.new(name="WaterCream")
+    gold=True: warmer accent tint for the second line ('forward.')."""
+    name = "WaterGold" if gold else "Water"
+    mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
     nt = mat.node_tree
     nt.nodes.clear()
@@ -124,65 +127,112 @@ def make_water_material(diagnostic=False):
         nt.links.new(emit.outputs["Emission"], out.inputs["Surface"])
         return mat
 
-    # Real material: glass-like cream water. Reduced transmission so the
-    # water has visible substance against the dark world. Subtle emission
-    # adds a self-lit lift so the highlights read crisply.
     bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
     bsdf.location = (0, 0)
-    bsdf.inputs["Base Color"].default_value = (0.95, 0.92, 0.86, 1.0)  # cream
-    bsdf.inputs["Roughness"].default_value = 0.08
+    if gold:
+        # Warmer cream-gold for the italic-gold "forward" accent line.
+        # Saturated enough that the tint reads even through the glass.
+        bsdf.inputs["Base Color"].default_value = (0.94, 0.78, 0.42, 1.0)
+        if "Emission Color" in bsdf.inputs:
+            bsdf.inputs["Emission Color"].default_value = (0.94, 0.78, 0.42, 1.0)
+    else:
+        bsdf.inputs["Base Color"].default_value = (0.96, 0.93, 0.86, 1.0)
+        if "Emission Color" in bsdf.inputs:
+            bsdf.inputs["Emission Color"].default_value = (0.96, 0.93, 0.86, 1.0)
+    bsdf.inputs["Roughness"].default_value = 0.04
     bsdf.inputs["IOR"].default_value = 1.33
-    bsdf.inputs["Transmission Weight"].default_value = 0.6
+    bsdf.inputs["Transmission Weight"].default_value = 0.85
     bsdf.inputs["Metallic"].default_value = 0.0
     if "Specular IOR Level" in bsdf.inputs:
-        bsdf.inputs["Specular IOR Level"].default_value = 0.6
-    if "Emission Color" in bsdf.inputs:
-        bsdf.inputs["Emission Color"].default_value = (0.95, 0.92, 0.86, 1.0)
+        bsdf.inputs["Specular IOR Level"].default_value = 0.5
     if "Emission Strength" in bsdf.inputs:
-        bsdf.inputs["Emission Strength"].default_value = 0.4
+        bsdf.inputs["Emission Strength"].default_value = 0.25
 
     nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
     return mat
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Fluid scene
+# 3D text object
+# ─────────────────────────────────────────────────────────────────────────────
+def make_text(text, location, size, name, font_path=FONT_PATH):
+    """Create extruded 3D text with bevel for a soft 'water glass' edge."""
+    bpy.ops.object.text_add(location=location)
+    obj = bpy.context.active_object
+    obj.name = name
+    obj.data.body = text
+    obj.data.size = size
+    obj.data.align_x = "CENTER"
+    obj.data.align_y = "CENTER"
+    obj.data.extrude = 0.025          # subtle 3D depth — visible without blobbing
+    obj.data.bevel_depth = 0.004      # whisper of rounding so glass reads
+    obj.data.bevel_resolution = 3
+
+    # Load the font if not already loaded
+    if font_path and Path(font_path).exists():
+        try:
+            font = bpy.data.fonts.load(font_path, check_existing=True)
+            obj.data.font = font
+        except Exception as e:
+            print(f"[waterfall] font load failed ({font_path}): {e}; using default")
+    return obj
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Build scene
 # ─────────────────────────────────────────────────────────────────────────────
 def build_scene(args):
     clear_scene()
 
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
-    scene.cycles.device = "GPU" if hasattr(scene.cycles, "device") else "CPU"
+    if hasattr(scene.cycles, "device"):
+        scene.cycles.device = "GPU"
     scene.cycles.samples = args.samples
     scene.cycles.use_denoising = True
+    # Caustics on so the water-text refracts light onto its surroundings
+    if hasattr(scene.cycles, "caustics_reflective"):
+        scene.cycles.caustics_reflective = True
+    if hasattr(scene.cycles, "caustics_refractive"):
+        scene.cycles.caustics_refractive = True
     scene.frame_start = 1
     scene.frame_end = TOTAL_FRAMES
     scene.render.fps = FPS
     scene.render.resolution_x = args.width
     scene.render.resolution_y = args.height
     scene.render.resolution_percentage = 100
-    scene.render.film_transparent = False  # solid bg matching --bg-d
+    scene.render.film_transparent = False  # solid bg
 
-    # World background = #0E0C08 (calm bg color) so the band blends seamlessly
+    # World background = #0E0C08 (calm bg color)
     world = scene.world or bpy.data.worlds.new("World")
     scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes.get("Background")
     if bg:
-        # #0E0C08 → linear ~ (0.0029, 0.0023, 0.0017)
         bg.inputs["Color"].default_value = (0.0029, 0.0023, 0.0017, 1.0)
         bg.inputs["Strength"].default_value = 1.0
 
-    # ─── Domain ──────────────────────────────────────────────────────────
-    # Blender axes: X=width, Y=depth, Z=height (vertical).
+    # ─── Materials ──────────────────────────────────────────────────────
+    diagnostic = getattr(args, "diagnostic", False)
+    cream_mat = make_water_glass(diagnostic=diagnostic, gold=False)
+    gold_mat = make_water_glass(diagnostic=diagnostic, gold=True)
+
+    # ─── 3D headline text (two lines, stacked vertically) ───────────────
+    # Line 1: "One liter in," in cream
+    text1 = make_text(TEXT_LINE_1, location=(0, 0, 0.45), size=0.95, name="HeadLine1")
+    text1.data.materials.append(cream_mat)
+    # Line 2: "one liter forward." in gold accent
+    text2 = make_text(TEXT_LINE_2, location=(0, 0, -0.65), size=0.95, name="HeadLine2")
+    text2.data.materials.append(gold_mat)
+
+    # ─── Fluid domain ───────────────────────────────────────────────────
     bpy.ops.mesh.primitive_cube_add(size=1)
     domain = bpy.context.active_object
     domain.name = "Domain"
     domain.scale = (DOMAIN_W / 2, DOMAIN_D / 2, DOMAIN_H / 2)
+    domain.location = (0, 0, 1.5)  # raised so text sits below splash
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
-    # Add fluid modifier (Mantaflow liquid domain)
     bpy.ops.object.modifier_add(type="FLUID")
     fluid = domain.modifiers["Fluid"]
     fluid.fluid_type = "DOMAIN"
@@ -194,42 +244,31 @@ def build_scene(args):
     fluid.domain_settings.simulation_method = "FLIP"
     fluid.domain_settings.cache_directory = str(CACHE_DIR)
     fluid.domain_settings.cache_type = "ALL"
-    # Cache frame range
     fluid.domain_settings.cache_frame_start = 1
     fluid.domain_settings.cache_frame_end = TOTAL_FRAMES
-    # Reduced gravity so the drop free-falls slowly enough to hit the pool
-    # exactly at SPLASH_FRAME (frame 60). At default 9.81 the drop arrives
-    # in ~half a second; we want it to take 2 seconds.
     if hasattr(fluid.domain_settings, "gravity"):
         fluid.domain_settings.gravity = (0, 0, GRAVITY_Z)
-    if hasattr(fluid.domain_settings, "use_gravity"):
-        fluid.domain_settings.use_gravity = True
 
-    # NOTE: do NOT hide the domain — the Mantaflow mesh is RENDERED ONTO
-    # the domain object itself (replacing the cube during render). Hiding
-    # it hides the water.
+    # The fluid mesh on the domain inherits whatever material is applied
+    domain.data.materials.append(cream_mat)
 
-    # ─── Pool: pre-existing thin puddle just below splash height ────────
-    # Wide enough to span the visible camera frame, thin enough that the
-    # splash is the dominant motion. Centered horizontally on x=0 so the
-    # drop hits the middle of the pool. Top surface at SPLASH_Z so the
-    # splash impact lands at the correct viewport position.
-    pool_top_z = SPLASH_Z
-    pool_thickness = 0.15
-    pool_center_z = pool_top_z - pool_thickness / 2
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, pool_center_z))
-    pool = bpy.context.active_object
-    pool.name = "Pool"
-    pool.scale = (3.0, 1.5, pool_thickness / 2)  # 6w × 3d × 0.15h
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    # ─── Splash plate: invisible obstacle the drop bounces off ─────────
+    # Thin disc at SPLASH_Z. Acts as a hard surface so the drop splashes
+    # outward when it lands. Hidden from render so we only see the water,
+    # not the plate. This replaces the previous pre-existing pool which
+    # was too large and covered the text below.
+    bpy.ops.mesh.primitive_cylinder_add(
+        radius=1.0, depth=0.05, location=(0, 0, SPLASH_Z)
+    )
+    plate = bpy.context.active_object
+    plate.name = "SplashPlate"
     bpy.ops.object.modifier_add(type="FLUID")
-    pool.modifiers["Fluid"].fluid_type = "FLOW"
-    pool.modifiers["Fluid"].flow_settings.flow_type = "LIQUID"
-    pool.modifiers["Fluid"].flow_settings.flow_behavior = "GEOMETRY"
-    pool.hide_render = True
+    plate.modifiers["Fluid"].fluid_type = "EFFECTOR"
+    plate.modifiers["Fluid"].effector_settings.effector_type = "COLLISION"
+    plate.hide_render = True
+    plate.hide_viewport = False  # still participate in sim
 
-    # ─── Drop: a single sphere converted to liquid at frame 1 ───────────
-    # No initial velocity — gravity (set on domain) does all the work.
+    # ─── Drop ───────────────────────────────────────────────────────────
     bpy.ops.mesh.primitive_uv_sphere_add(radius=0.22, location=(0, 0, DROP_SPAWN_Z))
     drop = bpy.context.active_object
     drop.name = "Drop"
@@ -240,16 +279,7 @@ def build_scene(args):
     drop.modifiers["Fluid"].flow_settings.velocity_coord = (0, 0, 0)
     drop.hide_render = True
 
-    # ─── Apply water material to domain (mesh fluid renders with this) ───
-    water_mat = make_water_material(diagnostic=getattr(args, "diagnostic", False))
-    if domain.data.materials:
-        domain.data.materials[0] = water_mat
-    else:
-        domain.data.materials.append(water_mat)
-
-    # ─── Camera (16:9 wide framing, looking at impact zone) ──────────────
-    # Camera at -Y, rotated 90° on X so its local -Z (default look direction)
-    # points toward +Y (into the scene). Up is +Z.
+    # ─── Camera ─────────────────────────────────────────────────────────
     cam_data = bpy.data.cameras.new("Cam")
     cam_data.type = "PERSP"
     cam_data.lens = 50
@@ -259,38 +289,31 @@ def build_scene(args):
     cam.rotation_euler = (math.radians(90), 0, 0)
     scene.camera = cam
 
-    # ─── Lighting: water against a near-black world needs strong key.
-    # Sun lamp + a couple of area fills so highlights read crisply.
-
-    # Sun lamp from upper-left-front, warm cream tone
+    # ─── Lighting ───────────────────────────────────────────────────────
     sun = bpy.data.lights.new("Sun", "SUN")
-    sun.energy = 6.0
+    sun.energy = 5.0
     sun.color = (1.0, 0.96, 0.88)
     sun_obj = bpy.data.objects.new("Sun", sun)
     sun_obj.location = (0, -3, 6)
-    # Point sun toward origin: from (0,-3,6) toward (0,0,0) = direction (0,3,-6)
-    # As a rotation on X axis: angle = atan2(-3, -6) ... use simpler euler
     sun_obj.rotation_euler = (math.radians(60), 0, math.radians(-20))
     bpy.context.collection.objects.link(sun_obj)
 
-    # Rim light from behind-right — gold-ish for "forward" accent echo
     rim = bpy.data.lights.new("Rim", "AREA")
-    rim.size = 4.0
-    rim.energy = 1200.0
+    rim.size = 5.0
+    rim.energy = 1500.0
     rim.color = (0.95, 0.82, 0.58)
     rim_obj = bpy.data.objects.new("Rim", rim)
     rim_obj.location = (4, 4, 1)
     rim_obj.rotation_euler = (math.radians(110), 0, math.radians(45))
     bpy.context.collection.objects.link(rim_obj)
 
-    # Top fill so the falling drop is visible during its descent
     fill = bpy.data.lights.new("Fill", "AREA")
     fill.size = 6.0
-    fill.energy = 800.0
-    fill.color = (0.95, 0.92, 0.86)
+    fill.energy = 1000.0
+    fill.color = (0.96, 0.93, 0.86)
     fill_obj = bpy.data.objects.new("Fill", fill)
-    fill_obj.location = (0, -3, 5)
-    fill_obj.rotation_euler = (math.radians(35), 0, 0)
+    fill_obj.location = (-3, -3, 4)
+    fill_obj.rotation_euler = (math.radians(40), 0, math.radians(-30))
     bpy.context.collection.objects.link(fill_obj)
 
 
@@ -301,7 +324,6 @@ def bake_fluid():
     print("[waterfall] baking fluid sim — this is the slow part")
     domain = bpy.data.objects["Domain"]
     bpy.context.view_layer.objects.active = domain
-    # Bake all (data + mesh) in one go
     with bpy.context.temp_override(active_object=domain, object=domain):
         bpy.ops.fluid.bake_all()
     print("[waterfall] bake done")
@@ -314,10 +336,9 @@ def render(args):
     scene = bpy.context.scene
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
-    scene.render.filepath = str(RENDER_DIR / "")  # PNGs named ####.png
+    scene.render.filepath = str(RENDER_DIR / "")
 
     if args.test:
-        # One frame at the splash moment
         scene.frame_set(SPLASH_FRAME)
         scene.render.filepath = str(RENDER_DIR / f"test_splash_{SPLASH_FRAME:04d}")
         bpy.ops.render.render(write_still=True)
