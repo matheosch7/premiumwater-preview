@@ -983,13 +983,21 @@
   if (waterVideo && !reducedMotion) {
     waterVideo.autoplay = false;
     waterVideo.loop = false;
-    try { waterVideo.pause(); } catch (e) {}
+    // Don't pause() on init — that signals the browser this is "paused
+    // user-paused" content and Chrome will defer fetching. Just leave
+    // it alone (it's already not playing because autoplay=false) and
+    // call load() to explicitly kick off the fetch. preload="auto" in
+    // the HTML alone wasn't reliably triggering the fetch on this
+    // page (likely because of competing media work for #cineVideo).
+    try { waterVideo.load(); } catch (e) {}
     const primeWaterfall = () => {
       try { waterVideo.currentTime = 0; } catch (e) {}
       updateWaterfall();
     };
     if (waterVideo.readyState >= 1) primeWaterfall();
     else waterVideo.addEventListener('loadedmetadata', primeWaterfall, { once: true });
+    // Also re-run on canplay so we get a real frame painted ASAP
+    waterVideo.addEventListener('canplay', () => updateWaterfall(), { once: true });
     window.addEventListener('pointerdown', unlockWaterVideo, { once: true, passive: true });
     window.addEventListener('scroll',      unlockWaterVideo, { once: true, passive: true });
   }

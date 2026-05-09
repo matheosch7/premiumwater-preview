@@ -1307,10 +1307,17 @@ main#top { position: relative; z-index: 2; }
   /* Desktop: a centred vertical column of water. 9:16 source means the
      column is ~56vh wide on a 16:9 viewport — about 1/3 of the screen.
      Side bleed = the page background, so the video seamlessly inhabits
-     the dark world rather than being framed in a box. */
-  height: 100%;
+     the dark world rather than being framed in a box.
+
+     Using `100vh` directly (not `100%`) because the parent is a CSS
+     grid with `place-items: center` — that aligns the child to center
+     rather than stretching, so `height: 100%` was ignored and the
+     video rendered at its intrinsic 576×1024. With explicit vh the
+     column is always exactly the viewport's height. */
+  height: 100vh;
   width: auto;
   aspect-ratio: 9 / 16;
+  max-width: 100vw;
   object-fit: cover;
   display: block;
   /* Promote to its own GPU layer so scrubbing is buttery smooth on
