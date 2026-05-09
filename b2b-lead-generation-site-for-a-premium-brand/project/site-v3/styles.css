@@ -1303,48 +1303,27 @@ main#top { position: relative; z-index: 2; }
   background: var(--bg-d, #0E0C08);
 }
 
-/* ─── Cascade of falling droplets ──────────────────────────────────
-   SVG circles in a viewBox spanning 0..100 horizontally and 0..100
-   vertically. Each circle has --d (animation-duration) and --t
-   (animation-delay) on its inline style. The cascade-fall keyframe
-   translates the circle from y=-15% above the viewBox to y=115%
-   below, with a slight horizontal drift, so droplets appear to fall
-   continuously through the band.
-   Group opacity is tied to --wf-flow (scroll 0.20 → 0.75) so the
-   cascade fades in as the user enters the band, peaks mid-band,
-   and dissolves before the band exits. */
-.calm-waterfall-cascade {
+/* ─── Veo3 cream-cascade video ─────────────────────────────────────
+   Plays continuously via autoplay+loop+muted on the <video> element.
+   Positioned full-bleed inside the sticky stage. Opacity tied to
+   --wf-flow (scroll 0.20 → 0.75) so the cascade fades in as the
+   user enters the band, peaks mid-band, and dissolves before the
+   band exits — but the video itself keeps playing for visual
+   continuity (no flicker on re-show).
+   z-index 1 so the headline overlay (z-index 2) sits above. */
+.calm-waterfall-cascade-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  object-fit: cover;
   pointer-events: none;
   z-index: 1;
-  /* Opacity follows --wf-flow so the cascade is only visible mid-band */
   opacity: var(--wf-flow, 0);
-  transition: opacity 120ms linear;
-  /* Slight cool-cream fill on the droplets — matches calm palette */
-  fill: #DDE8EE;
-  /* Subtle bloom so droplets read against the dark world */
-  filter: drop-shadow(0 0 1px rgba(220, 232, 240, 0.6));
-}
-.calm-waterfall-cascade circle {
-  transform-origin: center;
-  animation: cascade-fall var(--d, 2s) linear infinite;
-  animation-delay: var(--t, 0s);
-  /* Promote to GPU layer for smooth motion */
-  will-change: transform, opacity;
-}
-/* Translate in viewport units so the droplets actually traverse the
-   visible band height. Percentage units in CSS transforms on SVG
-   <circle> elements resolve against the circle's own bounding box
-   (which is tiny) — they barely move. vh resolves against the
-   viewport, which is what we want for a falling-droplet effect. */
-@keyframes cascade-fall {
-  0%   { transform: translateY(-10vh); opacity: 0; }
-  10%  { opacity: 0.55; }
-  85%  { opacity: 0.85; }
-  100% { transform: translateY(110vh); opacity: 0; }
+  transition: opacity 200ms linear;
+  /* Promote to GPU layer for smooth playback */
+  transform: translateZ(0);
+  will-change: opacity;
 }
 
 /* ─── Overlay headline: Allura water-script with SVG filter distort ───
@@ -1448,7 +1427,15 @@ main#top { position: relative; z-index: 2; }
   :root:not([data-brand]) .calm-water-transition {
     height: 80vh;
   }
-  .calm-waterfall-cascade { display: none; }
+  .calm-waterfall-cascade-video { display: none; }
+  .calm-waterfall-stage {
+    /* Static poster instead of the looping cascade for reduced-motion users. */
+    background:
+      var(--bg-d, #0E0C08)
+      url('assets/water-cascade-poster.jpg?v=1')
+      center / cover
+      no-repeat;
+  }
   .calm-waterfall-headline__text {
     /* No SVG filter under reduced motion — turbulence + displacement is
        motion that can trigger vestibular discomfort. Static water-script

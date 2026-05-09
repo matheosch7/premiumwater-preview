@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Allura&family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=95" />
+  <link rel="stylesheet" href="styles.css?v=96" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -419,75 +419,18 @@
   <section class="calm-water-transition" id="calmWaterFall" aria-hidden="true">
     <div class="calm-waterfall-stage">
 
-      <!-- Falling droplets curtain. 60 SVG circles at varied x positions,
-           sizes, animation-durations, and animation-delays so the cascade
-           reads as organic. Each circle's --d (animation-duration) and
-           --t (animation-delay) come from the inline style attributes so
-           we don't need JS to randomise. Pointer-events:none so they
-           don't block clicks on anything. -->
-      <svg class="calm-waterfall-cascade" id="calmWaterfallCascade" aria-hidden="true"
-           viewBox="0 0 100 100" preserveAspectRatio="none">
-        <circle cx="3"  cy="0" r="0.4" style="--d:2.4s; --t:-0.10s;"/>
-        <circle cx="6"  cy="0" r="0.6" style="--d:1.9s; --t:-0.85s;"/>
-        <circle cx="9"  cy="0" r="0.3" style="--d:2.7s; --t:-1.40s;"/>
-        <circle cx="12" cy="0" r="0.5" style="--d:2.1s; --t:-0.05s;"/>
-        <circle cx="14" cy="0" r="0.7" style="--d:1.6s; --t:-1.95s;"/>
-        <circle cx="17" cy="0" r="0.4" style="--d:2.5s; --t:-0.55s;"/>
-        <circle cx="20" cy="0" r="0.6" style="--d:2.0s; --t:-1.10s;"/>
-        <circle cx="22" cy="0" r="0.3" style="--d:2.8s; --t:-0.30s;"/>
-        <circle cx="25" cy="0" r="0.5" style="--d:1.8s; --t:-1.55s;"/>
-        <circle cx="28" cy="0" r="0.4" style="--d:2.3s; --t:-0.20s;"/>
-        <circle cx="30" cy="0" r="0.7" style="--d:1.5s; --t:-2.00s;"/>
-        <circle cx="33" cy="0" r="0.5" style="--d:2.1s; --t:-0.65s;"/>
-        <circle cx="35" cy="0" r="0.3" style="--d:2.6s; --t:-1.20s;"/>
-        <circle cx="38" cy="0" r="0.6" style="--d:1.9s; --t:-0.45s;"/>
-        <circle cx="40" cy="0" r="0.4" style="--d:2.4s; --t:-1.75s;"/>
-        <circle cx="43" cy="0" r="0.5" style="--d:2.0s; --t:-0.10s;"/>
-        <circle cx="45" cy="0" r="0.3" style="--d:2.7s; --t:-1.30s;"/>
-        <circle cx="47" cy="0" r="0.7" style="--d:1.6s; --t:-0.55s;"/>
-        <circle cx="50" cy="0" r="0.5" style="--d:2.2s; --t:-1.85s;"/>
-        <circle cx="52" cy="0" r="0.4" style="--d:2.5s; --t:-0.25s;"/>
-        <circle cx="54" cy="0" r="0.6" style="--d:1.8s; --t:-1.10s;"/>
-        <circle cx="57" cy="0" r="0.3" style="--d:2.8s; --t:-0.70s;"/>
-        <circle cx="59" cy="0" r="0.5" style="--d:2.1s; --t:-1.45s;"/>
-        <circle cx="62" cy="0" r="0.7" style="--d:1.7s; --t:-0.05s;"/>
-        <circle cx="64" cy="0" r="0.4" style="--d:2.3s; --t:-1.95s;"/>
-        <circle cx="67" cy="0" r="0.6" style="--d:1.9s; --t:-0.35s;"/>
-        <circle cx="69" cy="0" r="0.3" style="--d:2.6s; --t:-1.20s;"/>
-        <circle cx="72" cy="0" r="0.5" style="--d:2.0s; --t:-0.60s;"/>
-        <circle cx="74" cy="0" r="0.4" style="--d:2.4s; --t:-1.65s;"/>
-        <circle cx="77" cy="0" r="0.7" style="--d:1.5s; --t:-0.15s;"/>
-        <circle cx="79" cy="0" r="0.5" style="--d:2.2s; --t:-1.80s;"/>
-        <circle cx="81" cy="0" r="0.3" style="--d:2.7s; --t:-0.40s;"/>
-        <circle cx="84" cy="0" r="0.6" style="--d:1.8s; --t:-1.30s;"/>
-        <circle cx="86" cy="0" r="0.4" style="--d:2.5s; --t:-0.75s;"/>
-        <circle cx="89" cy="0" r="0.5" style="--d:2.0s; --t:-1.55s;"/>
-        <circle cx="91" cy="0" r="0.7" style="--d:1.6s; --t:-0.20s;"/>
-        <circle cx="93" cy="0" r="0.3" style="--d:2.8s; --t:-1.95s;"/>
-        <circle cx="96" cy="0" r="0.5" style="--d:2.1s; --t:-0.50s;"/>
-        <circle cx="98" cy="0" r="0.4" style="--d:2.4s; --t:-1.10s;"/>
-        <circle cx="2"  cy="0" r="0.5" style="--d:1.9s; --t:-1.65s;"/>
-        <circle cx="8"  cy="0" r="0.4" style="--d:2.3s; --t:-0.30s;"/>
-        <circle cx="11" cy="0" r="0.7" style="--d:1.7s; --t:-1.40s;"/>
-        <circle cx="15" cy="0" r="0.3" style="--d:2.6s; --t:-0.85s;"/>
-        <circle cx="19" cy="0" r="0.5" style="--d:2.0s; --t:-1.95s;"/>
-        <circle cx="24" cy="0" r="0.6" style="--d:1.8s; --t:-0.40s;"/>
-        <circle cx="27" cy="0" r="0.4" style="--d:2.5s; --t:-1.20s;"/>
-        <circle cx="32" cy="0" r="0.3" style="--d:2.7s; --t:-0.65s;"/>
-        <circle cx="36" cy="0" r="0.7" style="--d:1.5s; --t:-1.55s;"/>
-        <circle cx="41" cy="0" r="0.4" style="--d:2.4s; --t:-0.10s;"/>
-        <circle cx="46" cy="0" r="0.5" style="--d:2.1s; --t:-1.85s;"/>
-        <circle cx="51" cy="0" r="0.3" style="--d:2.8s; --t:-0.55s;"/>
-        <circle cx="56" cy="0" r="0.6" style="--d:1.9s; --t:-1.45s;"/>
-        <circle cx="61" cy="0" r="0.4" style="--d:2.3s; --t:-0.20s;"/>
-        <circle cx="66" cy="0" r="0.5" style="--d:2.0s; --t:-1.70s;"/>
-        <circle cx="71" cy="0" r="0.7" style="--d:1.6s; --t:-0.95s;"/>
-        <circle cx="76" cy="0" r="0.3" style="--d:2.7s; --t:-1.35s;"/>
-        <circle cx="82" cy="0" r="0.5" style="--d:2.2s; --t:-0.45s;"/>
-        <circle cx="87" cy="0" r="0.4" style="--d:1.8s; --t:-1.85s;"/>
-        <circle cx="92" cy="0" r="0.6" style="--d:2.4s; --t:-0.25s;"/>
-        <circle cx="97" cy="0" r="0.7" style="--d:1.7s; --t:-1.55s;"/>
-      </svg>
+      <!-- Veo3-generated cinematic cream cascade. Plays continuously
+           via autoplay+loop+muted (silent video, allowed by all browsers).
+           The video provides the atmospheric water layer; the Allura
+           headline overlay below sits on top via --text-reveal mask.
+           Opacity tied to var(--wf-flow) so the cascade fades in/out
+           with scroll, keeping the video itself running for visual
+           continuity. -->
+      <video class="calm-waterfall-cascade-video" id="calmCascadeVideo"
+             src="assets/water-cascade.mp4?v=1"
+             poster="assets/water-cascade-poster.jpg?v=1"
+             autoplay loop muted playsinline preload="auto"
+             disablePictureInPicture aria-hidden="true"></video>
 
       <!-- Overlay headline — Allura script with SVG water-distort filter
            applied for the glassy refractive look. Reveal driven by
