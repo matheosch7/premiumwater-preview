@@ -1275,14 +1275,18 @@ main#top { position: relative; z-index: 2; }
   width: 100%;
   background: var(--bg-d, #0E0C08);
   /* Tight runway: 100vh = exactly the sticky stage height, so the band
-     adds no extra "stuck on cascade" scroll travel. The cascade is
-     visible while the band is in the viewport (≈ 1 viewport-height of
-     scroll) and disappears immediately as the user scrolls past. This
-     removes the empty space the user noticed between trade content
-     and the cascade visually unfolding. */
+     adds no extra "stuck on cascade" scroll travel. */
   height: var(--waterfall-runway, 100vh);
   padding: 0;
-  margin: 0;
+  /* Negative top margin pulls the band up into the trade section's
+     bottom padding area, so the cascade starts right after the trade
+     CTAs instead of sitting below ~140px of dark padding. The trade
+     section's internal layout (cards + CTAs + breathing room) is
+     unchanged — we just overlap the band onto its tail.
+     The mask-image vertical fade on the video itself (top 18% fades
+     from transparent to opaque) means the cascade emerges gently as
+     it overlaps trade rather than slamming up against the CTAs. */
+  margin: -160px 0 0 0;
   overflow: visible;
 }
 
