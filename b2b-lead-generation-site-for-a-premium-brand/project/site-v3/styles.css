@@ -1325,6 +1325,24 @@ main#top { position: relative; z-index: 2; }
      the real #impact .h-display below takes over the frame. */
   opacity: calc(var(--wf-flow, 0) * (1 - var(--wf-land, 0)));
   transition: opacity 200ms linear;
+  /* Soft mask on top/bottom edges so the video doesn't read as a
+     boxed video element with hard horizontal cuts. The top 18% and
+     bottom 18% fade to transparent, blending the cascade into the
+     dark sections above (#trade end) and below (#impact start). */
+  -webkit-mask-image: linear-gradient(180deg,
+    transparent 0%,
+    rgba(0,0,0,0.6) 6%,
+    #000 18%,
+    #000 82%,
+    rgba(0,0,0,0.6) 94%,
+    transparent 100%);
+          mask-image: linear-gradient(180deg,
+    transparent 0%,
+    rgba(0,0,0,0.6) 6%,
+    #000 18%,
+    #000 82%,
+    rgba(0,0,0,0.6) 94%,
+    transparent 100%);
   /* Promote to GPU layer for smooth playback */
   transform: translateZ(0);
   will-change: opacity;
