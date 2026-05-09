@@ -944,9 +944,14 @@
     }
     const p = waterProgress();
     root.style.setProperty('--wf-progress', p.toFixed(4));
-    root.style.setProperty('--wf-enter',    smoothstep(0.00, 0.20, p).toFixed(4));
-    root.style.setProperty('--wf-flow',     smoothstep(0.20, 0.75, p).toFixed(4));
-    root.style.setProperty('--wf-land',     smoothstep(0.85, 1.00, p).toFixed(4));
+    root.style.setProperty('--wf-enter',    smoothstep(0.00, 0.10, p).toFixed(4));
+    // Tight ramp so the cascade fades in immediately as the band appears
+    // (no empty "buffer" between trade ending and the cascade visually
+    // unfolding) and is at full opacity for nearly the entire band.
+    root.style.setProperty('--wf-flow',     smoothstep(0.05, 0.25, p).toFixed(4));
+    // Tight fade-out so the cascade is gone before impact takes over,
+    // not lingering across the seam.
+    root.style.setProperty('--wf-land',     smoothstep(0.75, 0.95, p).toFixed(4));
   }
 
   function rafUpdateWaterfall() {

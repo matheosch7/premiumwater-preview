@@ -1274,14 +1274,15 @@ main#top { position: relative; z-index: 2; }
   position: relative;
   width: 100%;
   background: var(--bg-d, #0E0C08);
-  /* 180vh = 100vh of sticky pin + 80vh of additional scroll travel during
-     which the user is still pinned but progress advances 0 → 1. */
-  height: var(--waterfall-runway, 180vh);
-  /* Match the .block + .block { padding-top:0 } seam compensation so
-     this insert doesn't introduce a gap between #trade and #impact. */
+  /* Tight runway: 100vh = exactly the sticky stage height, so the band
+     adds no extra "stuck on cascade" scroll travel. The cascade is
+     visible while the band is in the viewport (≈ 1 viewport-height of
+     scroll) and disappears immediately as the user scrolls past. This
+     removes the empty space the user noticed between trade content
+     and the cascade visually unfolding. */
+  height: var(--waterfall-runway, 100vh);
   padding: 0;
   margin: 0;
-  /* Don't double up bottom padding under #impact's padding-top either. */
   overflow: visible;
 }
 
@@ -1366,12 +1367,11 @@ main#top { position: relative; z-index: 2; }
   filter: brightness(calc(1 + var(--wf-land, 0) * 0.18));
 }
 
-/* Mobile: shorten the runway so slow scrolls don't make the transition
-   feel punishing. */
+/* Mobile: same tight runway as desktop. */
 @media (max-width: 600px) {
   :root[data-brand="calm"] .calm-water-transition,
   :root:not([data-brand]) .calm-water-transition {
-    height: var(--waterfall-runway-mobile, 140vh);
+    height: var(--waterfall-runway-mobile, 100vh);
   }
 }
 
