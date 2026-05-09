@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=84" />
+  <link rel="stylesheet" href="styles.css?v=85" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -364,20 +364,29 @@
   <!-- TRADE / DISTRIBUTOR -->
   <section class="block" id="trade">
     <div class="bold-section-backdrop" aria-hidden="true">POUR</div>
-    <div class="section-head reveal">
-      <div class="eyebrow" data-i18n="trade.eyebrow">03 · Trade</div>
-      <h2 class="h-display" data-i18n-html="trade.hed">Built for the people<br/>who <em>pour it</em>.</h2>
-      <p class="lede" data-i18n="trade.lede">We partner with gyms, hotels, restaurants and distributors who want a premium still water that earns its place on the table without inflating the check.</p>
-    </div>
-    <div class="trade-grid">
-      <div class="trade-card reveal"><span class="n">01</span><h3 data-i18n="trade.c1.h">Wholesale pricing</h3><p data-i18n="trade.c1.p">Tiered by monthly volume with no listing fees.</p></div>
-      <div class="trade-card reveal"><span class="n">02</span><h3 data-i18n="trade.c2.h">Cold-chain delivery</h3><p data-i18n="trade.c2.p">Temperature-controlled routes across five Colombian cities.</p></div>
-      <div class="trade-card reveal"><span class="n">03</span><h3 data-i18n="trade.c3.h">Co-branded service</h3><p data-i18n="trade.c3.p">Custom menu cards and branded carafe service for qualifying partners.</p></div>
-      <div class="trade-card reveal"><span class="n">04</span><h3 data-i18n="trade.c4.h">Net-30 terms</h3><p data-i18n="trade.c4.p">30-day invoicing available after the first order cycle.</p></div>
-    </div>
-    <div class="trade-cta reveal">
-      <a class="pill pill-solid lg" href="#contact" data-i18n="trade.ctaDist">Become a distributor →</a>
-      <a class="pill pill-ghost lg" data-wa target="_blank" rel="noopener" data-i18n="trade.ctaWA">WhatsApp us</a>
+    <!-- Wrapper exists so bold mode can pin the entire trade composition
+         (eyebrow + headline + lede + cards + CTA) at a fixed viewport
+         offset via position:sticky.  Without the wrapper the children
+         scrolled independently and over-scroll past the panel-exit
+         position pushed the headline behind the nav while letting the
+         next section peek at the bottom.  In calm mode the wrapper has
+         no positioning effect (just an inert div). -->
+    <div class="trade-content">
+      <div class="section-head reveal">
+        <div class="eyebrow" data-i18n="trade.eyebrow">03 · Trade</div>
+        <h2 class="h-display" data-i18n-html="trade.hed">Built for the people<br/>who <em>pour it</em>.</h2>
+        <p class="lede" data-i18n="trade.lede">We partner with gyms, hotels, restaurants and distributors who want a premium still water that earns its place on the table without inflating the check.</p>
+      </div>
+      <div class="trade-grid">
+        <div class="trade-card reveal"><span class="n">01</span><h3 data-i18n="trade.c1.h">Wholesale pricing</h3><p data-i18n="trade.c1.p">Tiered by monthly volume with no listing fees.</p></div>
+        <div class="trade-card reveal"><span class="n">02</span><h3 data-i18n="trade.c2.h">Cold-chain delivery</h3><p data-i18n="trade.c2.p">Temperature-controlled routes across five Colombian cities.</p></div>
+        <div class="trade-card reveal"><span class="n">03</span><h3 data-i18n="trade.c3.h">Co-branded service</h3><p data-i18n="trade.c3.p">Custom menu cards and branded carafe service for qualifying partners.</p></div>
+        <div class="trade-card reveal"><span class="n">04</span><h3 data-i18n="trade.c4.h">Net-30 terms</h3><p data-i18n="trade.c4.p">30-day invoicing available after the first order cycle.</p></div>
+      </div>
+      <div class="trade-cta reveal">
+        <a class="pill pill-solid lg" href="#contact" data-i18n="trade.ctaDist">Become a distributor →</a>
+        <a class="pill pill-ghost lg" data-wa target="_blank" rel="noopener" data-i18n="trade.ctaWA">WhatsApp us</a>
+      </div>
     </div>
   </section>
 
