@@ -1304,16 +1304,20 @@ main#top { position: relative; z-index: 2; }
 }
 
 .calm-waterfall-video {
-  /* Desktop: a thin vertical "line" of falling water down the centre.
-     Source is 288×576 (1:2 aspect) after rotation+crop — narrower than
-     the original 9:16 framing so it reads as a line connecting trade
-     to impact, not a chunky video panel. At 100vh tall on an 800px
-     viewport that's a 400px-wide column — small enough to feel like
-     a thread, large enough to read the droplet detail. */
-  height: 100vh;
-  width: auto;
-  aspect-ratio: 1 / 2;
-  max-width: 100vw;
+  /* Desktop: a full-width horizontal BAND that the water unfolds
+     through as the user scrolls — the visual translation of the
+     user's "line connecting trade to impact" diagram. Source is
+     820×380 (~41:19 ≈ 2.16:1 aspect) after rotation+crop, so when
+     displayed at 100vw the band's height is auto-derived from the
+     aspect ratio: ~46vh on a 1456×786 viewport. Dark surrounds
+     above and below match var(--bg-d), so the band reads as a
+     horizontal slice cut into the dark page — water entering at
+     the top of the band, droplets falling through, exiting at
+     the bottom. */
+  width: 100vw;
+  height: auto;
+  aspect-ratio: 820 / 380;
+  max-height: 100vh;
   object-fit: cover;
   display: block;
   /* Promote to its own GPU layer so scrubbing is buttery smooth on
@@ -1322,15 +1326,19 @@ main#top { position: relative; z-index: 2; }
   will-change: transform;
 }
 
-/* Soft radial vignette hides the seam where the video edge meets the
-   dark page background, so the column looks like it's emerging from
-   the void rather than sitting on top of it. */
+/* Soft vignette hides the seams where the band's edges meet the
+   dark page above/below and to the left/right, so the band looks
+   like a horizontal slice of water cut into the void rather than
+   a video pasted on top. Stronger fade on the horizontal edges
+   (top + bottom of band) so the water visually "drips into" the
+   surrounding dark, while keeping the central action crisp. */
 .calm-waterfall-vignette {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 80% at 50% 50%, transparent 50%, var(--bg-d, #0E0C08) 95%);
+    linear-gradient(180deg, var(--bg-d, #0E0C08) 0%, transparent 12%, transparent 88%, var(--bg-d, #0E0C08) 100%),
+    linear-gradient(90deg,  var(--bg-d, #0E0C08) 0%, transparent  6%, transparent 94%, var(--bg-d, #0E0C08) 100%);
 }
 
 /* Headline splash pulse: when the water "lands" (progress 0.85 → 1.0),
@@ -1388,7 +1396,7 @@ main#top { position: relative; z-index: 2; }
   .calm-waterfall-stage {
     background:
       var(--bg-d, #0E0C08)
-      url('assets/water-falling-poster.jpg?v=2')
+      url('assets/water-falling-poster.jpg?v=3')
       center / contain
       no-repeat;
   }
