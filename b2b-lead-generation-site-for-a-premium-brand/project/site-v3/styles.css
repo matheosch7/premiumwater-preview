@@ -1278,15 +1278,11 @@ main#top { position: relative; z-index: 2; }
      adds no extra "stuck on cascade" scroll travel. */
   height: var(--waterfall-runway, 100vh);
   padding: 0;
-  /* Negative top margin pulls the band up into the trade section's
-     bottom padding area, so the cascade starts right after the trade
-     CTAs instead of sitting below ~140px of dark padding. The trade
-     section's internal layout (cards + CTAs + breathing room) is
-     unchanged — we just overlap the band onto its tail.
-     The mask-image vertical fade on the video itself (top 18% fades
-     from transparent to opaque) means the cascade emerges gently as
-     it overlaps trade rather than slamming up against the CTAs. */
-  margin: -160px 0 0 0;
+  /* Aggressive negative top margin pulls the band high enough that
+     even the mask's transparent top fade zone is overlapping trade's
+     bottom padding — so the cascade's *visible* top edge sits right
+     against the trade CTAs, not below a strip of dead space. */
+  margin: -300px 0 0 0;
   overflow: visible;
 }
 
@@ -1336,23 +1332,23 @@ main#top { position: relative; z-index: 2; }
      page rather than a video panel sitting on top. Sends the
      cascade visually back a layer. */
   mix-blend-mode: screen;
-  /* Soft mask on top/bottom edges so the video doesn't read as a
-     boxed video element with hard horizontal cuts. The top 18% and
-     bottom 18% fade to transparent, blending the cascade into the
-     dark sections above (#trade end) and below (#impact start). */
+  /* Tight top/bottom mask feather: ~8% on each end keeps the seams
+     soft (no hard horizontal cut) without wasting visible height on
+     a long transparent fade zone. Combined with screen blend mode,
+     even this short feather reads as a smooth dissolve. */
   -webkit-mask-image: linear-gradient(180deg,
     transparent 0%,
-    rgba(0,0,0,0.6) 6%,
-    #000 18%,
-    #000 82%,
-    rgba(0,0,0,0.6) 94%,
+    rgba(0,0,0,0.5) 3%,
+    #000 8%,
+    #000 92%,
+    rgba(0,0,0,0.5) 97%,
     transparent 100%);
           mask-image: linear-gradient(180deg,
     transparent 0%,
-    rgba(0,0,0,0.6) 6%,
-    #000 18%,
-    #000 82%,
-    rgba(0,0,0,0.6) 94%,
+    rgba(0,0,0,0.5) 3%,
+    #000 8%,
+    #000 92%,
+    rgba(0,0,0,0.5) 97%,
     transparent 100%);
   /* Promote to GPU layer for smooth playback */
   transform: translateZ(0);
