@@ -1325,11 +1325,17 @@ main#top { position: relative; z-index: 2; }
   pointer-events: none;
   z-index: 1;
   /* Ramp in via --wf-flow (0.20 → 0.75), ramp out via --wf-land
-     (0.85 → 1.00). The cascade is the atmospheric layer for the
-     middle of the band; it dissolves as the user scrolls past so
-     the real #impact .h-display below takes over the frame. */
-  opacity: calc(var(--wf-flow, 0) * (1 - var(--wf-land, 0)));
+     (0.85 → 1.00). Capped at 0.85 so even at peak the cascade
+     reads as atmosphere, not a solid foreground panel. */
+  opacity: calc(var(--wf-flow, 0) * (1 - var(--wf-land, 0)) * 0.85);
   transition: opacity 200ms linear;
+  /* mix-blend-mode: screen makes the dark portions of the video
+     blend into the page background (black + dark = dark, no change),
+     while the cream cascade highlights additively brighten the
+     surrounding dark — so the water reads as light woven INTO the
+     page rather than a video panel sitting on top. Sends the
+     cascade visually back a layer. */
+  mix-blend-mode: screen;
   /* Soft mask on top/bottom edges so the video doesn't read as a
      boxed video element with hard horizontal cuts. The top 18% and
      bottom 18% fade to transparent, blending the cascade into the
