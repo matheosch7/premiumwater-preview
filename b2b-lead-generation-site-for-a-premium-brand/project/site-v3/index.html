@@ -48,27 +48,11 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=96" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=97" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
-
-<!-- Hidden inline SVG hosting the water-distortion filter applied to the
-     calm-mode water-script headline. Lives once at the top of body so the
-     calm-waterfall-headline can reference it via filter: url(#water-distort).
-     The feTurbulence's `seed` attribute is updated on a slow rAF tick by
-     app.js (updateWaterTurbulence) to give the headline a gentle organic
-     flow. Hidden via 0×0 dimensions; the filter still resolves. -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <filter id="water-distort" x="-10%" y="-10%" width="120%" height="120%">
-      <feTurbulence id="waterTurbulence" type="fractalNoise" baseFrequency="0.012 0.022" numOctaves="2" seed="1" result="turb"/>
-      <feDisplacementMap in="SourceGraphic" in2="turb" scale="6" xChannelSelector="R" yChannelSelector="G" result="disp"/>
-      <feGaussianBlur in="disp" stdDeviation="0.4"/>
-    </filter>
-  </defs>
-</svg>
 
 <!-- ============ cinematic pour stage (fixed, behind everything) ============ -->
 <!-- A single fullscreen stage. Everything is driven by window scroll progress.
@@ -420,28 +404,16 @@
     <div class="calm-waterfall-stage">
 
       <!-- Veo3-generated cinematic cream cascade. Plays continuously
-           via autoplay+loop+muted (silent video, allowed by all browsers).
-           The video provides the atmospheric water layer; the Allura
-           headline overlay below sits on top via --text-reveal mask.
-           Opacity tied to var(--wf-flow) so the cascade fades in/out
-           with scroll, keeping the video itself running for visual
-           continuity. -->
+           via autoplay+loop+muted. As the user scrolls past the band,
+           --wf-flow fades the cascade out, revealing the real
+           #impact .h-display headline (the one already in the page
+           with the splash pulse on --wf-land). No duplicate overlay —
+           the existing headline IS the headline. -->
       <video class="calm-waterfall-cascade-video" id="calmCascadeVideo"
              src="assets/water-cascade.mp4?v=1"
              poster="assets/water-cascade-poster.jpg?v=1"
              autoplay loop muted playsinline preload="auto"
              disablePictureInPicture aria-hidden="true"></video>
-
-      <!-- Overlay headline — Allura script with SVG water-distort filter
-           applied for the glassy refractive look. Reveal driven by
-           --text-reveal (set by updateWaterfall()): a radial mask grows
-           from the splash impact point so the headline appears to be
-           drawn by the cascade itself. aria-hidden because the real
-           headline lives in #impact .h-display below and is read by
-           assistive tech. -->
-      <div class="calm-waterfall-headline" aria-hidden="true">
-        <h2 class="calm-waterfall-headline__text" data-i18n-html="impact.hed">One liter in,<br/>one liter <em>forward</em>.</h2>
-      </div>
     </div>
   </section>
 
@@ -603,6 +575,6 @@
   <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12.04 2.5c-5.25 0-9.5 4.25-9.5 9.5 0 1.67.44 3.3 1.27 4.75L2.5 21.5l4.9-1.28a9.48 9.48 0 0 0 4.64 1.19c5.25 0 9.5-4.25 9.5-9.5s-4.25-9.41-9.5-9.41zm5.55 13.45c-.24.67-1.39 1.28-1.93 1.32-.5.03-1.13.05-1.82-.11-.42-.1-.96-.27-1.65-.57-2.9-1.26-4.8-4.18-4.95-4.38-.14-.2-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.43.26-.3.58-.37.77-.37l.55.01c.18 0 .42-.07.65.5.24.59.81 2.03.88 2.18.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.18-.32.4-.45.54-.15.15-.31.31-.13.6.18.3.79 1.3 1.7 2.1 1.17 1.04 2.15 1.37 2.44 1.52.3.15.47.13.64-.08.18-.2.74-.86.94-1.16.2-.3.4-.25.67-.15.27.1 1.72.81 2.01.96.3.15.5.22.57.35.07.13.07.77-.17 1.44z"/></svg>
 </a>
 
-<script src="app.js?v=45"></script>
+<script src="app.js?v=46"></script>
 </body>
 </html>

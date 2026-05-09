@@ -908,9 +908,8 @@
   //     --wf-flow, --wf-land, --text-reveal) are written to :root each
   //     scroll tick for declarative styling.
   //   - --wf-land drives the splash pulse on #impact .h-display.
-  const waterStage      = document.getElementById('calmWaterFall');
-  const waterTurbulence = document.getElementById('waterTurbulence');
-  let waterFrameQueued  = false;
+  const waterStage     = document.getElementById('calmWaterFall');
+  let waterFrameQueued = false;
 
   function waterProgress() {
     if (!waterStage) return 0;
@@ -929,7 +928,6 @@
     root.style.removeProperty('--wf-enter');
     root.style.removeProperty('--wf-flow');
     root.style.removeProperty('--wf-land');
-    root.style.removeProperty('--text-reveal');
   }
 
   function updateWaterfall() {
@@ -949,11 +947,6 @@
     root.style.setProperty('--wf-enter',    smoothstep(0.00, 0.20, p).toFixed(4));
     root.style.setProperty('--wf-flow',     smoothstep(0.20, 0.75, p).toFixed(4));
     root.style.setProperty('--wf-land',     smoothstep(0.85, 1.00, p).toFixed(4));
-    // Headline reveal on the overlay inside the band: starts at the
-    // splash moment (~0.33 of scroll progress, when the cascade is at
-    // peak intensity) and completes by 0.85, leaving a tail before
-    // --wf-land fades the overlay out as the band exits.
-    root.style.setProperty('--text-reveal', smoothstep(0.33, 0.85, p).toFixed(4));
   }
 
   function rafUpdateWaterfall() {
@@ -963,24 +956,6 @@
       waterFrameQueued = false;
       updateWaterfall();
     });
-  }
-
-  // Slow turbulence-seed animator. Updating the <feTurbulence seed>
-  // attribute changes the noise pattern, so the displacement applied
-  // to the water-script headline gently shifts — the strokes look
-  // like they're flowing rather than being a static distortion. A
-  // ~120ms cadence is fine; faster strobes the text uncomfortably.
-  // Skipped under reduced motion (filter is disabled by CSS too).
-  let turbSeed = 1;
-  function updateWaterTurbulence() {
-    if (!waterTurbulence) return;
-    if (reducedMotion) return;
-    if (root.getAttribute('data-brand') !== 'calm') return;
-    turbSeed = (turbSeed + 1) % 999;
-    waterTurbulence.setAttribute('seed', turbSeed);
-  }
-  if (waterTurbulence && !reducedMotion) {
-    setInterval(updateWaterTurbulence, 120);
   }
 
   window.addEventListener('scroll', rafUpdateWaterfall, { passive: true });
