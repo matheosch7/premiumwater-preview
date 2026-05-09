@@ -929,6 +929,7 @@
     root.style.removeProperty('--wf-enter');
     root.style.removeProperty('--wf-flow');
     root.style.removeProperty('--wf-land');
+    root.style.removeProperty('--text-reveal');
   }
 
   function updateWaterfall() {
@@ -953,6 +954,12 @@
     root.style.setProperty('--wf-enter',    smoothstep(0.00, 0.20, p).toFixed(4));
     root.style.setProperty('--wf-flow',     smoothstep(0.20, 0.75, p).toFixed(4));
     root.style.setProperty('--wf-land',     smoothstep(0.85, 1.00, p).toFixed(4));
+    // Headline reveal on the overlay inside the band: starts at the
+    // splash moment (~0.30 of scroll progress, matching the Blender
+    // render's splash frame) and completes by ~0.85, leaving a small
+    // tail before --wf-land fades the overlay out. Tuned to feel like
+    // the water trails are drawing the letterforms in real time.
+    root.style.setProperty('--text-reveal', smoothstep(0.30, 0.85, p).toFixed(4));
   }
 
   function rafUpdateWaterfall() {

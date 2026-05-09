@@ -1341,6 +1341,68 @@ main#top { position: relative; z-index: 2; }
     linear-gradient(90deg,  var(--bg-d, #0E0C08) 0%, transparent  6%, transparent 94%, var(--bg-d, #0E0C08) 100%);
 }
 
+/* Overlay headline — duplicate of #impact .h-display, positioned where
+   the Blender water trails LAND in the band. The reveal mask grows
+   from the splash impact point so the headline appears to be drawn
+   by the water itself. Choreography:
+
+     --text-reveal:  0 → 1 over scroll progress 0.30 → 0.85 (set by JS)
+     splashpoint:    50% horizontally, 60% vertically of the band
+     mask:           radial circle that grows from splashpoint outward,
+                     covering the headline as the water trails would draw it.
+
+   Once the user scrolls past the band, the overlay fades and the real
+   #impact .h-display takes over (fully accessible HTML headline).
+*/
+.calm-waterfall-headline {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;        /* sit at the bottom of the band */
+  justify-content: center;
+  padding: 0 6vw 8vh 6vw;       /* breathe in from the band edges */
+  pointer-events: none;
+  z-index: 2;
+  /* Fade out as user scrolls past the transition so the real #impact
+     headline below reads cleanly without a ghost. */
+  opacity: clamp(0, calc(1 - (var(--wf-land, 0) - 0.6) * 5), 1);
+}
+.calm-waterfall-headline__text {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: clamp(44px, 5.5vw, 84px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+  text-align: center;
+  margin: 0;
+  max-width: 1200px;
+  /* Reveal mask: start of band → text invisible. As scroll progresses,
+     the mask circle expands from the splash point and uncovers the
+     headline. By --text-reveal=1 the whole headline is visible. */
+  --reveal: var(--text-reveal, 0);
+  --splash-x: 50%;
+  --splash-y: 60%;
+  -webkit-mask-image: radial-gradient(
+    circle at var(--splash-x) var(--splash-y),
+    #000 calc(var(--reveal) * 110%),
+    transparent calc(var(--reveal) * 110% + 8%)
+  );
+          mask-image: radial-gradient(
+    circle at var(--splash-x) var(--splash-y),
+    #000 calc(var(--reveal) * 110%),
+    transparent calc(var(--reveal) * 110% + 8%)
+  );
+}
+/* Match the calm-mode italic-gold treatment on "forward" so the
+   overlay reads identical to the real #impact headline. */
+.calm-waterfall-headline__text em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+}
+
 /* Headline splash pulse: when the water "lands" (progress 0.85 → 1.0),
    pulse the impact headline subtly — brightness up + 1.02× scale —
    to suggest the drop hitting the words. Reversible by scroll because
@@ -1380,6 +1442,12 @@ main#top { position: relative; z-index: 2; }
     background:
       radial-gradient(140% 100% at 50% 50%, transparent 60%, var(--bg-d, #0E0C08) 100%);
   }
+  .calm-waterfall-headline {
+    padding: 0 5vw 12vh 5vw;
+  }
+  .calm-waterfall-headline__text {
+    font-size: clamp(38px, 8vw, 64px);
+  }
 }
 
 /* Reduced motion: hide the video, show the static poster as the stage
@@ -1406,6 +1474,12 @@ main#top { position: relative; z-index: 2; }
     transform: none;
     filter: none;
     transition: none;
+  }
+  /* Reduced motion: hide the overlay headline entirely so it doesn't
+     duplicate the real impact headline below. The transition becomes
+     a quiet poster fade with no scroll-driven reveal. */
+  .calm-waterfall-headline {
+    display: none;
   }
 }
 
