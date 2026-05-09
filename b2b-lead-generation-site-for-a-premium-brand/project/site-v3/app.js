@@ -955,11 +955,12 @@
     root.style.setProperty('--wf-flow',     smoothstep(0.20, 0.75, p).toFixed(4));
     root.style.setProperty('--wf-land',     smoothstep(0.85, 1.00, p).toFixed(4));
     // Headline reveal on the overlay inside the band: starts at the
-    // splash moment (~0.30 of scroll progress, matching the Blender
-    // render's splash frame) and completes by ~0.85, leaving a small
-    // tail before --wf-land fades the overlay out. Tuned to feel like
-    // the water trails are drawing the letterforms in real time.
-    root.style.setProperty('--text-reveal', smoothstep(0.30, 0.85, p).toFixed(4));
+    // splash moment (0.33 = frame 60 of 180 in the Blender render —
+    // the actual frame the drop hits the obstacle plate) and completes
+    // by 0.85, leaving a tail before --wf-land fades the overlay out.
+    // Tuned so the HTML overlay headline reveal syncs to the visible
+    // splash in the water-trails video.
+    root.style.setProperty('--text-reveal', smoothstep(0.33, 0.85, p).toFixed(4));
   }
 
   function rafUpdateWaterfall() {

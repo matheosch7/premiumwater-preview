@@ -1469,7 +1469,7 @@ main#top { position: relative; z-index: 2; }
   .calm-waterfall-stage {
     background:
       var(--bg-d, #0E0C08)
-      url('assets/water-falling-poster.jpg?v=3')
+      url('assets/water-trails-poster.jpg?v=1')
       center / contain
       no-repeat;
   }
