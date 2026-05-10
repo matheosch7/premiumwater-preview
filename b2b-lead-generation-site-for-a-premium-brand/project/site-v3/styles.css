@@ -1319,10 +1319,10 @@ main#top { position: relative; z-index: 2; }
   object-fit: cover;
   pointer-events: none;
   z-index: 1;
-  /* Ramp in via --wf-flow (0.20 → 0.75), ramp out via --wf-land
-     (0.85 → 1.00). Capped at 0.85 so even at peak the cascade
-     reads as atmosphere, not a solid foreground panel. */
-  opacity: calc(var(--wf-flow, 0) * (1 - var(--wf-land, 0)) * 0.85);
+  /* Ramp in via --wf-flow, ramp out via --wf-land. Capped at 0.55
+     so the cascade reads as ambient water-light dissolving into
+     the page rather than a distinct foreground band. */
+  opacity: calc(var(--wf-flow, 0) * (1 - var(--wf-land, 0)) * 0.55);
   transition: opacity 200ms linear;
   /* mix-blend-mode: screen makes the dark portions of the video
      blend into the page background (black + dark = dark, no change),
@@ -1331,24 +1331,28 @@ main#top { position: relative; z-index: 2; }
      page rather than a video panel sitting on top. Sends the
      cascade visually back a layer. */
   mix-blend-mode: screen;
-  /* Tight top/bottom mask feather: ~8% on each end keeps the seams
-     soft (no hard horizontal cut) without wasting visible height on
-     a long transparent fade zone. Combined with screen blend mode,
-     even this short feather reads as a smooth dissolve. */
+  /* Wider mask feather: ~20% on each end so the cascade dissolves
+     gradually into the dark page rather than having a clear band
+     edge. Combined with the lower opacity cap and screen blend
+     mode, the cascade reads as ambient water-light woven into
+     the dark sections rather than a distinct foreground panel. */
   -webkit-mask-image: linear-gradient(180deg,
     transparent 0%,
-    rgba(0,0,0,0.5) 3%,
-    #000 8%,
-    #000 92%,
-    rgba(0,0,0,0.5) 97%,
+    rgba(0,0,0,0.4) 6%,
+    #000 20%,
+    #000 80%,
+    rgba(0,0,0,0.4) 94%,
     transparent 100%);
           mask-image: linear-gradient(180deg,
     transparent 0%,
-    rgba(0,0,0,0.5) 3%,
-    #000 8%,
-    #000 92%,
-    rgba(0,0,0,0.5) 97%,
+    rgba(0,0,0,0.4) 6%,
+    #000 20%,
+    #000 80%,
+    rgba(0,0,0,0.4) 94%,
     transparent 100%);
+  /* Soft blur sends the cascade visually further back — reads as
+     atmosphere/depth rather than crisp foreground footage. */
+  filter: blur(0.5px);
   /* Promote to GPU layer for smooth playback */
   transform: translateZ(0);
   will-change: opacity;
