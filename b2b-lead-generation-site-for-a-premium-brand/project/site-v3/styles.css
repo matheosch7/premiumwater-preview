@@ -1258,43 +1258,48 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
   .marquee-track { animation: none !important; }
 }
 
-/* Mobile: keep the scroll-scrubbed video, but shift its focal point
-   UP so the bottle (and its "Premium Water - Colombia" label) sits in
-   the TOP half of the viewport instead of dead-centre. The hero copy
-   is bottom-aligned via flex on .hero, so without this the headline
-   "intention." printed directly on top of the bottle label. */
+/* Mobile: zoom OUT the scroll-scrubbed video so the full pour
+   composition fits the viewport — instead of cover-cropping the
+   bottle tight to the edges, contain shows the entire frame and
+   the cine-stage's dark background fills the letterbox area.
+   Result: the bottle reads as a composed product shot in the
+   upper portion of the screen, with the bottom remaining a clean
+   dark band for the hero copy. */
 @media (max-width: 900px) {
-  /* For a video whose intrinsic aspect ratio is close to the portrait
-     viewport's, object-fit: cover leaves no vertical crop room — so
-     object-position alone can't shift the bottle. Scale the video
-     up slightly to create vertical bleed, then anchor the TOP of the
-     content so the bottle's neck/body fills the upper viewport and
-     the lower section is dark glass + cine-grade overlay where the
-     copy reads. */
   .cine-video {
-    transform: scale(1.25) translateY(-9vh);
-    transform-origin: center top;
+    /* contain = letterbox the full video frame without cropping.
+       Anchor it to the top so the bottle sits in the upper half and
+       the (now darker) lower half is reserved for the hero copy. */
+    object-fit: contain;
     object-position: center top;
+    /* Slight push down from the very edge so the video isn't kissing
+       the nav. */
+    padding-top: 4vh;
+    /* Cap the rendered height so even on tall viewports the video
+       doesn't stretch into the copy area. */
+    height: 62vh;
+    bottom: auto;
   }
-  /* Match the poster (shown briefly before video metadata + during
-     the deferred-preload window) to the same focal point so the
-     pre-video paint doesn't jump when the video kicks in. */
+  /* Match the poster (shown during the deferred-preload window on
+     phones) to the same framing so the pre-video paint doesn't jump
+     when the video kicks in. */
   .cine-static {
+    background-size: contain;
+    background-repeat: no-repeat;
     background-position: center top;
   }
-  /* Stronger bottom-darkening over the cine-stage so the hero copy
-     row at the bottom of the viewport is always legible regardless
-     of which video frame is on screen. Starts darkening at ~45% from
-     the top and reaches near-black at the bottom — the bottle's
-     focal area stays bright in the top half. */
+  /* Strong bottom-darkening so the hero copy row at the bottom of
+     the viewport is always legible — the bottle's focal area stays
+     bright in the top 60% of the screen, the bottom fades to near-
+     black where the headline + lede + CTAs sit. */
   .cine-grade {
     background:
       linear-gradient(180deg,
         transparent 0%,
-        transparent 45%,
+        transparent 50%,
         rgba(0,0,0,0.55) 75%,
-        rgba(0,0,0,0.85) 100%),
-      radial-gradient(ellipse 100% 80% at 50% 35%, transparent 50%, rgba(0,0,0,0.30) 100%);
+        rgba(0,0,0,0.92) 100%),
+      radial-gradient(ellipse 100% 70% at 50% 30%, transparent 55%, rgba(0,0,0,0.25) 100%);
   }
 }
 .cine-grade {
