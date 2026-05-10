@@ -1258,58 +1258,68 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
   .marquee-track { animation: none !important; }
 }
 
-/* Mobile: zoom OUT the scroll-scrubbed video so the full pour
-   composition fits the viewport — instead of cover-cropping the
-   bottle tight to the edges, contain shows the entire frame and
-   the cine-stage's deep-green backdrop fills the letterbox area.
-   The lower half blends into the bottle's studio green so the hero
-   copy reads against the SAME palette as the video, not a black
-   slab. */
+/* Mobile: full-viewport video with the hero copy overlaid on top,
+   anchored to the top-left. No gap, no separate slab — the video is
+   the background and the headline + lede + CTAs sit on top of it from
+   the very first paint.
+
+   Readability against the moving video is handled by:
+     - a soft top + bottom vignette in .cine-grade (nav area + CTA
+       area get the darkest treatment, mid-viewport stays clean)
+     - strong text-shadow on .hero-copy so each glyph carries its own
+       contrast no matter which scrub frame is behind it. */
 @media (max-width: 900px) {
+  /* Reset: video and poster fill the viewport edge-to-edge with no
+     letterbox, no transform, no scale. */
   .cine-video {
-    object-fit: contain;
-    object-position: center top;
-    padding-top: 4vh;
-    height: 62vh;
-    bottom: auto;
+    object-fit: cover;
+    object-position: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    transform: none;
+    bottom: 0;
   }
   .cine-static {
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
-    background-position: center top;
+    background-position: center;
   }
-  /* Solid green base behind the video on mobile so the area below
-     the contain-letterboxed video matches the video's studio-green
-     backdrop instead of looking like an empty black band. Values
-     match the cine-bg gradient mid-tone (#1f3228 / "studio forest"). */
-  .cine-stage {
-    background: #1A2D24;
-  }
+  /* Drop the green-slab overrides — the video covers the whole hero
+     so the cine-stage background is rarely visible. Keep a neutral
+     dark fallback only for the milliseconds before the poster loads. */
+  .cine-stage { background: #0E1A14; }
   .cine-bg {
     background:
       radial-gradient(ellipse 100% 80% at 50% 40%, rgba(255,255,255,0.04) 0%, transparent 55%),
-      linear-gradient(180deg, #1A2D24 0%, #1F3228 55%, #18261F 100%);
+      linear-gradient(180deg, #0e1a14 0%, #1f3228 45%, #0c1710 100%);
   }
-  /* Vignette grade now fades to deep green at the bottom (not black)
-     so the seam between video and copy area is invisible — same
-     palette as the bottle's studio backdrop. */
+  /* Minimal vignette: dark band at the very top (so nav + the hero
+     copy that sits just under it read cleanly) and a softer dark
+     band at the bottom (so the CTAs sit on shadow). Middle stays
+     clean so the bottle is unobstructed. */
   .cine-grade {
     background:
       linear-gradient(180deg,
-        transparent 0%,
-        transparent 55%,
-        rgba(20, 36, 28, 0.55) 75%,
-        rgba(14, 26, 20, 0.92) 100%),
-      radial-gradient(ellipse 100% 70% at 50% 30%, transparent 55%, rgba(14, 26, 20, 0.25) 100%);
+        rgba(0,0,0,0.55) 0%,
+        rgba(0,0,0,0.20) 28%,
+        transparent 50%,
+        transparent 70%,
+        rgba(0,0,0,0.45) 100%);
   }
-  /* Re-anchor the hero copy to the TOP of the .hero block instead of
-     the bottom. Combined with padding-top: 66vh, the headline + lede
-     + CTAs land just below the 62vh video + 4vh top breathing room,
-     so the text starts where the eye lands after scanning the video
-     instead of sitting flush at the viewport bottom. */
+  /* Hero copy: anchored top-left, visible immediately on landing. */
   .hero {
     align-items: flex-start;
-    padding: 66vh 24px 56px;
+    padding: 96px 24px 56px;
+    text-align: left;
+  }
+  .hero-copy {
+    /* Heavy multi-layer shadow so the copy reads against any frame
+       behind it without needing a separate dark backdrop. */
+    text-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.9),
+      0 4px 18px rgba(0, 0, 0, 0.8),
+      0 0 2px rgba(0, 0, 0, 0.95);
   }
 }
 .cine-grade {
