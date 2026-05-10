@@ -431,10 +431,10 @@ p { margin: 0; }
   text-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
 @media (max-width: 900px) {
-  .river { width: 28px; }
-  .river-label { font-size: 8px; letter-spacing: 0.3em; }
-  .side-badge { right: 36px; }
-  main { padding-right: 28px; }
+  /* River + side-badge are hidden globally now — no mobile-specific
+     sizing needed. main padding stays 0 so content fills the
+     viewport edge-to-edge on phones too. */
+  main { padding-right: 0; }
 }
 
 /* scroll prompt */
@@ -465,7 +465,22 @@ p { margin: 0; }
 }
 
 /* ============ CONTENT LAYERS ============ */
-main { position: relative; z-index: 5; padding-right: 56px; }
+/* No padding-right — the right-edge ornaments (.river, .side-badge)
+   are hidden in both modes (see overrides below), so there's no
+   sidebar to reserve space for. Page content uses the full viewport
+   width. */
+main { position: relative; z-index: 5; padding-right: 0; }
+
+/* Hide the right-edge ornaments in BOTH brand modes. Previously the
+   river + PW badge were a calm-mode design element, but the gap they
+   created on the right (and the empty space they left in bold mode
+   where they were already hidden) read as wasted real estate rather
+   than ornament. Display:none collapses them entirely so no padding
+   reservation is needed. */
+.river,
+.side-badge {
+  display: none !important;
+}
 
 .hero {
   min-height: 100vh;
