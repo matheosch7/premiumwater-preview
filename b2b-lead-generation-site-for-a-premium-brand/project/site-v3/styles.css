@@ -2857,9 +2857,18 @@ html[data-brand="bold"],
   [data-brand="bold"] .bold-trade-reveal { display: none !important; }
 }
 @media (max-width: 540px) {
-  [data-brand="bold"] .hero-title { font-size: clamp(56px, 14vw, 96px); }
-  [data-brand="bold"] .h-display { font-size: clamp(40px, 11vw, 72px); }
-  [data-brand="bold"] .stats em { font-size: clamp(48px, 14vw, 80px); }
+  /* Smooth bold-mode title scaling on small phones.
+     Previously the 540px override gave clamp(56px, 14vw, 96px) — which
+     produced ~75px at a 540px viewport while the default desktop rule
+     above 540 (now clamp(52px, 6.6vw, 108px) after the recent desktop
+     bump) gave only 52px. Going from a wider phone (600px) to a narrower
+     one (540px), the title got BIGGER — a pre-existing inversion that
+     the desktop font bump made worse. The new caps align with the
+     desktop minimum so the size monotonically shrinks as the viewport
+     narrows. */
+  [data-brand="bold"] .hero-title { font-size: clamp(40px, 11vw, 56px); }
+  [data-brand="bold"] .h-display { font-size: clamp(36px, 9vw, 56px); }
+  [data-brand="bold"] .stats em { font-size: clamp(44px, 13vw, 68px); }
   /* Trade cards: drop to a single column at narrow phone widths — at
      320–375px the 2-col layout cramps Anton numerals + headline + para
      into ~140px each. */
