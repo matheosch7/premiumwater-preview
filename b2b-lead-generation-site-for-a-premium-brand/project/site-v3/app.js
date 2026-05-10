@@ -695,6 +695,28 @@
       });
     }, { rootMargin: '200px 0px 200px 0px', threshold: 0.01 });
     sections.forEach(s => sIo.observe(s));
+
+    // Tight headline trigger: the section-wide IO above fires 200px BEFORE
+    // the section enters viewport, which is intentional for the cascade
+    // stagger but means a long entrance animation has already played by
+    // the time the user actually scrolls there. The bold-mode story and
+    // product headlines need their dramatic intro to fire WHEN the user
+    // sees them — so we observe those .h-display elements directly with
+    // a negative rootMargin, and add `.h-revealed` only when the headline
+    // is meaningfully in the visible viewport. The CSS keys the
+    // entrance off this class instead of `.section-in`.
+    const headlines = document.querySelectorAll('#story .h-display, #product .h-display');
+    if (headlines.length) {
+      const hIo = new IntersectionObserver((entries) => {
+        entries.forEach(en => {
+          if (en.isIntersecting) {
+            en.target.classList.add('h-revealed');
+            hIo.unobserve(en.target);
+          }
+        });
+      }, { rootMargin: '-12% 0px -12% 0px', threshold: 0.01 });
+      headlines.forEach(h => hIo.observe(h));
+    }
   }
 
   // Bold-mode word stagger: wrap every word inside .h-display in

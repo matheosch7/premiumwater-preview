@@ -2834,19 +2834,25 @@ html[data-brand="bold"],
    ~60ms after the previous) but the motion is horizontal so the
    header reads as "swept in from the side." Overflow on .b-word is
    set to visible so the X-translation isn't clipped by the Y-axis
-   word mask. */
+   word mask.
+
+   Trigger: `.h-display.h-revealed` — added by the dedicated headline
+   IntersectionObserver in app.js when the headline is actually in
+   the user's viewport (negative rootMargin), NOT the section-wide
+   `.section-in` (which fires 200px early and would let the animation
+   complete before the user gets there). */
 :root[data-brand="bold"] #story .h-display .b-word {
   overflow: visible;
 }
 :root[data-brand="bold"] #story .h-display .b-word > span {
-  transform: translateX(-80px);
+  transform: translateX(-100px);
   opacity: 0;
   transition:
-    transform 760ms cubic-bezier(.18, 1.18, .35, 1),
-    opacity 600ms ease;
-  transition-delay: calc(var(--b-word-i, 0) * 70ms + 220ms);
+    transform 820ms cubic-bezier(.18, 1.18, .35, 1),
+    opacity 640ms ease;
+  transition-delay: calc(var(--b-word-i, 0) * 80ms + 120ms);
 }
-:root[data-brand="bold"] #story.section-in .h-display .b-word > span {
+:root[data-brand="bold"] #story .h-display.h-revealed .b-word > span {
   transform: none;
   opacity: 1;
 }
@@ -2856,16 +2862,20 @@ html[data-brand="bold"],
    unit. Words on the same line share a transition-delay so they
    appear simultaneously (no per-word ripple). The reveal is much
    more dramatic than the default Y-clip stagger:
-     - Initial: scale(0.55) + translateY(36px) + opacity 0  ← small,
+     - Initial: scale(0.45) + translateY(50px) + opacity 0  ← tiny,
        low, invisible
      - Final:   scale(1) + translateY(0) + opacity 1
      - Easing:  cubic-bezier(.34, 1.56, .64, 1) — overshoots past 1
        and settles, giving the "snap" / "punch" feel.
 
-   Beat 1 (delay 220ms): "Three sizes,"  — direct .b-word children of
+   Beat 1 (delay 100ms): "Three sizes,"  — direct .b-word children of
                                             .h-display
-   Beat 2 (delay 760ms): "one volume."   — .b-word descendants inside
+   Beat 2 (delay 640ms): "one volume."   — .b-word descendants inside
                                             <em>
+
+   Trigger: `.h-display.h-revealed` (NOT `.section-in`) — added by the
+   dedicated headline IO in app.js with a negative rootMargin so the
+   punch fires when the headline is actually in the viewport.
 
    .b-word's overflow is set to visible because the scale > 1 phase
    of the back-out easing momentarily makes the word larger than its
@@ -2875,23 +2885,23 @@ html[data-brand="bold"],
 }
 :root[data-brand="bold"] #product .h-display .b-word > span {
   display: inline-block;
-  transform: scale(0.55) translateY(36px);
+  transform: scale(0.45) translateY(50px);
   opacity: 0;
   transform-origin: 50% 80%;
   transition:
-    transform 720ms cubic-bezier(.34, 1.56, .64, 1),
-    opacity 460ms ease-out;
-  /* Default delay for ALL #product words = first-line delay (220ms).
+    transform 780ms cubic-bezier(.34, 1.56, .64, 1),
+    opacity 480ms ease-out;
+  /* Default delay for ALL #product words = first-line delay (100ms).
      This overrides the inherited per-word `calc(var(--b-word-i)*80ms+200ms)`
      so the line behaves as one block. */
-  transition-delay: 220ms;
+  transition-delay: 100ms;
 }
-/* Beat 2: second line (everything inside <em>) lands 540ms after
+/* Beat 2: second line (everything inside <em>) lands ~540ms after
    beat 1 — long enough that the eye registers two distinct hits. */
 :root[data-brand="bold"] #product .h-display em .b-word > span {
-  transition-delay: 760ms;
+  transition-delay: 640ms;
 }
-:root[data-brand="bold"] #product.section-in .h-display .b-word > span {
+:root[data-brand="bold"] #product .h-display.h-revealed .b-word > span {
   transform: scale(1) translateY(0);
   opacity: 1;
 }
