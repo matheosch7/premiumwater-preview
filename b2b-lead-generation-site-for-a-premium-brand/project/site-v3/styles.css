@@ -2242,13 +2242,23 @@ html[data-brand="bold"],
    screens the bottle reverts to in-flow placement — bold-mode hero stays
    typographic, photo simply renders below copy at natural width. */
 @media (max-width: 900px) {
-  [data-brand="bold"] .bold-hero-photo {
-    position: static;
-    transform: none;
+  /* Hard mobile reset — beats higher-specificity rules
+     (`:root[data-brand="bold"].bold-entrance-playing .bold-hero-photo`,
+     `[data-rb-state="hidden"]`) so neither the entrance keyframe nor any
+     scroll-driven inline style can move the bottle on phones. The bottle
+     is a static element in the hero — no fixed positioning, no
+     transforms, no animations, no scroll coupling. */
+  [data-brand="bold"] .bold-hero-photo,
+  :root[data-brand="bold"].bold-entrance-playing .bold-hero-photo,
+  [data-brand="bold"] .bold-hero-photo[data-rb-state="hidden"] {
+    position: static !important;
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
     width: 100%;
-    max-width: 480px;
+    max-width: 360px;
     margin: 0 auto;
-    transition: opacity 240ms ease;
+    transition: none;
   }
 }
 
@@ -2834,6 +2844,17 @@ html[data-brand="bold"],
      the page at z-index:60. */
   [data-brand="bold"] .bold-zoom-zone { display: none; }
   [data-brand="bold"] .bold-can-half { display: none; }
+  /* Per-section giant outline words ("STORY", "TRADE", etc.) drift
+     vertically on scroll via JS-set --bsb-y. On phones they overflow
+     horizontally and the parallax reads as random text floating around
+     the page. Kill them so each section is just headline + body. */
+  [data-brand="bold"] .bold-section-backdrop { display: none !important; }
+  /* Floating brand-red particles — decorative on desktop, distracting
+     on a phone where they drift through copy. */
+  [data-brand="bold"] .bold-hero-particles { display: none !important; }
+  /* Trade-section reveal panel is part of the can-split choreography —
+     belongs with the desktop-only pieces hidden above. */
+  [data-brand="bold"] .bold-trade-reveal { display: none !important; }
 }
 @media (max-width: 540px) {
   [data-brand="bold"] .hero-title { font-size: clamp(56px, 14vw, 96px); }
