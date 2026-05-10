@@ -911,6 +911,11 @@
     cineStage.style.opacity = opacity;
     const isVisible = opacity > 0.01;
 
+    // Expose the hero-zone scroll progress on :root so CSS can drive
+    // scroll-tied effects (mobile hero-copy drift / fade) declaratively
+    // without each effect needing its own scroll listener.
+    root.style.setProperty('--hero-scroll', p.toFixed(4));
+
     // Skip currentTime writes when the stage is invisible. This both
     // saves redundant decoder seeks (the user is past the hero and
     // can't see the result) and avoids piling work on the decoder
