@@ -1285,12 +1285,14 @@ main#top { position: relative; z-index: 2; }
   overflow: visible;
 }
 
-/* Seam fix: when our transition sits between two .blocks, kill the
-   adjacent block's top padding (mirrors `.block + .block { padding-top: 0 }`
-   at line ~530). Without this, #impact gets its full 140px top padding
-   back and there's a dark gap between the water releasing and the
-   headline appearing. */
-.calm-water-transition + .block { padding-top: 0; }
+/* Give the impact section a small top padding so once the lifted
+   header descends and lands, there's breathing room above it — the
+   section reads as a properly framed block rather than the headline
+   being jammed against the viewport top. The existing default
+   .block + .block override (.block { padding-top: 0 }) is replaced
+   here with an explicit smaller value, smaller than .block's default
+   140px so the cascade-to-impact transition still feels tight. */
+.calm-water-transition + .block { padding-top: clamp(80px, 10vh, 120px); }
 
 .calm-waterfall-stage {
   position: sticky;
