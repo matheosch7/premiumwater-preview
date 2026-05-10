@@ -1261,45 +1261,55 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
 /* Mobile: zoom OUT the scroll-scrubbed video so the full pour
    composition fits the viewport — instead of cover-cropping the
    bottle tight to the edges, contain shows the entire frame and
-   the cine-stage's dark background fills the letterbox area.
-   Result: the bottle reads as a composed product shot in the
-   upper portion of the screen, with the bottom remaining a clean
-   dark band for the hero copy. */
+   the cine-stage's deep-green backdrop fills the letterbox area.
+   The lower half blends into the bottle's studio green so the hero
+   copy reads against the SAME palette as the video, not a black
+   slab. */
 @media (max-width: 900px) {
   .cine-video {
-    /* contain = letterbox the full video frame without cropping.
-       Anchor it to the top so the bottle sits in the upper half and
-       the (now darker) lower half is reserved for the hero copy. */
     object-fit: contain;
     object-position: center top;
-    /* Slight push down from the very edge so the video isn't kissing
-       the nav. */
     padding-top: 4vh;
-    /* Cap the rendered height so even on tall viewports the video
-       doesn't stretch into the copy area. */
     height: 62vh;
     bottom: auto;
   }
-  /* Match the poster (shown during the deferred-preload window on
-     phones) to the same framing so the pre-video paint doesn't jump
-     when the video kicks in. */
   .cine-static {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center top;
   }
-  /* Strong bottom-darkening so the hero copy row at the bottom of
-     the viewport is always legible — the bottle's focal area stays
-     bright in the top 60% of the screen, the bottom fades to near-
-     black where the headline + lede + CTAs sit. */
+  /* Solid green base behind the video on mobile so the area below
+     the contain-letterboxed video matches the video's studio-green
+     backdrop instead of looking like an empty black band. Values
+     match the cine-bg gradient mid-tone (#1f3228 / "studio forest"). */
+  .cine-stage {
+    background: #1A2D24;
+  }
+  .cine-bg {
+    background:
+      radial-gradient(ellipse 100% 80% at 50% 40%, rgba(255,255,255,0.04) 0%, transparent 55%),
+      linear-gradient(180deg, #1A2D24 0%, #1F3228 55%, #18261F 100%);
+  }
+  /* Vignette grade now fades to deep green at the bottom (not black)
+     so the seam between video and copy area is invisible — same
+     palette as the bottle's studio backdrop. */
   .cine-grade {
     background:
       linear-gradient(180deg,
         transparent 0%,
-        transparent 50%,
-        rgba(0,0,0,0.55) 75%,
-        rgba(0,0,0,0.92) 100%),
-      radial-gradient(ellipse 100% 70% at 50% 30%, transparent 55%, rgba(0,0,0,0.25) 100%);
+        transparent 55%,
+        rgba(20, 36, 28, 0.55) 75%,
+        rgba(14, 26, 20, 0.92) 100%),
+      radial-gradient(ellipse 100% 70% at 50% 30%, transparent 55%, rgba(14, 26, 20, 0.25) 100%);
+  }
+  /* Re-anchor the hero copy to the TOP of the .hero block instead of
+     the bottom. Combined with padding-top: 66vh, the headline + lede
+     + CTAs land just below the 62vh video + 4vh top breathing room,
+     so the text starts where the eye lands after scanning the video
+     instead of sitting flush at the viewport bottom. */
+  .hero {
+    align-items: flex-start;
+    padding: 66vh 24px 56px;
   }
 }
 .cine-grade {
