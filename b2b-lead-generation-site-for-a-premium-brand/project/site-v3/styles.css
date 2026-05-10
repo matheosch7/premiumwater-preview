@@ -2851,25 +2851,57 @@ html[data-brand="bold"],
   opacity: 1;
 }
 
-/* ─── Bold #product headline: snap-in per LINE instead of per word.
-   "Three sizes," lands first as one unit (200ms after section-in),
-   then "one volume." (in <em>) lands ~500ms later — both with a
-   back-out easing for an emphatic "drop" feel. Overrides the default
-   per-word delay calc above via the higher #product specificity. */
+/* ─── Bold #product headline: PUNCH-IN per LINE.
+   Each line of "Three sizes, / one volume." snaps in as a single
+   unit. Words on the same line share a transition-delay so they
+   appear simultaneously (no per-word ripple). The reveal is much
+   more dramatic than the default Y-clip stagger:
+     - Initial: scale(0.55) + translateY(36px) + opacity 0  ← small,
+       low, invisible
+     - Final:   scale(1) + translateY(0) + opacity 1
+     - Easing:  cubic-bezier(.34, 1.56, .64, 1) — overshoots past 1
+       and settles, giving the "snap" / "punch" feel.
+
+   Beat 1 (delay 220ms): "Three sizes,"  — direct .b-word children of
+                                            .h-display
+   Beat 2 (delay 760ms): "one volume."   — .b-word descendants inside
+                                            <em>
+
+   .b-word's overflow is set to visible because the scale > 1 phase
+   of the back-out easing momentarily makes the word larger than its
+   box; with overflow:hidden it would clip. */
+:root[data-brand="bold"] #product .h-display .b-word {
+  overflow: visible;
+}
 :root[data-brand="bold"] #product .h-display .b-word > span {
-  transform: translateY(120%);
-  transition: transform 580ms cubic-bezier(.34, 1.56, .64, 1);
+  display: inline-block;
+  transform: scale(0.55) translateY(36px);
+  opacity: 0;
+  transform-origin: 50% 80%;
+  transition:
+    transform 720ms cubic-bezier(.34, 1.56, .64, 1),
+    opacity 460ms ease-out;
+  /* Default delay for ALL #product words = first-line delay (220ms).
+     This overrides the inherited per-word `calc(var(--b-word-i)*80ms+200ms)`
+     so the line behaves as one block. */
+  transition-delay: 220ms;
 }
-/* First line: words that are direct children of .h-display (no <em>) */
-:root[data-brand="bold"] #product .h-display > .b-word > span {
-  transition-delay: 200ms;
-}
-/* Second line: words inside <em> */
+/* Beat 2: second line (everything inside <em>) lands 540ms after
+   beat 1 — long enough that the eye registers two distinct hits. */
 :root[data-brand="bold"] #product .h-display em .b-word > span {
-  transition-delay: 700ms;
+  transition-delay: 760ms;
 }
 :root[data-brand="bold"] #product.section-in .h-display .b-word > span {
-  transform: none;
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+/* prefers-reduced-motion: skip the punch, just appear */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-brand="bold"] #product .h-display .b-word > span {
+    transform: none;
+    opacity: 1;
+    transition: none;
+  }
 }
 
 /* Trade-card cascade: each card lifts in slightly later than the last */
