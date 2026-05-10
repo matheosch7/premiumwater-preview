@@ -248,8 +248,14 @@
         <a class="pill pill-solid" href="#contact" data-i18n="hero.cta">Get started →</a>
       </div>
     </div>
-    <!-- Bold-mode hero photo (only visible in [data-brand="bold"]). -->
-    <img class="bold-hero-photo" src="assets/bold-frames/02-hero.png?v=2" alt="" decoding="async" />
+    <!-- Bold-mode hero photo (only visible in [data-brand="bold"]).
+         Initial src is frame 0 of the rotation sequence — the current bold
+         product (aluminium can). On desktop the bottle-roadmap JS swaps
+         this img.src through frames bottle_000…bottle_059 as the user
+         scrolls. On mobile the JS bails (CSS pins the can static in the
+         hero), so this initial src is what mobile renders. The legacy
+         bold-frames/02-hero.png shipped an older bottle product. -->
+    <img class="bold-hero-photo" src="assets/bottle-sequence/bottle_000.webp" alt="" decoding="async" />
   </section>
 
   <!-- SPACER to let scene breathe -->
