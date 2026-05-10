@@ -2346,6 +2346,17 @@ html[data-brand="bold"],
 [data-brand="bold"] #trade .section-head .h-display {
   visibility: hidden;
 }
+/* On mobile bold mode the iris-to-trade reveal handoff doesn't run
+   (the floating bottle roadmap + .bold-trade-reveal panel are both
+   hidden under <=900px), so the native eyebrow + headline above
+   become the ONLY trade header. Override the visibility:hidden so
+   the section isn't capped by an empty black slab. */
+@media (max-width: 900px) {
+  [data-brand="bold"] #trade .section-head .eyebrow,
+  [data-brand="bold"] #trade .section-head .h-display {
+    visibility: visible;
+  }
+}
 [data-brand="bold"] #trade .section-head .h-display {
   font-family: 'Anton', sans-serif;
   font-weight: 400;
