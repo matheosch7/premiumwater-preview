@@ -1275,135 +1275,110 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
    Trigger: updateCine() in app.js sets .is-active on the current
    .cine-caption and .is-past on any previously-active captions.
    ============================================================ */
+/* ============================================================
+   Mobile calm-mode hero
+   ----------------------------------------------------------
+   Layout the user settled on:
+   - Video zoomed out (contain), anchored to the TOP of the viewport
+     (object-position: center top), so the empty letterbox sits at
+     the BOTTOM where it can fade into the green stage backdrop.
+   - The bottom ~25% of the video is mask-faded to transparent so
+     the video edge dissolves softly into the surrounding green
+     instead of stopping at a hard color seam.
+   - Hero copy (eyebrow + headline + lede + CTAs) overlaid in the
+     top-left, drifting downward via --hero-scroll as the user
+     scrolls — keeping the headline on screen while the bottle
+     pours, then fading out before the next section.
+   - cine-captions stays display:none on mobile (the multi-act
+     caption reel was rolled back; the hero-copy single block is
+     the narrative).
+   ============================================================ */
 @media (max-width: 900px) {
-  /* Video: zoom OUT (object-fit: contain) so the full pour
-     composition fits the viewport. Letterbox area is the
-     cine-stage's solid studio green. */
   .cine-video {
     object-fit: contain;
-    object-position: center;
+    /* Anchor the video to the top of the viewport. The contain
+       aspect makes the video shorter than the viewport on a
+       portrait phone; pinning it to the top means all the empty
+       letterbox sits at the BOTTOM (a single deterministic gap
+       to blend into the page, instead of split top/bottom). */
+    object-position: center top;
     width: 100%;
     height: 100%;
     padding: 0;
     transform: none;
     bottom: 0;
     background: transparent;
-    -webkit-mask-image: none;
-            mask-image: none;
+    /* Bottom-fade mask: the lower 25% of the video alpha-fades
+       to transparent. The cine-stage's solid green shows through
+       below, so the video's bottom edge dissolves into the page
+       backdrop instead of cutting on a hard seam. (Closest CSS
+       approximation of the "blur the lower part" effect the user
+       asked for — alpha feathering reads visually as a soft
+       transition without needing a true blur filter.) */
+    -webkit-mask-image: linear-gradient(180deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.4) 88%,
+      transparent 100%);
+            mask-image: linear-gradient(180deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.4) 88%,
+      transparent 100%);
   }
   .cine-static {
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center;
+    /* Match the video framing so the pre-video paint doesn't
+       jump when the video kicks in after the deferred preload. */
+    background-position: center top;
+    -webkit-mask-image: linear-gradient(180deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.4) 88%,
+      transparent 100%);
+            mask-image: linear-gradient(180deg,
+      #000 0%,
+      #000 70%,
+      rgba(0, 0, 0, 0.4) 88%,
+      transparent 100%);
   }
-  /* Solid studio-green backdrop. Skipping the gradient + mask
-     experiments — the caption reel above pulls the eye, so the
-     letterbox seam is no longer the focal element. */
+  /* Solid studio-green stage so the area below the faded video
+     edge reads as a continuous green band down to the next
+     section. */
   .cine-stage { background: #1F3228; }
   .cine-bg { background: transparent; }
   .cine-grade { background: none; }
 
-  /* ─── Caption reel ─────────────────────────────────────────── */
+  /* Multi-act caption reel is OFF on mobile — the user prefers
+     the original single-block hero-copy narrative. */
+  .cine-captions { display: none; }
 
-  /* Re-enable the .cine-captions (desktop has them right-centred;
-     on mobile we use a top-left slot above the video letterbox). */
-  .cine-captions {
-    display: block;
-    position: absolute;
-    top: 14vh;
-    left: 24px;
-    right: 24px;
-    max-width: none;
+  /* Hero copy: top-left from the moment of landing, then driven
+     downward by --hero-scroll (written to :root by updateCine()
+     in app.js as the hero zone scroll progresses). The 160vh
+     translation rate outruns the page's own scroll so the text
+     drifts DOWN in viewport even while the page scrolls up — the
+     headline stays on screen for the duration of the pour, then
+     fades out as the cascade approaches the next section. */
+  .hero {
+    align-items: flex-start;
+    padding: 96px 24px 56px;
     text-align: left;
-    transform: none;
-    z-index: 6;
-  }
-  .cine-caption {
-    /* Stack captions on the same slot so transitions cross-overlay. */
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    /* Default = "future" act: below the slot, invisible */
-    opacity: 0;
-    transform: translateY(40vh);
-    transition:
-      opacity 600ms ease,
-      transform 700ms cubic-bezier(.2, .8, .2, 1);
-    will-change: opacity, transform;
-  }
-  /* Active = "current" act: in the slot, fully visible */
-  .cine-caption.is-active {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  /* Past = "already shown" act: above the slot, invisible
-     (translates UP — gives the "leaves from the top of the frame"
-     direction the user asked for). */
-  .cine-caption.is-past {
-    opacity: 0;
-    transform: translateY(-40vh);
-  }
-  .cine-hed {
-    font-size: clamp(40px, 11vw, 64px);
-    line-height: 1.0;
-  }
-  .cine-kicker {
-    font-size: 11px;
-    margin-bottom: 14px;
-  }
-  /* Strong multi-layer text-shadow so the captions read against
-     any video frame without a dark backdrop slab. */
-  .cine-hed,
-  .cine-kicker {
-    text-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.9),
-      0 4px 18px rgba(0, 0, 0, 0.7),
-      0 0 2px rgba(0, 0, 0, 0.95);
-  }
-
-  /* ─── Hero layout: CTAs only ──────────────────────────────── */
-
-  /* Hide the original text portions of .hero-copy — the caption
-     reel above is now the narrative. Keep .hero-actions visible
-     so the "Talk to us" + "Get started →" pills stay reachable
-     in the hero, just above the mobile-sticky-cta bar. */
-  .hero-eyebrow,
-  .hero-title,
-  .hero-lede {
-    display: none;
   }
   .hero-copy {
-    /* Reset any leftover --hero-scroll-driven drift / fade rules
-       from the previous single-block hero implementation. */
-    transform: none;
-    opacity: 1;
-    text-shadow: none;
-    will-change: auto;
+    transform: translateY(calc(var(--hero-scroll, 0) * 160vh));
+    opacity: clamp(0, calc(1 - max(0, var(--hero-scroll, 0) - 0.7) * 3.33), 1);
+    will-change: transform, opacity;
+    text-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.9),
+      0 4px 18px rgba(0, 0, 0, 0.8),
+      0 0 2px rgba(0, 0, 0, 0.95);
   }
-  /* Anchor .hero-copy (now containing only .hero-actions) to the
-     bottom of .hero, with enough padding-bottom to clear the
-     fixed .mobile-sticky-cta bar (~80px including safe-area). */
-  .hero {
-    align-items: flex-end;
-    padding: 96px 24px 110px;
-    text-align: left;
-  }
-  .hero-actions {
-    width: 100%;
-    display: flex;
-    gap: 12px;
-    justify-content: flex-start;
-  }
-
-  /* Reduced-motion: skip the 40vh sweep on caption transitions,
-     keep only the opacity crossfade. */
   @media (prefers-reduced-motion: reduce) {
-    .cine-caption,
-    .cine-caption.is-active,
-    .cine-caption.is-past {
+    .hero-copy {
       transform: none;
-      transition: opacity 400ms ease;
+      opacity: 1;
     }
   }
 
