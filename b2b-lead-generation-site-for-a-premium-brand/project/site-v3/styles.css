@@ -1431,43 +1431,69 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
   display: block;
 }
 
-/* headline captions: crossfade per act; positioned on the RIGHT to avoid hero copy */
-.cine-captions {
-  position: absolute;
-  right: 6vw; top: 50%;
-  transform: translateY(-50%);
-  max-width: 520px;
-  color: var(--cine-ink);
-  text-align: right;
-  pointer-events: none;
+/* Headline captions: crossfade per act; positioned on the RIGHT to
+   avoid hero copy. Desktop-only — on mobile (≤ 900px) the captions
+   become the hero narrative and use a different position/animation
+   (see the mobile block earlier in this file). Wrapping in
+   min-width: 901px so the mobile rules win on source-order tie. */
+@media (min-width: 901px) {
+  .cine-captions {
+    position: absolute;
+    right: 6vw; top: 50%;
+    transform: translateY(-50%);
+    max-width: 520px;
+    color: var(--cine-ink);
+    text-align: right;
+    pointer-events: none;
+  }
+  .cine-caption {
+    position: absolute;
+    top: 0; left: 0;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 700ms ease, transform 700ms cubic-bezier(.2,.7,.2,1);
+    will-change: opacity, transform;
+  }
+  .cine-caption.is-active { opacity: 1; transform: translateY(0); }
+  .cine-kicker {
+    font-family: var(--mono, 'JetBrains Mono', monospace);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    opacity: .75;
+    margin-bottom: 18px;
+  }
+  .cine-hed {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(56px, 8vw, 128px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .cine-hed em { font-style: italic; color: var(--accent, #C6A25B); }
 }
-.cine-caption {
-  position: absolute;
-  top: 0; left: 0;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 700ms ease, transform 700ms cubic-bezier(.2,.7,.2,1);
-  will-change: opacity, transform;
+/* Mobile-only base for typography (so the mobile @media block earlier
+   doesn't need to re-declare everything). Inherits font + colour but
+   leaves sizes for the mobile block to set. */
+@media (max-width: 900px) {
+  .cine-captions { color: var(--cine-ink); pointer-events: none; }
+  .cine-kicker {
+    font-family: var(--mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    opacity: .85;
+  }
+  .cine-hed {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .cine-hed em { font-style: italic; color: var(--accent, #C6A25B); }
 }
-.cine-caption.is-active { opacity: 1; transform: translateY(0); }
-.cine-kicker {
-  font-family: var(--mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  opacity: .75;
-  margin-bottom: 18px;
-}
-.cine-hed {
-  font-family: 'Instrument Serif', serif;
-  font-weight: 400;
-  font-size: clamp(56px, 8vw, 128px);
-  line-height: 0.98;
-  letter-spacing: -0.02em;
-  margin: 0;
-  text-wrap: balance;
-}
-.cine-hed em { font-style: italic; color: var(--accent, #C6A25B); }
 
 /* scroll progress indicator (right edge, vertical) */
 .cine-progress {
