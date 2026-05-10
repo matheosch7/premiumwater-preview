@@ -1266,16 +1266,13 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
    through the hero zone — so the text journey "covers" the time the
    video needs to fully unfold before the next section arrives. */
 @media (max-width: 900px) {
-  /* Video: contain shows the entire video frame at the largest size
-     that fits in the viewport. Letterbox bars let the cine-stage's
-     gradient (below) show through — and the top/bottom 8% of the
-     video itself are feathered with a mask so the seam between the
-     video frame and the surrounding stage is gradual instead of a
-     hard line. With the feather + the gradient backdrop, the eye
-     stops detecting where video ends and stage begins, even though
-     the colours aren't pixel-perfect identical. */
+  /* Video full-bleed: object-fit: cover fills the viewport edge to
+     edge so there's no letterbox area where a mismatched stage
+     colour could show through. The trade-off is the bottle gets
+     slightly cropped on the sides, but the colour-match problem is
+     eliminated rather than fought. */
   .cine-video {
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     width: 100%;
     height: 100%;
@@ -1283,44 +1280,22 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
     transform: none;
     bottom: 0;
     background: transparent;
-    -webkit-mask-image: linear-gradient(180deg,
-      transparent 0%,
-      rgba(0,0,0,0.35) 4%,
-      #000 10%,
-      #000 90%,
-      rgba(0,0,0,0.35) 96%,
-      transparent 100%);
-            mask-image: linear-gradient(180deg,
-      transparent 0%,
-      rgba(0,0,0,0.35) 4%,
-      #000 10%,
-      #000 90%,
-      rgba(0,0,0,0.35) 96%,
-      transparent 100%);
+    -webkit-mask-image: none;
+            mask-image: none;
   }
   .cine-static {
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
   }
-  /* Mimic the video's natural lighting gradient instead of a solid
-     color: the pour video is darker at top + bottom edges (frame
-     vignetting + table shadow) and brightest mid-frame where the
-     bottle is lit. A vertical gradient on the stage mirrors that
-     pattern — so wherever the feathered video edge fades into the
-     stage, the underlying tone is already close to what the video
-     was showing at that vertical position. */
-  .cine-stage {
+  /* Neutral dark fallback only for the moments before the poster
+     paints. With cover, the user almost never sees this. */
+  .cine-stage { background: #0E1814; }
+  .cine-bg {
     background:
-      radial-gradient(ellipse 90% 70% at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 60%),
-      linear-gradient(180deg,
-        #0E1814 0%,
-        #1A2D24 22%,
-        #243C30 50%,
-        #1A2D24 78%,
-        #0E1814 100%);
+      radial-gradient(ellipse 100% 80% at 50% 40%, rgba(255,255,255,0.04) 0%, transparent 55%),
+      linear-gradient(180deg, #0e1a14 0%, #1f3228 45%, #0c1710 100%);
   }
-  .cine-bg { background: transparent; }
   /* Drop the top-darkening overlay on mobile — it painted a black
      band above the video that conflicted with the green continuous
      backdrop the user asked for. Hero copy still reads against the
