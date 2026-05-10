@@ -315,6 +315,7 @@
       'form.notes': 'Anything we should know',
       'form.reply': 'We reply within 1 business day.', 'form.submit': 'Submit →',
       'form.privacy': 'We use your details only to reply to this inquiry. Never shared.',
+      'form.error': "Sorry — we couldn't send that just now. Please try WhatsApp or retry in a moment.",
       'form.successHead': 'Thank you — we\'ll be in touch within one business day.',
       'form.successWA': 'Prefer to chat now? WhatsApp us →',
       'foot.tag': 'Luxury water for the people. Bottled in Colombia since 2024.',
@@ -324,7 +325,9 @@
       'cookie.body': 'We use a small amount of data to understand how this site is used and improve it. You can accept analytics cookies, or keep things essential-only. Your choice is remembered.',
       'cookie.accept': 'Accept analytics', 'cookie.reject': 'Essential only',
       'select.type': ['Restaurant','Hotel','Gym / Wellness','Retail','Distributor','Event / Catering','Other'],
+      'select.typePlaceholder': 'Select business type…',
       'select.volume': ['< 10 cases','10–49 cases','50–249 cases','250+ cases','Not sure yet'],
+      'select.volumePlaceholder': 'Select monthly volume…',
       'marquee': ['Colombian owned','Bottled at source','Glass first','Wholesale ready','Cold-chain delivery','Bogotá · Medellín · Cartagena']
     },
     es: {
@@ -381,6 +384,7 @@
       'form.notes': 'Algo que debamos saber',
       'form.reply': 'Respondemos en 1 día hábil.', 'form.submit': 'Enviar →',
       'form.privacy': 'Usamos tus datos solo para responder esta solicitud. Nunca se comparten.',
+      'form.error': 'Lo sentimos — no pudimos enviarlo en este momento. Prueba por WhatsApp o reintenta en un instante.',
       'form.successHead': 'Gracias — te contactamos en un día hábil.',
       'form.successWA': '¿Prefieres hablar ahora? Escríbenos por WhatsApp →',
       'foot.tag': 'Agua de lujo, para la gente. Embotellada en Colombia desde 2024.',
@@ -390,7 +394,9 @@
       'cookie.body': 'Usamos algunos datos para entender cómo se usa el sitio y mejorarlo. Puedes aceptar las cookies de analítica, o mantener solo las esenciales. Recordamos tu elección.',
       'cookie.accept': 'Aceptar analítica', 'cookie.reject': 'Solo esenciales',
       'select.type': ['Restaurante','Hotel','Gimnasio / Bienestar','Retail','Distribuidor','Evento / Catering','Otro'],
+      'select.typePlaceholder': 'Selecciona tipo de negocio…',
       'select.volume': ['< 10 cajas','10–49 cajas','50–249 cajas','250+ cajas','Aún no lo sé'],
+      'select.volumePlaceholder': 'Selecciona volumen mensual…',
       'marquee': ['Propiedad colombiana','Embotellada en la fuente','Vidrio primero','Lista para mayoreo','Entrega en frío','Bogotá · Medellín · Cartagena']
     }
   };
@@ -473,20 +479,35 @@
     });
 
     // selects
-    const setOptions = (id, key) => {
+    const setOptions = (id, key, placeholderKey) => {
       const sel = document.getElementById(id);
       if (!sel) return;
       const prev = sel.value;
       sel.innerHTML = '';
+      // Empty placeholder option so the select doesn't silently default
+      // to the first real value — user must actively pick.
+      if (placeholderKey) {
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = dict[placeholderKey] || 'Select…';
+        placeholder.disabled = false;  // selectable but empty
+        sel.appendChild(placeholder);
+      }
       (dict[key] || []).forEach(v => {
         const o = document.createElement('option');
         o.value = v; o.textContent = v;
         sel.appendChild(o);
       });
-      if (prev) sel.value = prev;
+      // Preserve previous selection if it still exists; otherwise the
+      // empty placeholder is what's shown.
+      if (prev && Array.from(sel.options).some(o => o.value === prev)) {
+        sel.value = prev;
+      } else if (placeholderKey) {
+        sel.value = '';
+      }
     };
-    setOptions('selType', 'select.type');
-    setOptions('selVolume', 'select.volume');
+    setOptions('selType', 'select.type', 'select.typePlaceholder');
+    setOptions('selVolume', 'select.volume', 'select.volumePlaceholder');
 
     // marquee — duplicate for seamless loop
     const track = document.getElementById('marqueeTrack');
@@ -1806,14 +1827,26 @@
         if (s) s.hidden = false;
         return;
       }
+      const submitBtn = document.getElementById('leadSubmit');
+      const errorEl   = document.getElementById('formError');
+      const successEl = document.getElementById('formSuccess');
+      // Clear any previous error before retrying
+      if (errorEl) errorEl.hidden = true;
       const payload = buildLeadPayload(form);
       delete payload.company_website;
       const fields = form.querySelectorAll('input, select, textarea, button');
       fields.forEach(el => el.disabled = true);
+      if (submitBtn) submitBtn.dataset.loading = 'true';
       const result = await submitLead(payload);
-      const s = document.getElementById('formSuccess');
+      if (submitBtn) delete submitBtn.dataset.loading;
       if (result.ok) {
-        if (s) s.hidden = false;
+        if (successEl) {
+          successEl.hidden = false;
+          // Bring the success state into view — without this, on tall
+          // forms the user can submit and not realise the request went
+          // through because the confirmation lives below the fold.
+          successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         track('form_submit', {
           brand_mode: payload.brand_mode,
           language: payload.language,
@@ -1822,7 +1855,13 @@
         });
       } else {
         fields.forEach(el => el.disabled = false);
-        alert('Sorry — we could not submit just now. Please try WhatsApp.');
+        // Inline error: stays in the form's visual context instead of
+        // an alert() dialog. The element's text comes from i18n
+        // ('form.error'), so it's localised + branded automatically.
+        if (errorEl) {
+          errorEl.hidden = false;
+          errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     });
   }

@@ -563,10 +563,33 @@ main { position: relative; z-index: 5; padding-right: 56px; }
   padding: 16px 0; border-top: 1px solid var(--line);
   color: #fff;
   font-size: 15px;
+  /* Hover-bias scale + cursor-driven scale: when the user moves the
+     pointer over a row, the row lifts visually (gets a touch bigger
+     + brighter) so the list feels alive on inspection. The same scale
+     is also driven by --spec-progress (set by JS as the section
+     scrolls through viewport) so the rows breathe gently on scroll
+     even without hover. */
+  --spec-hover: 0;
+  --spec-progress: 0;
+  transform: scale(calc(1 + var(--spec-hover) * 0.04 + var(--spec-progress) * 0.025));
+  transform-origin: left center;
+  transition: transform 280ms cubic-bezier(.2,.8,.2,1), color 220ms ease, background 220ms ease;
+  will-change: transform;
 }
+.spec-list li:hover { --spec-hover: 1; }
 .spec-list li:last-child { border-bottom: 1px solid var(--line); }
-.spec-list span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); align-self: center; }
-.spec-list em { font-style: normal; }
+.spec-list span {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--mute); align-self: center;
+  transition: color 220ms ease, letter-spacing 220ms ease;
+}
+.spec-list li:hover span { color: var(--accent); letter-spacing: 0.18em; }
+.spec-list em { font-style: normal; transition: color 220ms ease; }
+.spec-list li:hover em { color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  .spec-list li { transform: none !important; transition: none; }
+  .spec-list li span, .spec-list em { transition: none; }
+}
 
 /* diner scene (in story section) */
 .diner-scene {
@@ -715,6 +738,74 @@ main { position: relative; z-index: 5; padding-right: 56px; }
 .form-success:not([hidden]) { display: flex; }
 .form-success-head { font-family: var(--serif); font-size: 22px; line-height: 1.25; color: #fff; }
 .form-success .pill { align-self: flex-start; }
+
+/* Custom select arrow — replaces the native browser chevron so the
+   select reads as part of the underlined-input set instead of a
+   browser-default control. SVG inlined as data-uri so no extra
+   request. Padding-right makes room for the chevron. */
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1L6 6L11 1' stroke='%23C6A25B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
+  padding-right: 24px;
+  cursor: pointer;
+}
+.field select:focus { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 6L6 1L11 6' stroke='%23C6A25B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>"); }
+
+/* Smoother focus state for inputs/textarea */
+.field input, .field select, .field textarea {
+  transition: border-bottom-color 240ms ease, color 240ms ease;
+}
+
+/* Submit button: loading state + spinner. The label fades and a
+   small spinner appears next to it while the request is in flight. */
+.form-submit-label { display: inline-block; transition: opacity 180ms ease; }
+.form-submit-spinner {
+  display: none;
+  width: 12px;
+  height: 12px;
+  margin-left: 8px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  vertical-align: -2px;
+  animation: form-submit-spin 720ms linear infinite;
+}
+button[data-loading="true"] .form-submit-label { opacity: 0.55; }
+button[data-loading="true"] .form-submit-spinner { display: inline-block; }
+@keyframes form-submit-spin { to { transform: rotate(360deg); } }
+
+/* Inline error message — replaces the previous alert() so failure
+   stays inside the form's visual context. Hidden by default; shows
+   only when JS toggles the [hidden] attribute off. */
+.form-error {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(220, 90, 90, 0.45);
+  background: rgba(220, 90, 90, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.form-error[hidden] { display: none; }
+[data-brand="bold"] .form-error {
+  color: rgba(10, 10, 12, 0.88);
+  border-color: rgba(230, 57, 70, 0.45);
+  background: rgba(230, 57, 70, 0.06);
+}
+[data-brand="bold"] .field select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1L6 6L11 1' stroke='%23E63946' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+[data-brand="bold"] .field select:focus {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 6L6 1L11 6' stroke='%23E63946' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+/* Faint italics on the placeholder option so it reads as a hint */
+.field select option[value=""] { color: rgba(255,255,255,0.5); }
+[data-brand="bold"] .field select option[value=""] { color: rgba(10,10,12,0.5); }
 
 /* footer */
 footer { padding: 80px 56px 40px; background: rgba(10, 5, 25, 0.9); color: var(--ink-2); }
@@ -938,6 +1029,31 @@ body.legal-page { background: var(--bg-d); }
 /* reveal */
 [data-reveal-ready] .reveal { opacity: 0; transform: translateY(20px); transition: opacity 900ms ease, transform 900ms cubic-bezier(.2,.8,.2,1); }
 [data-reveal-ready] .reveal.in { opacity: 1; transform: none; }
+
+/* Calm-mode story headline: enters from the LEFT (instead of the
+   default fade-up) for an editorial intro feel. Adds extra delay so
+   it sweeps in after the section-head fade has settled, making the
+   headline feel like the deliberate focal element of the section. */
+[data-reveal-ready] :root[data-brand="calm"] #story .reveal .h-display,
+[data-reveal-ready] :root:not([data-brand]) #story .reveal .h-display {
+  opacity: 0;
+  transform: translateX(-72px);
+  transition:
+    opacity 760ms ease 220ms,
+    transform 1080ms cubic-bezier(.18, 1.18, .35, 1) 220ms;
+  will-change: transform, opacity;
+}
+[data-reveal-ready] :root[data-brand="calm"] #story .reveal.in .h-display,
+[data-reveal-ready] :root:not([data-brand]) #story .reveal.in .h-display {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal-ready] :root[data-brand="calm"] #story .reveal .h-display,
+  [data-reveal-ready] :root:not([data-brand]) #story .reveal .h-display {
+    opacity: 1; transform: none; transition: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   [data-reveal-ready] .reveal { opacity: 1; transform: none; transition: none; }
   .hero-bottle, .droplet, .marquee-track, .bubble, .speck { animation: none !important; }
@@ -1705,7 +1821,7 @@ html[data-brand="bold"],
 [data-brand="bold"] .hero-title {
   font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
   font-weight: 400;
-  font-size: clamp(36px, 4.5vw, 72px);
+  font-size: clamp(52px, 6.6vw, 108px);
   line-height: 0.92;
   letter-spacing: -0.005em;
   text-transform: uppercase;
@@ -2708,6 +2824,49 @@ html[data-brand="bold"],
 }
 :root[data-brand="bold"] .block.section-in .h-display .b-word > span {
   transform: translateY(0);
+}
+
+/* ─── Bold #story headline: slide-in from LEFT instead of the default
+   word-by-word lift. Per-word stagger is preserved (each word arrives
+   ~60ms after the previous) but the motion is horizontal so the
+   header reads as "swept in from the side." Overflow on .b-word is
+   set to visible so the X-translation isn't clipped by the Y-axis
+   word mask. */
+:root[data-brand="bold"] #story .h-display .b-word {
+  overflow: visible;
+}
+:root[data-brand="bold"] #story .h-display .b-word > span {
+  transform: translateX(-80px);
+  opacity: 0;
+  transition:
+    transform 760ms cubic-bezier(.18, 1.18, .35, 1),
+    opacity 600ms ease;
+  transition-delay: calc(var(--b-word-i, 0) * 70ms + 220ms);
+}
+:root[data-brand="bold"] #story.section-in .h-display .b-word > span {
+  transform: none;
+  opacity: 1;
+}
+
+/* ─── Bold #product headline: snap-in per LINE instead of per word.
+   "Three sizes," lands first as one unit (200ms after section-in),
+   then "one volume." (in <em>) lands ~500ms later — both with a
+   back-out easing for an emphatic "drop" feel. Overrides the default
+   per-word delay calc above via the higher #product specificity. */
+:root[data-brand="bold"] #product .h-display .b-word > span {
+  transform: translateY(120%);
+  transition: transform 580ms cubic-bezier(.34, 1.56, .64, 1);
+}
+/* First line: words that are direct children of .h-display (no <em>) */
+:root[data-brand="bold"] #product .h-display > .b-word > span {
+  transition-delay: 200ms;
+}
+/* Second line: words inside <em> */
+:root[data-brand="bold"] #product .h-display em .b-word > span {
+  transition-delay: 700ms;
+}
+:root[data-brand="bold"] #product.section-in .h-display .b-word > span {
+  transform: none;
 }
 
 /* Trade-card cascade: each card lifts in slightly later than the last */
