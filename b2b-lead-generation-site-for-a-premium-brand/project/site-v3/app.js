@@ -831,14 +831,46 @@
     return cineVideo && isFinite(cineVideo.duration) && cineVideo.duration > 0;
   }
 
+  // Track previous visibility so we can detect the moment the stage
+  // transitions from invisible (user scrolled past hero) back to
+  // visible (user scrolling up). On that transition we nudge the
+  // video to force a frame refresh and recover from any errored /
+  // unloaded state — without this, scroll-up sometimes lands on a
+  // stale or blank frame because the browser dropped decoded frames
+  // while the stage was at opacity 0.
+  let cineWasVisible = true;
+
   function updateCine() {
     if (!cineStage) return;
     const p = clamp(window.scrollY / Math.max(zoneEnd(), 1), 0, 1);
-    cineStage.style.opacity = 1 - smoothstep(0.9, 1.0, p);
+    const opacity = 1 - smoothstep(0.9, 1.0, p);
+    cineStage.style.opacity = opacity;
+    const isVisible = opacity > 0.01;
 
-    if (videoScrubbable()) {
+    // Skip currentTime writes when the stage is invisible. This both
+    // saves redundant decoder seeks (the user is past the hero and
+    // can't see the result) and avoids piling work on the decoder
+    // during a fast scroll past the hero zone.
+    if (isVisible && videoScrubbable()) {
       try { cineVideo.currentTime = p * cineVideo.duration; } catch (e) {}
     }
+
+    // Re-entering visible range after being hidden: recover from any
+    // errored state and force a frame nudge so the rendered frame
+    // matches the requested currentTime.
+    if (isVisible && !cineWasVisible && cineVideo) {
+      const ns = cineVideo.networkState;
+      if (cineVideo.error || ns === HTMLMediaElement.NETWORK_NO_SOURCE) {
+        try { cineVideo.load(); } catch (e) {}
+      } else if (videoScrubbable()) {
+        try {
+          const ct = cineVideo.currentTime;
+          cineVideo.currentTime = Math.max(0, ct - 0.001);
+          cineVideo.currentTime = ct;
+        } catch (e) {}
+      }
+    }
+    cineWasVisible = isVisible;
 
     let activeAct = 0;
     if (p >= 0.08 && p < 0.30)      activeAct = 1;
@@ -851,6 +883,19 @@
 
     if (cineProgress) cineProgress.style.height = (p * 100) + '%';
     if (scrollCard) scrollCard.classList.toggle('hide', window.scrollY > 120);
+  }
+
+  // rAF-batched wrapper so a fast scroll fires updateCine at most once
+  // per frame instead of dozens of times — keeps the video decoder
+  // from being overwhelmed with per-event seek requests.
+  let cineFrameQueued = false;
+  function rafUpdateCine() {
+    if (cineFrameQueued) return;
+    cineFrameQueued = true;
+    requestAnimationFrame(() => {
+      cineFrameQueued = false;
+      updateCine();
+    });
   }
 
   // On small / likely-mobile viewports, defer the 6.8MB pour video until the
@@ -883,10 +928,18 @@
     cineVideo.addEventListener('play', () => {
       if (window.scrollY < 4) cineVideo.pause();
     });
+    // Recovery: if the element errors or the source is dropped (e.g. the
+    // browser unloaded the video to reclaim memory), reload it so the
+    // next scroll-driven seek has something to render.
+    ['error', 'abort'].forEach(evt => {
+      cineVideo.addEventListener(evt, () => {
+        try { cineVideo.load(); } catch (e) {}
+      });
+    });
   }
 
-  window.addEventListener('scroll', updateCine, { passive: true });
-  window.addEventListener('resize', updateCine);
+  window.addEventListener('scroll', rafUpdateCine, { passive: true });
+  window.addEventListener('resize', rafUpdateCine);
 
   // ---------- calm-mode water-falling transition (Trade → Impact) ----------
   // Mirrors the cineVideo scrub primitive (above) for a second video stage
