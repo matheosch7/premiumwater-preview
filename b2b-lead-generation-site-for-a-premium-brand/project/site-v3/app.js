@@ -1406,19 +1406,36 @@
     const canHalfRight = document.querySelector('.bold-can-half--right');
 
     let lastFrameIndex = -1;
-    function setFrame(scrollProgress) {
+    let lastHalvesFrameIndex = -1;
+    function setFrame(scrollProgress, halvesActive) {
       if (!framesReady) return;
       // Map scroll progress 0..1 (hero to product-bottom) to frame 0..N-1.
       // Use full 360° rotation across the journey.
       const t = clamp01(scrollProgress);
       const idx = Math.min(FRAME_COUNT - 1, Math.floor(t * FRAME_COUNT));
-      if (idx === lastFrameIndex) return;
-      lastFrameIndex = idx;
-      const img = preloaded[idx];
-      if (img && img.complete) {
-        bottle.src = frameUrls[idx];
-        if (canHalfLeft)  canHalfLeft.src  = frameUrls[idx];
-        if (canHalfRight) canHalfRight.src = frameUrls[idx];
+      if (idx !== lastFrameIndex) {
+        const img = preloaded[idx];
+        if (img && img.complete && img.naturalWidth > 0) {
+          // Only swap src when the new index resolves to a fully decoded
+          // cached image. Setting bottle.src to a not-yet-decoded URL is
+          // what causes the brief blank/flash mid-scroll — even when the
+          // Image was preloaded, a fresh src write on the visible <img>
+          // can leave a frame gap before the rendered image lands.
+          lastFrameIndex = idx;
+          bottle.src = frameUrls[idx];
+        }
+      }
+      // Halves only need to track frames while the split is actually
+      // active (inside the zoom zone). Outside that window they're
+      // hidden — swapping their src on every scroll tick was wasted
+      // work and an extra source of decoder pressure.
+      if (halvesActive && idx !== lastHalvesFrameIndex) {
+        const img = preloaded[idx];
+        if (img && img.complete && img.naturalWidth > 0) {
+          lastHalvesFrameIndex = idx;
+          if (canHalfLeft)  canHalfLeft.src  = frameUrls[idx];
+          if (canHalfRight) canHalfRight.src = frameUrls[idx];
+        }
       }
     }
 
@@ -1656,12 +1673,22 @@
         }
       }
 
+      // Compute zoom-zone membership once — used by both the frame
+      // updater (so halves only re-src while the split is active) and
+      // the opacity logic below.
+      const inZoom = zoomTop && sy >= zoomTop && sy <= zoomBottom;
+
       // Drive the rotation frame index from total scroll progress through
       // the journey (hero top → product bottom). Full 360° revolution.
-      const journeyStart = heroTop;
-      const journeyEnd   = productBottom;
-      const journeyT = (sy - journeyStart) / Math.max(1, journeyEnd - journeyStart);
-      setFrame(journeyT);
+      // Skip frame work entirely once the bottle is hidden past the
+      // product bottom — there's no visible can to rotate, and any src
+      // swap would just keep the decoder warm for nothing.
+      if (sy < productBottom) {
+        const journeyStart = heroTop;
+        const journeyEnd   = productBottom;
+        const journeyT = (sy - journeyStart) / Math.max(1, journeyEnd - journeyStart);
+        setFrame(journeyT, inZoom);
+      }
 
       // Opacity rules:
       //   - Inside the zoom zone: original bottle fades out fast as the
@@ -1669,7 +1696,6 @@
       //     split=0, so the swap is invisible. Multiplied with pose.op.
       //   - Past the product section but NOT in the zoom zone: hide.
       //   - Otherwise: use pose.op.
-      const inZoom = zoomTop && sy >= zoomTop && sy <= zoomBottom;
       if (inZoom) {
         // Fade original quickly so by ~10% progress the halves carry
         // the visual entirely.
@@ -1690,10 +1716,26 @@
       update();
     }
 
+    // rAF-batched wrapper: a fast scroll fires the raw scroll event 100+
+    // times per second; without batching, update() ran each time, which
+    // meant rapid bottle.src reassignments + drop-shadow re-renders that
+    // showed up as a "flash" on the can during medium-to-fast scroll.
+    // Batching to one update per animation frame caps the work at ~60fps
+    // and lets the GPU coalesce the transform + filter passes.
+    let bottleFrameQueued = false;
+    function rafUpdate() {
+      if (bottleFrameQueued) return;
+      bottleFrameQueued = true;
+      requestAnimationFrame(() => {
+        bottleFrameQueued = false;
+        update();
+      });
+    }
+
     function init() {
       cacheAnchors();
       update();
-      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('scroll', rafUpdate, { passive: true });
       window.addEventListener('resize', onResize);
     }
 
