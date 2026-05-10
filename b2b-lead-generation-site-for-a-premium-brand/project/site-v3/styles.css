@@ -1319,10 +1319,10 @@ main#top { position: relative; z-index: 2; }
   object-fit: cover;
   pointer-events: none;
   z-index: 1;
-  /* Ramp in via --wf-flow, ramp out via --wf-land. Capped at 0.55
-     so the cascade reads as ambient water-light dissolving into
-     the page rather than a distinct foreground band. */
-  opacity: calc(var(--wf-flow, 0) * (1 - var(--wf-land, 0)) * 0.55);
+  /* Ramp in via --wf-flow, ramp out via --wf-land. Capped at 0.40
+     so the cascade reads as a backdrop layer behind the overlay
+     headline (z-index 3) — the video is "sent a layer back". */
+  opacity: calc(var(--wf-flow, 0) * (1 - var(--wf-land, 0)) * 0.40);
   transition: opacity 200ms linear;
   /* mix-blend-mode: screen makes the dark portions of the video
      blend into the page background (black + dark = dark, no change),
@@ -1358,11 +1358,59 @@ main#top { position: relative; z-index: 2; }
   will-change: opacity;
 }
 
-/* No overlay headline — the cascade video alone provides the
-   atmospheric layer. As --wf-flow fades the cascade out at the
-   tail of the runway, the real #impact .h-display below becomes
-   the visible headline (with the existing --wf-land splash pulse
-   as the "drop landed" punctuation). */
+/* ─── Overlay headline (the "early" impact header) ────────────────
+   Sits ABOVE the cascade video (z-index 3) so the video reads as
+   atmospheric backdrop. Fades in with --wf-flow (cascade entering),
+   gently drifts downward as scroll progresses (settling toward the
+   landing position), and fades out as --wf-land approaches 1 — at
+   which point the real #impact .h-display below takes over as the
+   user scrolls past the band. */
+:root[data-brand="calm"] .calm-waterfall-headline-overlay,
+:root:not([data-brand]) .calm-waterfall-headline-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  padding: 0 24px;
+  /* Visible during the body of the cascade. Held at full strength
+     once --wf-flow ramps in, then released by --wf-land's tail. */
+  opacity: calc(var(--wf-flow, 0) * (1 - var(--wf-land, 0)));
+  /* Gentle settling: starts ~6vh above center, ends ~6vh below
+     center. Reads as the headline "descending into place" without
+     drawing attention to the motion itself. */
+  transform: translateY(calc(-6vh + var(--wf-flow, 0) * 12vh));
+  transition: opacity 220ms linear, transform 260ms linear;
+}
+
+:root[data-brand="calm"] .calm-waterfall-headline-overlay .h-display,
+:root:not([data-brand]) .calm-waterfall-headline-overlay .h-display {
+  text-align: center;
+  margin: 0;
+  /* Mirror the splash-pulse on the real header so the handoff is
+     visually continuous — slight scale + brightness lift as land hits. */
+  transform: scale(calc(1 + var(--wf-land, 0) * 0.02));
+  filter: brightness(calc(1 + var(--wf-land, 0) * 0.18));
+  transition: transform 240ms ease-out, filter 240ms ease-out;
+}
+
+/* Rest-of-impact gating: eyebrow, lede, stats, programs are kept
+   hidden during the cascade and revealed only once the headline
+   lands (--wf-land → 1). The fallback (1) means: when the user is
+   not in the cascade scroll range (e.g. fresh page load past trade,
+   or in bold mode), content shows normally. */
+:root[data-brand="calm"] #impact .section-head .eyebrow,
+:root[data-brand="calm"] #impact .section-head .lede,
+:root[data-brand="calm"] #impact .stats,
+:root[data-brand="calm"] #impact .programs,
+:root:not([data-brand]) #impact .section-head .eyebrow,
+:root:not([data-brand]) #impact .section-head .lede,
+:root:not([data-brand]) #impact .stats,
+:root:not([data-brand]) #impact .programs {
+  opacity: var(--wf-land, 1);
+  transition: opacity 420ms ease-out 80ms;
+}
 
 /* Headline splash pulse: when the water "lands" (progress 0.85 → 1.0),
    pulse the impact headline subtly — brightness up + 1.02× scale —
@@ -1371,10 +1419,15 @@ main#top { position: relative; z-index: 2; }
 :root[data-brand="calm"] #impact .h-display,
 :root:not([data-brand]) #impact .h-display {
   transform-origin: center center;
-  transition: transform 240ms ease-out, filter 240ms ease-out;
+  transition: transform 240ms ease-out, filter 240ms ease-out, opacity 360ms ease-out;
   transform: scale(calc(1 + var(--wf-land, 0) * 0.02));
   filter: brightness(calc(1 + var(--wf-land, 0) * 0.18));
+  /* Hidden during cascade so the overlay headline is the only visible one;
+     fades in as --wf-land lands. Fallback 1 so it stays visible when
+     not in the cascade scroll range (fresh load past trade, bold mode). */
+  opacity: var(--wf-land, 1);
 }
+[data-brand="bold"] #impact .h-display { opacity: 1; }
 
 /* Mobile: same tight runway as desktop. */
 @media (max-width: 600px) {
@@ -1394,6 +1447,29 @@ main#top { position: relative; z-index: 2; }
     height: 80vh;
   }
   .calm-waterfall-cascade-video { display: none; }
+  /* Reduced motion: kill the overlay drift + headline pulse, render
+     statically. Real impact content reveals via standard .reveal IO. */
+  .calm-waterfall-headline-overlay {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .calm-waterfall-headline-overlay .h-display {
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  :root[data-brand="calm"] #impact .section-head .eyebrow,
+  :root[data-brand="calm"] #impact .section-head .lede,
+  :root[data-brand="calm"] #impact .stats,
+  :root[data-brand="calm"] #impact .programs,
+  :root:not([data-brand]) #impact .section-head .eyebrow,
+  :root:not([data-brand]) #impact .section-head .lede,
+  :root:not([data-brand]) #impact .stats,
+  :root:not([data-brand]) #impact .programs {
+    opacity: 1;
+    transition: none;
+  }
   .calm-waterfall-stage {
     background:
       var(--bg-d, #0E0C08)
@@ -1417,6 +1493,17 @@ main#top { position: relative; z-index: 2; }
    choreography expects it. */
 [data-brand="bold"] .calm-water-transition { display: none; }
 [data-brand="bold"] #calmWaterFall { display: none; }
+[data-brand="bold"] .calm-waterfall-headline-overlay { display: none; }
+/* In bold mode, never gate impact content on calm-mode --wf-land —
+   bold has its own choreography and the rest-of-impact rule must not
+   be allowed to drop opacity to 0 there. */
+[data-brand="bold"] #impact .section-head .eyebrow,
+[data-brand="bold"] #impact .section-head .lede,
+[data-brand="bold"] #impact .stats,
+[data-brand="bold"] #impact .programs {
+  opacity: 1;
+  transition: none;
+}
 
 /* ==========================================================================
    MOTION GRAPHICS LAYER

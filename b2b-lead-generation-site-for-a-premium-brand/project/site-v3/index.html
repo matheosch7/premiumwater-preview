@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=106" />
+  <link rel="stylesheet" href="styles.css?v=107" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -414,6 +414,17 @@
              poster="assets/water-cascade-poster.jpg?v=1"
              autoplay loop muted playsinline preload="auto"
              disablePictureInPicture aria-hidden="true"></video>
+
+      <!-- Overlay duplicate of the impact headline. Sits ABOVE the cascade
+           video (z-index 3) so the video reads as atmospheric backdrop.
+           Fades in early via --wf-flow, drifts gently downward as scroll
+           progresses, and fades out via --wf-land so the real
+           #impact .h-display below takes over once the band exits. The
+           rest of impact content (eyebrow, lede, stats, programs) is
+           gated on --wf-land so it only appears when the headline lands. -->
+      <div class="calm-waterfall-headline-overlay" aria-hidden="true">
+        <h2 class="h-display" data-i18n-html="impact.hed">One liter in,<br/>one liter <em>forward</em>.</h2>
+      </div>
     </div>
   </section>
 
