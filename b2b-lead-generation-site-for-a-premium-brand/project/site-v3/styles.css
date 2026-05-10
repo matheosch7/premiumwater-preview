@@ -1257,6 +1257,37 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
   .cine-static { z-index: 1; }
   .marquee-track { animation: none !important; }
 }
+
+/* Mobile: drop the scroll-scrubbed video entirely.
+   On portrait phone viewports object-fit:cover frames the bottle so
+   its label sits dead-centre — exactly where the hero copy is
+   anchored, producing a "Premium Water - Colombia" label overlapping
+   the "intention." headline. Plus the video is ~6.8 MB and the
+   scroll-scrub stutters on lower-power phones. The poster
+   (assets/poster.jpg) is the same composition as a still and gives a
+   cinematic feel without the collision or the download cost. */
+@media (max-width: 900px) {
+  .cine-video { display: none; }
+  .cine-static {
+    z-index: 1;
+    /* Shift the poster's focal point up so the bottle's body fills
+       the TOP half of the viewport, leaving the lower half a dark
+       glass area against which the hero copy reads cleanly. */
+    background-position: center 30%;
+  }
+  /* Stronger bottom-darkening over the cine-stage so the hero copy
+     row at the bottom of the viewport is always legible regardless
+     of what frame is showing. */
+  .cine-grade {
+    background:
+      linear-gradient(180deg,
+        transparent 0%,
+        transparent 35%,
+        rgba(0,0,0,0.45) 70%,
+        rgba(0,0,0,0.78) 100%),
+      radial-gradient(ellipse 100% 80% at 50% 40%, transparent 55%, rgba(0,0,0,0.30) 100%);
+  }
+}
 .cine-grade {
   position: absolute;
   inset: 0;
