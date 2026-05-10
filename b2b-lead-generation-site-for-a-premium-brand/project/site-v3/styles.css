@@ -1279,12 +1279,9 @@ main#top { position: relative; z-index: 2; }
   height: var(--waterfall-runway, 100vh);
   padding: 0;
   /* Negative top margin pulls the band up over trade's bottom
-     padding — but capped so the trade CTAs ("Become a distributor",
-     "WhatsApp us") clear above the cascade with breathing room.
-     -140px = ~140px overlap of the 140px trade bottom padding;
-     leaves the buttons fully visible while the cascade still
-     hugs the section tightly. */
-  margin: -140px 0 0 0;
+     padding — capped so trade CTAs clear with comfortable breathing
+     room above the cascade. */
+  margin: -100px 0 0 0;
   overflow: visible;
 }
 
