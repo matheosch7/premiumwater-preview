@@ -18,6 +18,23 @@
   root.setAttribute('data-motion', 'full');
   root.setAttribute('data-cine', 'sage');
 
+  // ---------- Stale-asset safety net ----------
+  // If a visitor's browser is serving stale cached HTML that references the
+  // legacy bold-mode product render (assets/bold-frames/02-hero.png — a
+  // glass bottle that was replaced by the current aluminium can in the
+  // bottle-sequence/ rotation), force-swap any .bold-hero-photo src that
+  // still points at the legacy path to the new can. Belt-and-braces for the
+  // mobile experience, where the bottle-roadmap JS bails and the initial
+  // HTML src is the only thing rendered.
+  (function fixStaleHeroPhoto() {
+    document.querySelectorAll('.bold-hero-photo').forEach(img => {
+      const s = img.getAttribute('src') || '';
+      if (/bold-frames\/02-hero/.test(s) || /\/02-hero\.png/.test(s)) {
+        img.setAttribute('src', 'assets/bottle-sequence/bottle_000.webp?v=2');
+      }
+    });
+  })();
+
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const smoothstep = (e0, e1, x) => {
     const t = clamp((x - e0) / (e1 - e0), 0, 1);
@@ -115,9 +132,13 @@
   let modelViewerLoaded = false;
 
   // Lazy-load Google's <model-viewer> module the first time bold mode activates,
-  // so calm-only visitors never download the runtime or the 5 MB GLB.
+  // so calm-only visitors never download the runtime or the 5 MB GLB. Skipped
+  // entirely on phones — the bottle is a static image there (no roadmap, no
+  // 3D pose) so the module + GLB + poster (which renders an older bottle
+  // design that would be misleading) shouldn't ship.
   function ensureModelViewer() {
     if (modelViewerLoaded) return;
+    if (window.innerWidth <= 900) return;
     modelViewerLoaded = true;
     const s = document.createElement('script');
     s.type = 'module';
