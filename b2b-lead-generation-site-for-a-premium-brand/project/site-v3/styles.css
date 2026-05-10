@@ -2043,16 +2043,23 @@ html[data-brand="bold"],
     translate(var(--rb-x, 22vw), var(--rb-y, 0))
     scale(var(--rb-s, 1))
     rotate(var(--rb-r, 0deg));
-  /* Only transform is transitioned. Opacity is set inline by the scroll
-     handler on every tick — adding a transition on it would cause the
-     scroll updates to fight the in-flight transition and the visual
-     value would lag behind the actual scroll position. */
-  transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+  /* No transform transition. The scroll handler is rAF-batched (~60Hz),
+     so the transform is updated on every paint frame — adding a 220ms
+     transition on top meant every rAF tick was interrupting an
+     in-flight interpolation, which produced a visible "wobble +
+     re-rasterised drop-shadow" flash on medium-speed scroll. Direct
+     write per frame is smoother. */
   /* Rendered frames already have transparent alpha — no mask needed.
      Drop-shadows give the dark-hero glow + crimson rim. */
   filter:
     drop-shadow(0 40px 70px rgba(0,0,0,0.55))
     drop-shadow(0 0 50px rgba(230,57,70,0.30));
+  /* Force a stable GPU compositing layer + crisp resampling so the
+     scroll-driven transform doesn't repeatedly invalidate the
+     drop-shadow rasterisation. */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
 }
 [data-brand="bold"] .bold-hero-photo[data-rb-state="hidden"] {
   opacity: 0;

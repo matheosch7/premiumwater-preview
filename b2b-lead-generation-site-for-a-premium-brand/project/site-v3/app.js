@@ -1405,22 +1405,33 @@
     const canHalfLeft  = document.querySelector('.bold-can-half--left');
     const canHalfRight = document.querySelector('.bold-can-half--right');
 
+    // Rotation taming: the source asset has 60 frames (full 360°). At
+    // medium scroll speed the per-frame lighting on the can changes
+    // 10–20× per second — that's the human flicker-perception band, so
+    // it reads as a "blinking light" on the can. Cap the visible
+    // rotation to a much smaller arc (≈ROTATION_FRAMES of 60) and bin
+    // the index so frame swaps only happen at coarse scroll intervals.
+    // Result: the can still has subtle parallax-style motion as the
+    // user scrolls but doesn't cycle through reflections fast enough
+    // to flicker.
+    const ROTATION_FRAMES = 8;        // 8 distinct frames over the journey
+    const ROTATION_STRIDE = Math.max(1, Math.floor(FRAME_COUNT / ROTATION_FRAMES));
+
     let lastFrameIndex = -1;
     let lastHalvesFrameIndex = -1;
+
     function setFrame(scrollProgress, halvesActive) {
       if (!framesReady) return;
-      // Map scroll progress 0..1 (hero to product-bottom) to frame 0..N-1.
-      // Use full 360° rotation across the journey.
       const t = clamp01(scrollProgress);
-      const idx = Math.min(FRAME_COUNT - 1, Math.floor(t * FRAME_COUNT));
+      // Bin to coarse rotation steps so the bottle re-srcs at most
+      // ROTATION_FRAMES times across the entire journey, eliminating
+      // the per-tick flicker pattern.
+      const rawIdx = Math.min(FRAME_COUNT - 1, Math.floor(t * FRAME_COUNT));
+      const idx = Math.min(FRAME_COUNT - 1, Math.floor(rawIdx / ROTATION_STRIDE) * ROTATION_STRIDE);
+
       if (idx !== lastFrameIndex) {
         const img = preloaded[idx];
         if (img && img.complete && img.naturalWidth > 0) {
-          // Only swap src when the new index resolves to a fully decoded
-          // cached image. Setting bottle.src to a not-yet-decoded URL is
-          // what causes the brief blank/flash mid-scroll — even when the
-          // Image was preloaded, a fresh src write on the visible <img>
-          // can leave a frame gap before the rendered image lands.
           lastFrameIndex = idx;
           bottle.src = frameUrls[idx];
         }
@@ -1428,13 +1439,15 @@
       // Halves only need to track frames while the split is actually
       // active (inside the zoom zone). Outside that window they're
       // hidden — swapping their src on every scroll tick was wasted
-      // work and an extra source of decoder pressure.
-      if (halvesActive && idx !== lastHalvesFrameIndex) {
-        const img = preloaded[idx];
+      // work and an extra source of decoder pressure. Halves use the
+      // raw (un-binned) index so the split transition stays smooth at
+      // its much finer scroll resolution.
+      if (halvesActive && rawIdx !== lastHalvesFrameIndex) {
+        const img = preloaded[rawIdx];
         if (img && img.complete && img.naturalWidth > 0) {
-          lastHalvesFrameIndex = idx;
-          if (canHalfLeft)  canHalfLeft.src  = frameUrls[idx];
-          if (canHalfRight) canHalfRight.src = frameUrls[idx];
+          lastHalvesFrameIndex = rawIdx;
+          if (canHalfLeft)  canHalfLeft.src  = frameUrls[rawIdx];
+          if (canHalfRight) canHalfRight.src = frameUrls[rawIdx];
         }
       }
     }
