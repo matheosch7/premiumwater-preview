@@ -1084,7 +1084,9 @@ body.legal-page { background: var(--bg-d); }
   .nav-right .pill { display: none; }
   .nav-burger { display: inline-flex; }
   .side-badge { display: none; }
-  .scroll-card { right: 56px; bottom: 80px; }
+  /* Phones already understand scrolling — and the prompt collides with
+     the WA FAB + sticky CTA at the bottom of the viewport. Hide it. */
+  .scroll-card { display: none; }
   .hero { padding: 120px 24px 80px; min-height: 100svh; }
   .hero-bottle { top: 34%; left: 58%; width: 240px; }
   .block { padding: 80px 20px; }
@@ -2807,11 +2809,43 @@ html[data-brand="bold"],
   [data-brand="bold"] .stats { grid-template-columns: repeat(2, 1fr); }
   [data-brand="bold"] .programs { grid-template-columns: 1fr; }
   [data-brand="bold"] .contact-grid { grid-template-columns: 1fr; }
+
+  /* Hero copy reverts from absolute bottom-left + 50% width to centered
+     in-flow. The desktop Puma-stage layout doesn't translate to phones —
+     the photo and copy stack vertically and the copy needs the full
+     column width. */
+  [data-brand="bold"] .hero-copy {
+    position: static;
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    justify-items: center;
+  }
+  /* "PREMIUM" outline backdrop: shrink so the full word reads instead of
+     bleeding past the (overflow:hidden) hero edges as a vertical band. */
+  [data-brand="bold"] .bold-hero-backdrop {
+    font-size: clamp(56px, 18vw, 160px);
+  }
+  /* Desktop-only choreography pieces — hide entirely on phones. The JS
+     bails at <=900px (app.js: bottle roadmap, can-split, zoom), but the
+     elements are still rendered. The zoom-zone adds ~43vh of empty
+     scroll between Product and Trade; the can-half clones float over
+     the page at z-index:60. */
+  [data-brand="bold"] .bold-zoom-zone { display: none; }
+  [data-brand="bold"] .bold-can-half { display: none; }
 }
 @media (max-width: 540px) {
   [data-brand="bold"] .hero-title { font-size: clamp(56px, 14vw, 96px); }
   [data-brand="bold"] .h-display { font-size: clamp(40px, 11vw, 72px); }
   [data-brand="bold"] .stats em { font-size: clamp(48px, 14vw, 80px); }
+  /* Trade cards: drop to a single column at narrow phone widths — at
+     320–375px the 2-col layout cramps Anton numerals + headline + para
+     into ~140px each. */
+  [data-brand="bold"] .trade-grid { grid-template-columns: 1fr; }
+  /* Spec list: stack key + value at narrow widths instead of fighting
+     for space in a fixed 100px column. Applies to both brand modes. */
+  .spec-list li { grid-template-columns: 1fr; gap: 4px; }
 }
 
 /* ============================================================
