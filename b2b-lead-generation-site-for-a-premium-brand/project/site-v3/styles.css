@@ -1033,9 +1033,12 @@ body.legal-page { background: var(--bg-d); }
 /* Calm-mode story headline: enters from the LEFT (instead of the
    default fade-up) for an editorial intro feel. Adds extra delay so
    it sweeps in after the section-head fade has settled, making the
-   headline feel like the deliberate focal element of the section. */
-[data-reveal-ready] :root[data-brand="calm"] #story .reveal .h-display,
-[data-reveal-ready] :root:not([data-brand]) #story .reveal .h-display {
+   headline feel like the deliberate focal element of the section.
+   :root has [data-reveal-ready] when JS arms the IO; combining both
+   attribute selectors on the same element ensures the rule fires
+   only after JS is ready (no flash of moved content on initial paint). */
+:root[data-reveal-ready][data-brand="calm"] #story .reveal .h-display,
+:root[data-reveal-ready]:not([data-brand]) #story .reveal .h-display {
   opacity: 0;
   transform: translateX(-72px);
   transition:
@@ -1043,14 +1046,14 @@ body.legal-page { background: var(--bg-d); }
     transform 1080ms cubic-bezier(.18, 1.18, .35, 1) 220ms;
   will-change: transform, opacity;
 }
-[data-reveal-ready] :root[data-brand="calm"] #story .reveal.in .h-display,
-[data-reveal-ready] :root:not([data-brand]) #story .reveal.in .h-display {
+:root[data-reveal-ready][data-brand="calm"] #story .reveal.in .h-display,
+:root[data-reveal-ready]:not([data-brand]) #story .reveal.in .h-display {
   opacity: 1;
   transform: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal-ready] :root[data-brand="calm"] #story .reveal .h-display,
-  [data-reveal-ready] :root:not([data-brand]) #story .reveal .h-display {
+  :root[data-reveal-ready][data-brand="calm"] #story .reveal .h-display,
+  :root[data-reveal-ready]:not([data-brand]) #story .reveal .h-display {
     opacity: 1; transform: none; transition: none;
   }
 }
