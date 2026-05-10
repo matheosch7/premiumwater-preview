@@ -941,13 +941,22 @@
     }
     cineWasVisible = isVisible;
 
-    let activeAct = 0;
-    if (p >= 0.08 && p < 0.30)      activeAct = 1;
-    else if (p >= 0.30 && p < 0.55) activeAct = 2;
-    else if (p >= 0.55 && p < 0.82) activeAct = 3;
-    else if (p >= 0.82)             activeAct = 4;
+    // Act 1 is the LANDING state — no empty intro window at scroll 0
+    // (used to require p >= 0.08, which left the mobile hero empty
+    // on first paint until the user scrolled a bit). Other thresholds
+    // unchanged.
+    let activeAct = 1;
+    if (p < 0.30)         activeAct = 1;
+    else if (p < 0.55)    activeAct = 2;
+    else if (p < 0.82)    activeAct = 3;
+    else                  activeAct = 4;
     captionEls.forEach(el => {
-      el.classList.toggle('is-active', parseInt(el.dataset.act, 10) === activeAct);
+      const actNum = parseInt(el.dataset.act, 10);
+      el.classList.toggle('is-active', actNum === activeAct);
+      // Mark past captions so they translate UPWARD on exit (CSS
+      // styles .is-past with translateY(-40vh); default state below
+      // the slot is reserved for "future" captions).
+      el.classList.toggle('is-past', actNum < activeAct);
     });
 
     if (cineProgress) cineProgress.style.height = (p * 100) + '%';

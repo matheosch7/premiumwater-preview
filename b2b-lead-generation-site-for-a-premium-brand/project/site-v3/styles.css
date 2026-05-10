@@ -1104,8 +1104,9 @@ body.legal-page { background: var(--bg-d); }
   .form-foot { flex-direction: column; align-items: stretch; gap: 14px; }
   .form-foot .pill { justify-content: center; }
 
-  /* hide the cinematic captions on small screens — they overlap hero copy */
-  .cine-captions { display: none; }
+  /* (Cinematic captions are now ENABLED on mobile — see the calm-mode
+     hero block further down. The old `display: none` rule was removed
+     because the captions are the mobile hero narrative.) */
 }
 
 /* extra-small: shrink nav controls so they all fit on a 360px viewport */
@@ -1258,21 +1259,28 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
   .marquee-track { animation: none !important; }
 }
 
-/* Mobile: zoom OUT the scroll-scrubbed video (object-fit: contain) so
-   the full pour composition fits the viewport, with the cine-stage's
-   studio-green backdrop filling the letterbox area as one continuous
-   palette. The hero copy is overlaid in the top-left from the very
-   first paint, and SCROLL-DRIVES downward + fades as the user scrolls
-   through the hero zone — so the text journey "covers" the time the
-   video needs to fully unfold before the next section arrives. */
+/* ============================================================
+   Mobile calm-mode hero: caption reel + zoomed-out video
+   ----------------------------------------------------------
+   Instead of a single overlaid headline (which forced us to
+   colour-match the contain letterbox), the hero is a SEQUENCE of
+   captions that cycle as the user scrolls through the hero zone.
+   Each act ("From the páramo", "Unhurried", "With intention",
+   "premiumwater") rises from below into a fixed top-left slot,
+   sits there while the matching segment of the pour video plays,
+   then exits upward as the next act rises in. The changing text
+   becomes the focal element — the eye stops tracking the seam
+   between video and stage.
+
+   Trigger: updateCine() in app.js sets .is-active on the current
+   .cine-caption and .is-past on any previously-active captions.
+   ============================================================ */
 @media (max-width: 900px) {
-  /* Video full-bleed: object-fit: cover fills the viewport edge to
-     edge so there's no letterbox area where a mismatched stage
-     colour could show through. The trade-off is the bottle gets
-     slightly cropped on the sides, but the colour-match problem is
-     eliminated rather than fought. */
+  /* Video: zoom OUT (object-fit: contain) so the full pour
+     composition fits the viewport. Letterbox area is the
+     cine-stage's solid studio green. */
   .cine-video {
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
     width: 100%;
     height: 100%;
@@ -1284,62 +1292,124 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
             mask-image: none;
   }
   .cine-static {
-    background-size: cover;
+    background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
   }
-  /* Neutral dark fallback only for the moments before the poster
-     paints. With cover, the user almost never sees this. */
-  .cine-stage { background: #0E1814; }
-  .cine-bg {
-    background:
-      radial-gradient(ellipse 100% 80% at 50% 40%, rgba(255,255,255,0.04) 0%, transparent 55%),
-      linear-gradient(180deg, #0e1a14 0%, #1f3228 45%, #0c1710 100%);
-  }
-  /* Drop the top-darkening overlay on mobile — it painted a black
-     band above the video that conflicted with the green continuous
-     backdrop the user asked for. Hero copy still reads against the
-     video via its multi-layer text-shadow. */
+  /* Solid studio-green backdrop. Skipping the gradient + mask
+     experiments — the caption reel above pulls the eye, so the
+     letterbox seam is no longer the focal element. */
+  .cine-stage { background: #1F3228; }
+  .cine-bg { background: transparent; }
   .cine-grade { background: none; }
-  /* Hero copy: anchored top-left, visible immediately on landing,
-     then driven downward by --hero-scroll (set by app.js as the
-     hero progresses through scroll). The translation rate (160vh
-     per hero-zone) is > 100vh so the text moves DOWN in viewport
-     even as the page scrolls UP — a counter-scroll parallax that
-     keeps the headline on screen while the bottle pours behind it,
-     then fades it out near the end of the hero zone so it doesn't
-     trail into the next section. */
-  .hero {
-    align-items: flex-start;
-    padding: 96px 24px 56px;
+
+  /* ─── Caption reel ─────────────────────────────────────────── */
+
+  /* Re-enable the .cine-captions (desktop has them right-centred;
+     on mobile we use a top-left slot above the video letterbox). */
+  .cine-captions {
+    display: block;
+    position: absolute;
+    top: 14vh;
+    left: 24px;
+    right: 24px;
+    max-width: none;
     text-align: left;
+    transform: none;
+    z-index: 6;
   }
-  .hero-copy {
-    transform: translateY(calc(var(--hero-scroll, 0) * 160vh));
-    /* Hold opacity 1 until scroll progress hits 0.7, then fade to 0
-       by 1.0. Multiplier: 1 / (1 - 0.7) = 3.33. */
-    opacity: clamp(0, calc(1 - max(0, var(--hero-scroll, 0) - 0.7) * 3.33), 1);
-    will-change: transform, opacity;
-    /* Heavy multi-layer shadow so the copy reads against any frame
-       behind it without needing a dark backdrop slab. */
+  .cine-caption {
+    /* Stack captions on the same slot so transitions cross-overlay. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* Default = "future" act: below the slot, invisible */
+    opacity: 0;
+    transform: translateY(40vh);
+    transition:
+      opacity 600ms ease,
+      transform 700ms cubic-bezier(.2, .8, .2, 1);
+    will-change: opacity, transform;
+  }
+  /* Active = "current" act: in the slot, fully visible */
+  .cine-caption.is-active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* Past = "already shown" act: above the slot, invisible
+     (translates UP — gives the "leaves from the top of the frame"
+     direction the user asked for). */
+  .cine-caption.is-past {
+    opacity: 0;
+    transform: translateY(-40vh);
+  }
+  .cine-hed {
+    font-size: clamp(40px, 11vw, 64px);
+    line-height: 1.0;
+  }
+  .cine-kicker {
+    font-size: 11px;
+    margin-bottom: 14px;
+  }
+  /* Strong multi-layer text-shadow so the captions read against
+     any video frame without a dark backdrop slab. */
+  .cine-hed,
+  .cine-kicker {
     text-shadow:
       0 2px 4px rgba(0, 0, 0, 0.9),
-      0 4px 18px rgba(0, 0, 0, 0.8),
+      0 4px 18px rgba(0, 0, 0, 0.7),
       0 0 2px rgba(0, 0, 0, 0.95);
   }
+
+  /* ─── Hero layout: CTAs only ──────────────────────────────── */
+
+  /* Hide the original text portions of .hero-copy — the caption
+     reel above is now the narrative. Keep .hero-actions visible
+     so the "Talk to us" + "Get started →" pills stay reachable
+     in the hero, just above the mobile-sticky-cta bar. */
+  .hero-eyebrow,
+  .hero-title,
+  .hero-lede {
+    display: none;
+  }
+  .hero-copy {
+    /* Reset any leftover --hero-scroll-driven drift / fade rules
+       from the previous single-block hero implementation. */
+    transform: none;
+    opacity: 1;
+    text-shadow: none;
+    will-change: auto;
+  }
+  /* Anchor .hero-copy (now containing only .hero-actions) to the
+     bottom of .hero, with enough padding-bottom to clear the
+     fixed .mobile-sticky-cta bar (~80px including safe-area). */
+  .hero {
+    align-items: flex-end;
+    padding: 96px 24px 110px;
+    text-align: left;
+  }
+  .hero-actions {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+
+  /* Reduced-motion: skip the 40vh sweep on caption transitions,
+     keep only the opacity crossfade. */
   @media (prefers-reduced-motion: reduce) {
-    .hero-copy {
+    .cine-caption,
+    .cine-caption.is-active,
+    .cine-caption.is-past {
       transform: none;
-      opacity: 1;
+      transition: opacity 400ms ease;
     }
   }
-  /* Extend the studio-green palette through #story (the section that
-     sits between hero and the range / #product) so the green band
-     continues uninterrupted from the top of the page down to where
-     the product range begins. Without this the cine-stage's green
-     handed off to .block's default purple gradient as the user
-     scrolled past the hero, breaking the "one continuous backdrop"
-     feel. */
+
+  /* Extend the studio-green palette through #story so the green
+     band continues from the cine-stage backdrop into the next
+     section, all the way down to #product (The range). */
   :root[data-brand="calm"] #story,
   :root:not([data-brand]) #story {
     background: #1F3228;
