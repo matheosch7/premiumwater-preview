@@ -644,9 +644,10 @@ main { position: relative; z-index: 5; padding-right: 0; }
   border: 1px solid var(--glass-line);
   border-radius: 24px;
   padding: 40px 32px 36px;
-  transition: transform 400ms ease, background 400ms ease;
+  /* transition is set in the carousel hover block below — keeping it
+     in one place avoids a double-transition declaration that the cascade
+     would otherwise resolve in unpredictable ways. */
 }
-.product:hover { transform: translateY(-6px); background: rgba(255,255,255,0.22); }
 .product-visual {
   aspect-ratio: 3/4;
   display: grid; place-items: center;
@@ -1679,8 +1680,9 @@ body.mg-hero-ready .hero-lede   .mg-word {
 /* --- Card hover lift --- */
 .trade-card,
 .product {
-  transition: transform 320ms cubic-bezier(.2,.7,.2,1),
-              box-shadow 320ms cubic-bezier(.2,.7,.2,1),
+  transition: transform 380ms cubic-bezier(.2,.7,.2,1),
+              opacity 380ms cubic-bezier(.2,.7,.2,1),
+              box-shadow 380ms cubic-bezier(.2,.7,.2,1),
               border-color 200ms ease;
   will-change: transform;
 }
@@ -1688,9 +1690,44 @@ body.mg-hero-ready .hero-lede   .mg-word {
   transform: translateY(-6px);
   box-shadow: 0 20px 40px rgba(0,0,0,0.18), 0 0 0 1px rgba(230,57,70,0.15);
 }
-.product:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 32px rgba(0,0,0,0.14);
+
+/* === Product card carousel hover ===
+   When the cursor enters any product card, that card scales up and
+   pops forward; the other two scale down and dim. Result is a
+   carousel-like focus where attention follows the cursor.
+
+   The hover state is exposed via two custom properties (--pcard-scale,
+   --pcard-y) so it can compose with other transforms applied to the
+   same element — notably the bold-mode iris translateX on side cards
+   which is scroll-driven via --label-window-progress. Each mode's
+   transform rule reads --pcard-scale alongside its own translate
+   instead of having separate :hover rules fight for the transform
+   property. */
+.product-row .product {
+  --pcard-scale: 1;
+  --pcard-y: 0px;
+  transform-origin: center center;
+}
+.product-row:hover .product:not(:hover) {
+  --pcard-scale: 0.92;
+  opacity: 0.55;
+}
+.product-row .product:hover {
+  --pcard-scale: 1.08;
+  --pcard-y: -10px;
+  z-index: 5;
+  opacity: 1;
+}
+
+/* Calm-mode transform composition (no other transforms applied) */
+:root[data-brand="calm"] .product-row .product,
+:root:not([data-brand]) .product-row .product {
+  transform: translateY(var(--pcard-y, 0px)) scale(var(--pcard-scale, 1));
+}
+:root[data-brand="calm"] .product-row .product:hover,
+:root:not([data-brand]) .product-row .product:hover {
+  background: rgba(255,255,255,0.22);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.20);
 }
 
 /* =====================================================================
@@ -2492,12 +2529,20 @@ html[data-brand="bold"],
   display: flex;
   flex-direction: column;
   gap: 24px;
-  transition: transform 240ms cubic-bezier(.2,.7,.2,1), box-shadow 240ms;
+  /* Bold-mode card transform: composes the carousel scale variable
+     with translateY (set on hover by the carousel rules above). The
+     side-card iris translateX overrides this from a more specific
+     rule below, but it includes scale(var(--pcard-scale)) too so
+     hover still works during the lineup phase. */
+  transform: translateY(var(--pcard-y, 0px)) scale(var(--pcard-scale, 1));
+  transition: transform 380ms cubic-bezier(.2,.7,.2,1),
+              opacity 380ms cubic-bezier(.2,.7,.2,1),
+              box-shadow 380ms cubic-bezier(.2,.7,.2,1),
+              border-color 200ms ease;
 }
 [data-brand="bold"] .product:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 48px rgba(230,57,70,0.16);
-  border-color: rgba(230,57,70,0.30);
+  box-shadow: 0 24px 56px rgba(230,57,70,0.20);
+  border-color: rgba(230,57,70,0.35);
 }
 /* Show a bottle in each card using three different rotation frames from
    the same sequence the floating bottle uses, so the lineup feels live —
@@ -3029,10 +3074,14 @@ html[data-brand="bold"],
     visibility: hidden;
   }
   /* Collapse the middle card's vertical real-estate so it doesn't
-     create a giant empty box — the floating can fills that space. */
+     create a giant empty box — the floating can fills that space.
+     pointer-events: none prevents the (mostly invisible) middle card
+     from triggering the carousel hover and dimming its visible
+     siblings; the floating can in front handles attention here. */
   :root[data-brand="bold"] .product-row .product:nth-child(2) {
     background: transparent;
     border-color: transparent;
+    pointer-events: none;
   }
   :root[data-brand="bold"] .product-row .product:nth-child(2):hover {
     transform: none;
@@ -3050,11 +3099,11 @@ html[data-brand="bold"],
     will-change: opacity, transform;
   }
   :root[data-brand="bold"] .product-row .product:nth-child(1) {
-    transform: translateX(-60px);
+    transform: translateX(-60px) scale(var(--pcard-scale, 1));
     transition-delay: 250ms;
   }
   :root[data-brand="bold"] .product-row .product:nth-child(3) {
-    transform: translateX(60px);
+    transform: translateX(60px) scale(var(--pcard-scale, 1));
     transition-delay: 450ms;
   }
   :root[data-brand="bold"] #product.section-in .product-row .product:nth-child(1) {
@@ -3062,12 +3111,15 @@ html[data-brand="bold"],
     /* As the iris opens, the side cards actively slide OFF the page
        (Carafe left, Service right), making room for the camera dive
        through the label. translateX is driven by --label-window-progress
-       (set on :root by the JS scroll handler). */
-    transform: translateX(calc(var(--label-window-progress, 0) * -120vw));
+       (set on :root by the JS scroll handler). The scale() factor
+       composes the carousel hover (--pcard-scale) so hovering still
+       enlarges the card during the lineup phase before the iris
+       starts opening. */
+    transform: translateX(calc(var(--label-window-progress, 0) * -120vw)) scale(var(--pcard-scale, 1));
   }
   :root[data-brand="bold"] #product.section-in .product-row .product:nth-child(3) {
     opacity: 1;
-    transform: translateX(calc(var(--label-window-progress, 0) * 120vw));
+    transform: translateX(calc(var(--label-window-progress, 0) * 120vw)) scale(var(--pcard-scale, 1));
   }
   /* Middle card's meta block fades out as iris opens — otherwise its
      "TABLE / 500ML / The everyday hospitality size..." text stays
