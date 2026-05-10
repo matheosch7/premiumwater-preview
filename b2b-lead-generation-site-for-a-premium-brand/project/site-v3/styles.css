@@ -1559,7 +1559,20 @@ main#top { position: relative; z-index: 2; }
   transform: none;
 }
 
-/* Mobile: same tight runway as desktop. */
+/* Mobile: same tight runway as desktop, but unwind the desktop's
+   -100px margin-top. On desktop the cascade band overlaps trade's
+   bottom padding (140px) to keep the seam tight — there's ample room
+   for the CTAs above. On mobile `.block { padding: 80px 20px }`,
+   so a -100px overlap eats INTO the trade-cta visible area and the
+   rising cascade video glow covers the "Become a distributor" /
+   "WhatsApp us" buttons. Reset the overlap to zero so trade and the
+   cascade band meet edge-to-edge with no visual collision. */
+@media (max-width: 900px) {
+  :root[data-brand="calm"] .calm-water-transition,
+  :root:not([data-brand]) .calm-water-transition {
+    margin-top: 0;
+  }
+}
 @media (max-width: 600px) {
   :root[data-brand="calm"] .calm-water-transition,
   :root:not([data-brand]) .calm-water-transition {
