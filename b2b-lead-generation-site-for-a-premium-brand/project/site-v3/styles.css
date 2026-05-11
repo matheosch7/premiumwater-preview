@@ -341,7 +341,10 @@ p { margin: 0; }
 /* mobile drawer */
 .nav-drawer {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  /* Cover the full viewport — the drawer's dark backdrop should
+     fully occlude the page underneath, otherwise content (sections,
+     sticky CTA bar) peeks through below the nav items. */
+  inset: 0;
   z-index: 49;
   background: rgba(11, 11, 12, 0.96);
   backdrop-filter: blur(20px);
@@ -354,19 +357,40 @@ p { margin: 0; }
   flex-direction: column;
   gap: 28px;
   pointer-events: none;
+  /* Explicit light text colour so the drawer ALWAYS reads against
+     its near-black backdrop, regardless of which brand mode's
+     --ink token is currently in scope (calm --ink: #F7F3EA reads
+     fine, but bold --ink: #0A0A0C is the same colour as the
+     drawer bg and would render invisible). */
+  color: #F7F3EA;
 }
 .nav-drawer.open { transform: translateY(0); pointer-events: auto; }
 .drawer-nav { display: flex; flex-direction: column; gap: 4px; }
 .drawer-nav a {
   font-family: var(--serif);
   font-size: 32px;
-  color: var(--ink);
+  /* Inherit the drawer's explicit light colour — don't fall back
+     to var(--ink) which is dark in bold mode. */
+  color: inherit;
   padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 .drawer-nav a:last-child { border-bottom: 0; }
-.drawer-cta { display: flex; flex-direction: column; gap: 10px; }
+.drawer-cta { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
 .drawer-cta .pill { justify-content: center; padding: 16px 22px; font-size: 15px; }
+/* Force the pills to a dark-bg-readable treatment regardless of
+   brand mode. The ghost pill becomes a translucent white outline +
+   light text; the solid pill stays its brand accent colour. */
+.nav-drawer .pill-ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #F7F3EA;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.nav-drawer .pill-solid {
+  background: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
+}
 
 /* pill buttons */
 .pill {
