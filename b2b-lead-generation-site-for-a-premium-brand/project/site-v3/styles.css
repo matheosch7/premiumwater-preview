@@ -3005,6 +3005,12 @@ html[data-brand="bold"],
     grid-template-columns: 1fr;
     text-align: center;
     padding: 100px 24px 60px;
+    /* Release the desktop 100vh reservation on phones. The desktop
+       value exists so the floating can has a full viewport to travel
+       through; on mobile the roadmap JS bails (.bold-hero-photo is
+       static, no scroll choreography), so the 100vh just leaves a
+       large empty white band below the hero copy + static can. */
+    min-height: auto;
   }
   [data-brand="bold"] .hero-eyebrow { padding-left: 0; }
   [data-brand="bold"] .hero-eyebrow::before { display: none; }
