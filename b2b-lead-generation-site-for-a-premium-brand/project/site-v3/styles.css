@@ -1342,8 +1342,30 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
     text-align: left;
   }
   .hero-copy {
-    transform: translateY(calc(var(--hero-scroll, 0) * 160vh));
-    opacity: clamp(0, calc(1 - max(0, var(--hero-scroll, 0) - 0.7) * 3.33), 1);
+    /* Text-exit choreography, driven by --hero-scroll (0 → 1 across
+       the hero zone, written to :root by updateCine in app.js).
+
+       Phase 1 (0 → 0.30): HOLD. Text stays put — counter-scroll via
+       translateY(+1× page scroll equivalent) cancels the natural
+       upward drift so the user has time to read the headline while
+       the bottle starts to pour. Approximated here with a positive
+       translateY proportional to --hero-scroll up to 0.30.
+
+       Phase 2 (0.30 → 1): LIFT + FADE. From here on, text translates
+       UPWARD faster than the page scrolls, drifting up out of the
+       viewport, and fades to 0 by the end of the zone — clean exit
+       through the TOP of the frame (same direction the page scroll
+       feels) before the next section arrives. */
+    --hero-hold:  min(var(--hero-scroll, 0), 0.30);
+    --hero-exit:  max(0, calc(var(--hero-scroll, 0) - 0.30));
+    transform: translateY(calc(
+      var(--hero-hold) * 70vh
+      + var(--hero-exit) * -120vh
+    ));
+    /* Stay fully visible through the hold phase, fade out across
+       the second half of the exit phase. Multiplier 1 / 0.50 = 2.0
+       so opacity reaches 0 right at --hero-scroll = 1.0. */
+    opacity: clamp(0, calc(1 - max(0, var(--hero-scroll, 0) - 0.50) * 2.0), 1);
     will-change: transform, opacity;
     text-shadow:
       0 2px 4px rgba(0, 0, 0, 0.9),
