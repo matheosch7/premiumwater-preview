@@ -402,10 +402,105 @@ p { margin: 0; }
   transition: transform 200ms ease, background 200ms ease, color 200ms ease;
 }
 .pill-solid { background: var(--pill-ink); color: #fff; }
-.pill-solid:hover { transform: translateY(-1px); background: var(--accent); color: var(--pill-ink); }
+.pill-solid:hover { transform: translateY(-2px) scale(1.02); background: var(--accent); color: var(--pill-ink); }
 .pill-ghost { background: var(--glass); color: var(--ink); border: 1px solid var(--glass-line); backdrop-filter: blur(10px); }
-.pill-ghost:hover { background: rgba(255,255,255,0.22); }
+.pill-ghost:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
 .pill.lg { padding: 14px 24px; font-size: 15px; }
+
+/* ============================================================
+   CONVERSION MOTION
+   Eye-drawing motion on the primary call-to-action pills so the
+   visitor's gaze keeps returning to the conversion path. Tuned to
+   read as polished + intentional, not nagging:
+     - Pulse ring expands and fades on a ~2.6s cadence (the
+       "notification" pattern, calibrated soft)
+     - Hover pauses the pulse, lifts the pill and scales it 2%,
+       enriches the shadow — clear affordance for "this is
+       clickable"
+     - Active state snaps the pill down for tactile feedback
+     - WhatsApp FAB pulses + bounces every ~4s as the always-on
+       conversion shortcut
+   All animations respect prefers-reduced-motion (full bypass).
+   ============================================================ */
+
+/* Brand-toned pulse glow */
+:root[data-brand="calm"], :root:not([data-brand]) { --cta-glow: rgba(198, 162, 91, 0.55); }
+:root[data-brand="bold"]                            { --cta-glow: rgba(230,  57,  70, 0.55); }
+
+/* Pulse ring keyframe — a single box-shadow that expands and fades */
+@keyframes cta-pulse-ring {
+  0%   { box-shadow: 0 0 0 0    var(--cta-glow); }
+  70%  { box-shadow: 0 0 0 14px transparent; }
+  100% { box-shadow: 0 0 0 0    transparent; }
+}
+
+.pill-solid {
+  position: relative;
+  isolation: isolate;
+  animation: cta-pulse-ring 2.6s cubic-bezier(.4, 0, .2, 1) infinite;
+  transition:
+    transform 240ms cubic-bezier(.2, .8, .2, 1),
+    background 240ms ease,
+    color 240ms ease,
+    box-shadow 240ms ease;
+}
+.pill-solid:hover {
+  animation-play-state: paused;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22), 0 0 0 4px var(--cta-glow);
+}
+.pill-solid:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 80ms;
+}
+
+/* Mobile-sticky-cta primary pill gets the same treatment so it's
+   the loudest conversion path on phones. */
+.mobile-sticky-cta .pill-solid {
+  animation-duration: 3.2s;  /* slightly slower — already prominent */
+}
+
+/* WhatsApp FAB — gentle attention-grabbing bounce + glow every ~4s */
+@keyframes fab-attention {
+  0%, 88%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35),
+                0 0 0 0 rgba(37, 211, 102, 0.45);
+  }
+  90% {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.40),
+                0 0 0 10px rgba(37, 211, 102, 0);
+  }
+  94% { transform: translateY(-2px); }
+}
+.fab {
+  animation: fab-attention 4s ease-in-out infinite;
+  animation-delay: 1.8s;
+  transition:
+    transform 200ms cubic-bezier(.2, .8, .2, 1),
+    box-shadow 200ms ease;
+}
+.fab:hover {
+  animation-play-state: paused;
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.40),
+              0 0 0 6px rgba(37, 211, 102, 0.25);
+}
+.fab:active {
+  transform: translateY(0) scale(0.96);
+  transition-duration: 80ms;
+}
+
+/* Reduced motion: kill the autonomous pulses + bounces, keep the
+   hover/active feedback (which is user-initiated and thus exempt
+   from the prefers-reduced-motion ban). */
+@media (prefers-reduced-motion: reduce) {
+  .pill-solid,
+  .mobile-sticky-cta .pill-solid,
+  .fab {
+    animation: none !important;
+  }
+}
 
 /* side badge */
 .side-badge {
