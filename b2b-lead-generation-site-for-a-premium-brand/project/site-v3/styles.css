@@ -2044,6 +2044,17 @@ html[data-brand="bold"],
   background: var(--accent);
   transform: translateY(-50%);
 }
+/* Kill the calm-mode .hero-copy text-shadow (0 2px 18px dark blur)
+   in bold mode. That shadow was authored for white-text-on-dark-video
+   in calm; bold renders dark text on a light #FAFAFA background, so
+   the 18px-blur dark shadow paints a soft halo behind every glyph
+   and the text reads as blurred. */
+[data-brand="bold"] .hero-copy,
+[data-brand="bold"] .hero-title,
+[data-brand="bold"] .hero-lede,
+[data-brand="bold"] .hero-eyebrow {
+  text-shadow: none;
+}
 [data-brand="bold"] .hero-title {
   font-family: 'Anton', 'Schibsted Grotesk', sans-serif;
   font-weight: 400;
@@ -2053,6 +2064,10 @@ html[data-brand="bold"],
   text-transform: uppercase;
   color: #0A0A0C;
   margin: 0;
+  /* Crisp glyph rasterisation against the light bold-mode backdrop. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 [data-brand="bold"] .hero-title .line {
   display: block;
