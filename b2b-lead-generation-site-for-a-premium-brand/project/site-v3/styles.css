@@ -3104,6 +3104,39 @@ html[data-brand="bold"],
   border-radius: 4px;
   padding: 32px;
 }
+/* Inputs in bold mode: the base .field input styles use white text +
+   a rgba(255,255,255,0.24) underline (designed for the dark calm
+   form-card). On the bold mode's #FFFFFF form-card, both render
+   invisible — text and underline blend into the white background.
+   Override here with dark ink + a visible neutral underline that
+   reads on white, plus a brand-accent focus underline (already in
+   the base rule for var(--accent), which IS red in bold mode). */
+[data-brand="bold"] .field input,
+[data-brand="bold"] .field select,
+[data-brand="bold"] .field textarea {
+  color: var(--ink);
+  border-bottom-color: rgba(10, 10, 12, 0.18);
+}
+[data-brand="bold"] .field input:focus,
+[data-brand="bold"] .field select:focus,
+[data-brand="bold"] .field textarea:focus {
+  border-bottom-color: var(--accent);
+  border-bottom-width: 2px;
+}
+/* Hover deepens the underline slightly so the row reads as
+   interactive before focus. */
+[data-brand="bold"] .field input:hover,
+[data-brand="bold"] .field select:hover,
+[data-brand="bold"] .field textarea:hover {
+  border-bottom-color: rgba(10, 10, 12, 0.35);
+}
+[data-brand="bold"] .field label {
+  color: rgba(10, 10, 12, 0.55);
+}
+[data-brand="bold"] .field input::placeholder,
+[data-brand="bold"] .field textarea::placeholder {
+  color: rgba(10, 10, 12, 0.35);
+}
 [data-brand="bold"] .form-head {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
