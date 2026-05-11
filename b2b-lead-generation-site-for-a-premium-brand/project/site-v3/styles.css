@@ -517,6 +517,14 @@ main { position: relative; z-index: 5; padding-right: 0; }
 
 /* spacer before first content block */
 .sep { height: 40vh; position: relative; z-index: 5; }
+/* Mobile / bold mode: the 40vh spacer between hero and marquee
+   exists so the desktop calm-mode cinematic stage has room to
+   "breathe" between hero and the next section. On mobile in bold
+   mode there's no cinematic continuation, so that 40vh just renders
+   as a large empty white band. Collapse it. */
+@media (max-width: 900px) {
+  [data-brand="bold"] .sep { display: none; }
+}
 
 /* marquee band */
 .marquee-band {
