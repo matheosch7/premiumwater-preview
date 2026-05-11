@@ -874,10 +874,33 @@
   // ---------- cinematic stage: scroll-scrubbed video ----------
   const cineStage    = document.getElementById('cineStage');
   const cineVideo    = document.getElementById('cineVideo');
+  const cineStatic   = document.querySelector('.cine-static');
   const cineProgress = document.getElementById('cineProgressFill');
   const captionEls   = Array.from(document.querySelectorAll('.cine-caption'));
   const scrollCard   = document.getElementById('scrollCard');
   const productEl    = document.getElementById('product');
+
+  // Swap to the portrait pour video + poster on mobile so the
+  // composition fills the viewport natively (no contain-letterboxing
+  // and no radial-vignette dissolve needed). The mobile asset is a
+  // 9:16 720x1280 re-cut of the desktop 16:9 pour. Done BEFORE the
+  // first .load() / currentTime write so the browser doesn't waste
+  // a metadata fetch on the desktop file first.
+  const useMobileVideo = cineVideo && window.innerWidth <= 900;
+  if (useMobileVideo) {
+    const mSrc    = cineVideo.dataset.srcMobile;
+    const mPoster = cineVideo.dataset.posterMobile;
+    if (mSrc)    cineVideo.src = mSrc;
+    if (mPoster) cineVideo.poster = mPoster;
+  }
+  if (cineStatic) {
+    // Static fallback (shown while video metadata loads OR when
+    // reduced-motion is on) — same source switch logic.
+    const poster = useMobileVideo
+      ? (cineVideo && cineVideo.dataset.posterMobile) || 'assets/poster-mobile.jpg'
+      : 'assets/poster.jpg';
+    cineStatic.style.backgroundImage = `url('${poster}')`;
+  }
 
   // respect reduced-motion: hide video, keep poster backdrop
   const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

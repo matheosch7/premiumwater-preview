@@ -1294,67 +1294,29 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
      the narrative).
    ============================================================ */
 @media (max-width: 900px) {
+  /* Mobile uses a 9:16 portrait source video (swapped in by app.js),
+     so cover-fill works natively — no contain-letterbox, no vignette
+     mask, no object-position tricks. The video frame matches the
+     viewport aspect, the bottle is the centred subject, and the page
+     reads as one continuous studio shot. */
   .cine-video {
-    object-fit: contain;
-    /* Anchor 20% from top so the bottle sits in the upper-middle
-       of the viewport, leaving room for the radial vignette to
-       fade ALL four edges into the cine-stage's green. */
-    object-position: center 20%;
+    object-fit: cover;
+    object-position: center;
     width: 100%;
     height: 100%;
     padding: 0;
     transform: none;
     bottom: 0;
     background: transparent;
-    /* RADIAL VIGNETTE DISSOLVE: an ellipse centred on the bottle
-       (50% horizontal, ~38% vertical to match the object-position
-       offset). The mask is fully opaque inside the inner radius
-       (bottle stays bright + lit) then fades smoothly to fully
-       transparent at the corners. The cine-stage's solid green
-       shows through wherever the mask is < opaque, so the page
-       extends INTO the video edges from all four sides — the
-       eye reads the bottle as a spotlit object on the page, not
-       a panel with a frame. */
-    -webkit-mask-image: radial-gradient(
-      ellipse at 50% 38%,
-      #000 0%,
-      #000 28%,
-      rgba(0, 0, 0, 0.75) 52%,
-      rgba(0, 0, 0, 0.30) 78%,
-      transparent 100%
-    );
-            mask-image: radial-gradient(
-      ellipse at 50% 38%,
-      #000 0%,
-      #000 28%,
-      rgba(0, 0, 0, 0.75) 52%,
-      rgba(0, 0, 0, 0.30) 78%,
-      transparent 100%
-    );
+    -webkit-mask-image: none;
+            mask-image: none;
   }
   .cine-static {
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
-    background-position: center 20%;
-    /* Same radial vignette so the pre-video poster matches the
-       dissolved look during the deferred-preload window on
-       phones. */
-    -webkit-mask-image: radial-gradient(
-      ellipse at 50% 38%,
-      #000 0%,
-      #000 28%,
-      rgba(0, 0, 0, 0.75) 52%,
-      rgba(0, 0, 0, 0.30) 78%,
-      transparent 100%
-    );
-            mask-image: radial-gradient(
-      ellipse at 50% 38%,
-      #000 0%,
-      #000 28%,
-      rgba(0, 0, 0, 0.75) 52%,
-      rgba(0, 0, 0, 0.30) 78%,
-      transparent 100%
-    );
+    background-position: center;
+    -webkit-mask-image: none;
+            mask-image: none;
   }
   /* Solid studio-green stage so the area below the faded video
      edge reads as a continuous green band down to the next
