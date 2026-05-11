@@ -2443,6 +2443,17 @@ html[data-brand="bold"],
     max-width: 360px;
     margin: 0 auto;
     transition: none;
+    /* The source bottle frame (800x800 webp) has the can in the
+       upper ~70% and ~30% transparent space at the bottom (for
+       drop-shadow rendering on desktop). On mobile that transparent
+       band rendered as a dead white gap below the can before the
+       next section. Constrain the rendered height + cover-crop +
+       anchor to the top so only the can portion shows; the
+       transparent bottom is cropped out. */
+    height: 320px;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
   }
 }
 
