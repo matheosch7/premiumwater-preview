@@ -171,9 +171,13 @@ p { margin: 0; }
   animation-delay: var(--delay, 0s);
 }
 @keyframes drift {
-  0% { transform: translate(0, 0); opacity: 0; }
-  20% { opacity: .8; }
-  100% { transform: translate(var(--dx, 40px), var(--dy, -60px)); opacity: 0; }
+  /* Emil principle: nothing in the real world appears from nothing.
+     Start with a slight scale so the speck has a visible shape even
+     while opacity is 0 — feels like a particle picking up speed
+     instead of materialising mid-air. */
+  0%   { transform: translate(0, 0) scale(0.92); opacity: 0; }
+  20%  { opacity: .8; }
+  100% { transform: translate(var(--dx, 40px), var(--dy, -60px)) scale(1); opacity: 0; }
 }
 
 /* nature backdrop: droplets only (landscape handled by .landscape) */
@@ -357,6 +361,11 @@ p { margin: 0; }
   border-bottom: 1px solid var(--glass-line);
   padding: 96px 28px 36px;
   transform: translateY(-100%);
+  /* The drawer slides down from the top of the viewport — anchor
+     the transform-origin to that top edge instead of the default
+     center, so any future scale/rotation read as coming from
+     where the drawer is hinged. */
+  transform-origin: top center;
   transition: transform 320ms cubic-bezier(.2,.8,.2,1);
   display: flex;
   flex-direction: column;
@@ -1270,7 +1279,12 @@ html[data-cine="ivory"] { --cine-color: var(--cine-ivory); --cine-ink: #1A1712; 
   background:
     radial-gradient(ellipse 100% 80% at 50% 40%, rgba(255,255,255,0.06) 0%, transparent 55%),
     linear-gradient(180deg, #0e1a14 0%, #1f3228 45%, #0c1710 100%);
-  transition: background 800ms ease;
+  /* Animating the `background` shorthand pulls in image, repeat,
+     position, size, etc. — none of which are GPU-friendly. Animate
+     `background-color` specifically (the only thing that actually
+     changes between brand modes for this layer) so the transition
+     stays cheap and the brand toggle doesn't jank on mobile. */
+  transition: background-color 800ms ease;
 }
 /* Cinematic scene layers over the bg */
 .cine-scene { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
