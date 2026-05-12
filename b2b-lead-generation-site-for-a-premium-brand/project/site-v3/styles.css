@@ -3630,3 +3630,100 @@ html[data-brand="bold"],
     transition: none;
   }
 }
+
+/* ============================================================
+   TOUCH-DEVICE HOVER CLEANUP
+   ------------------------------------------------------------
+   Touch devices fire :hover on tap and leave it stuck until the
+   user taps elsewhere. Every transform-based hover effect on this
+   site would otherwise stay "lifted" after a tap. Reset transforms
+   on (hover: none) devices so the page reads naturally on touch.
+   Color / background / border hover changes are kept — they
+   register as a brief tap highlight, which is acceptable feedback.
+   ============================================================ */
+@media (hover: none) {
+  .pill-solid:hover,
+  .pill-ghost:hover,
+  .fab:hover,
+  .trade-card:hover,
+  .product-row .product:hover,
+  .product-row:hover .product:not(:hover),
+  [data-brand="bold"] .product:hover,
+  [data-brand="bold"] .trade-card:hover,
+  [data-brand="bold"] .hero-actions .pill.pill-ghost:hover,
+  [data-brand="bold"] .hero-actions .pill.pill-solid:hover {
+    transform: none !important;
+  }
+  /* The .spec-list and .product carousel use CSS custom properties
+     that drive scale via transform; resetting `transform` alone
+     wouldn't help because the variables are baked into the
+     transform expression. Reset the vars too. */
+  .spec-list li:hover {
+    --spec-hover: 0 !important;
+  }
+  .product-row .product:hover,
+  .product-row:hover .product:not(:hover) {
+    --pcard-scale: 1 !important;
+    --pcard-y: 0px !important;
+    opacity: 1 !important;
+  }
+  /* CTA pulse-ring + FAB autonomous bounce continue to render — the
+     `animation-play-state: paused` rules in their :hover blocks
+     never fire on (hover: none) since :hover doesn't really
+     trigger. That's the desired behaviour. */
+}
+
+/* ============================================================
+   PRESS FEEDBACK
+   ------------------------------------------------------------
+   Every interactive element needs a tactile press response so the
+   UI feels like it heard the click. Subtle scale-down (0.97) at
+   80ms — fast enough that the user perceives it as a direct
+   reaction, not an animation. .pill-solid + .fab already have
+   :active states defined in the conversion-motion block; this
+   covers the rest of the clickable surface.
+   ============================================================ */
+
+/* Simple elements (no compound transform from CSS variables) */
+.pill-ghost:active,
+.trade-card:active,
+.foot-links a:active,
+.foot-link-btn:active {
+  transform: scale(0.97);
+  transition-duration: 80ms;
+}
+
+/* .product uses a transform built from --pcard-y + --pcard-scale.
+   Override via the same variables so the press composes cleanly
+   with the carousel/hover-driven values. */
+.product-row .product:active {
+  --pcard-scale: 0.97;
+  --pcard-y: 0px;
+  transition-duration: 80ms;
+}
+
+/* .spec-list li uses --spec-hover + --spec-progress for its
+   transform. Press collapses the hover lift cleanly. */
+.spec-list li:active {
+  --spec-hover: 0;
+  transform: scale(0.97);
+  transition-duration: 80ms;
+}
+
+/* Nav links: subtle press feedback */
+.nav-center a:active {
+  transform: scale(0.96);
+  transition: transform 80ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill-ghost:active,
+  .trade-card:active,
+  .foot-links a:active,
+  .foot-link-btn:active,
+  .product-row .product:active,
+  .spec-list li:active,
+  .nav-center a:active {
+    transform: none;
+  }
+}
