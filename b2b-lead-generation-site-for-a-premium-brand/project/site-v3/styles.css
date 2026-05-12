@@ -413,44 +413,35 @@ p { margin: 0; }
 .pill.lg { padding: 14px 24px; font-size: 15px; }
 
 /* ============================================================
-   CONVERSION MOTION
-   Eye-drawing motion on the primary call-to-action pills so the
-   visitor's gaze keeps returning to the conversion path. Tuned to
-   read as polished + intentional, not nagging:
-     - Pulse ring expands and fades on a ~2.6s cadence (the
-       "notification" pattern, calibrated soft)
-     - Hover pauses the pulse, lifts the pill and scales it 2%,
-       enriches the shadow — clear affordance for "this is
-       clickable"
-     - Active state snaps the pill down for tactile feedback
-     - WhatsApp FAB pulses + bounces every ~4s as the always-on
-       conversion shortcut
-   All animations respect prefers-reduced-motion (full bypass).
+   CONVERSION MOTION — v2
+   Previous version ran an infinite pulse-ring on every .pill-solid
+   and an infinite bounce on the FAB. Emil's framework: anything
+   the user sees on every page view should NOT animate
+   autonomously — repeated motion reads as nagging rather than
+   inviting. Plus `animation-play-state: paused` on :hover desyncs
+   on iOS during scroll, so the pause-on-hover trick was fragile.
+
+   v2 keeps the brand-toned glow concept but drives it entirely
+   via transitions on :hover / :active. The FAB gets a SINGLE
+   "I'm here" wave 2 seconds after page load, then no more
+   autonomous motion ever — the eye notices it once and then
+   trusts that it stays put.
    ============================================================ */
 
-/* Brand-toned pulse glow */
+/* Brand-toned glow halo for primary CTAs */
 :root[data-brand="calm"], :root:not([data-brand]) { --cta-glow: rgba(198, 162, 91, 0.55); }
 :root[data-brand="bold"]                            { --cta-glow: rgba(230,  57,  70, 0.55); }
 
-/* Pulse ring keyframe — a single box-shadow that expands and fades */
-@keyframes cta-pulse-ring {
-  0%   { box-shadow: 0 0 0 0    var(--cta-glow); }
-  70%  { box-shadow: 0 0 0 14px transparent; }
-  100% { box-shadow: 0 0 0 0    transparent; }
-}
-
+/* Primary CTA: hover-driven glow + lift. No autonomous animation. */
 .pill-solid {
   position: relative;
-  isolation: isolate;
-  animation: cta-pulse-ring 2.6s cubic-bezier(.4, 0, .2, 1) infinite;
   transition:
-    transform 240ms cubic-bezier(.2, .8, .2, 1),
-    background 240ms ease,
-    color 240ms ease,
-    box-shadow 240ms ease;
+    transform 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    color 220ms ease,
+    box-shadow 220ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .pill-solid:hover {
-  animation-play-state: paused;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22), 0 0 0 4px var(--cta-glow);
 }
 .pill-solid:active {
@@ -458,53 +449,41 @@ p { margin: 0; }
   transition-duration: 80ms;
 }
 
-/* Mobile-sticky-cta primary pill gets the same treatment so it's
-   the loudest conversion path on phones. */
-.mobile-sticky-cta .pill-solid {
-  animation-duration: 3.2s;  /* slightly slower — already prominent */
-}
-
-/* WhatsApp FAB — gentle attention-grabbing bounce + glow every ~4s */
-@keyframes fab-attention {
-  0%, 88%, 100% {
-    transform: translateY(0);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35),
-                0 0 0 0 rgba(37, 211, 102, 0.45);
-  }
-  90% {
-    transform: translateY(-6px);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.40),
-                0 0 0 10px rgba(37, 211, 102, 0);
-  }
-  94% { transform: translateY(-2px); }
-}
+/* WhatsApp FAB: hover glow + one-shot landing wave.
+   The wave fires once at 2s after page load (a single bounce +
+   small after-shock), then the animation completes and the FAB
+   sits still for the rest of the session. */
 .fab {
-  animation: fab-attention 4s ease-in-out infinite;
-  animation-delay: 1.8s;
   transition:
-    transform 200ms cubic-bezier(.2, .8, .2, 1),
-    box-shadow 200ms ease;
+    transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1);
+  animation: fab-landing-wave 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) 2s 1 both;
+}
+@keyframes fab-landing-wave {
+  0%   { transform: translateY(0); }
+  35%  { transform: translateY(-7px); }
+  60%  { transform: translateY(0); }
+  78%  { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
 }
 .fab:hover {
-  animation-play-state: paused;
   transform: translateY(-3px) scale(1.06);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.40),
               0 0 0 6px rgba(37, 211, 102, 0.25);
+  /* Override the landing-wave animation in case the user hovers
+     during the 1.4s window — hover state wins. */
+  animation: none;
 }
 .fab:active {
   transform: translateY(0) scale(0.96);
   transition-duration: 80ms;
+  animation: none;
 }
 
-/* Reduced motion: kill the autonomous pulses + bounces, keep the
-   hover/active feedback (which is user-initiated and thus exempt
-   from the prefers-reduced-motion ban). */
+/* Reduced motion: kill the one-shot landing wave; hover/active
+   transitions stay since those are user-initiated. */
 @media (prefers-reduced-motion: reduce) {
-  .pill-solid,
-  .mobile-sticky-cta .pill-solid,
-  .fab {
-    animation: none !important;
-  }
+  .fab { animation: none; }
 }
 
 /* side badge */
