@@ -49,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Anton&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=147" />
+  <link rel="stylesheet" href="styles.css?v=148" />
   <!-- model-viewer is lazy-loaded by app.js the first time bold mode is activated, so calm-only visitors don't pay the cost. -->
 </head>
 <body>
@@ -146,6 +146,7 @@
       <a href="#story" data-i18n="nav.story">Story</a>
       <a href="#trade" data-i18n="nav.trade">Trade</a>
       <a href="#impact" data-i18n="nav.impact">Impact</a>
+      <a href="#origin" data-i18n="nav.origin">Origin</a>
     </nav>
     <div class="nav-right">
       <div class="brand-pill" role="group" aria-label="Brand mode">
@@ -172,6 +173,7 @@
     <a href="#story" data-i18n="nav.story">Story</a>
     <a href="#trade" data-i18n="nav.trade">Trade</a>
     <a href="#impact" data-i18n="nav.impact">Impact</a>
+    <a href="#origin" data-i18n="nav.origin">Origin</a>
   </nav>
   <div class="drawer-cta">
     <a class="pill pill-ghost lg" data-wa target="_blank" rel="noopener" data-i18n="nav.talk">Talk to us</a>
@@ -453,11 +455,44 @@
     </div>
   </section>
 
+  <!-- ORIGIN — the Ebright family / Dagua valley story.
+       Photo on the left, narrative copy on the right (calm). Bold mode
+       inherits the same grid; layout collapses to single-column on
+       mobile via the global .grid-2 rule. Empty paragraphs in the body
+       (bold mode uses a condensed 2-paragraph version) are hidden via
+       :empty in the CSS. -->
+  <section class="block" id="origin">
+    <div class="bold-section-backdrop" aria-hidden="true">ORIGIN</div>
+    <div class="grid-2 origin-grid">
+      <figure class="origin-photo reveal">
+        <picture>
+          <source srcset="assets/dagua-valley.webp" type="image/webp">
+          <img src="assets/dagua-valley.jpg"
+               alt="Spring-fed swimming hole on the Ebright family land in the Dagua valley, with an African tulip tree in full bloom and the Andean foothills behind it."
+               loading="lazy" decoding="async"
+               width="1600" height="900">
+        </picture>
+      </figure>
+      <div class="origin-copy reveal">
+        <div class="eyebrow" data-i18n="origin.eyebrow">05 · Origin</div>
+        <h2 class="h-display" data-i18n-html="origin.hed">Días sin <em>límites</em>.</h2>
+        <p class="lede" data-i18n="origin.lede">A stretch of land in the Dagua valley where the Ebright family found belonging — and where this water was born.</p>
+        <div class="origin-body">
+          <p data-i18n="origin.p1">Dagua valley has been a place of belonging for the Ebright family for decades. The spring-fed swimming hole on their land became a gathering place for the local community long before anyone thought to bottle what came out of the ground.</p>
+          <p data-i18n="origin.p2">Mr. Ebright, now 72, built his life around this land and the people who call Dagua home. Today his children carry that legacy forward, committed to honoring what their father built.</p>
+          <p data-i18n="origin.p3">With the cultivation, nurturing and support of Mr. Resanovic, premiumwater is a spring water company born from the same source — committed to the same valley.</p>
+          <p data-i18n="origin.p4">Every bottle carries the story of this land and the people who have cared for it. premiumwater is built to give back — through jobs for the people of Dagua and Borrero Ayerbe, support for the communities along the Loboguerrero corridor, and charitable work that reflects what this spring has always represented.</p>
+        </div>
+        <p class="origin-tagline" data-i18n="origin.tagline">The Ebright family didn't just find this land. They became part of it.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- CONTACT -->
   <section class="block" id="contact">
     <div class="contact-grid">
       <div class="reveal">
-        <div class="eyebrow" data-i18n="contact.eyebrow">05 · Become a distributor</div>
+        <div class="eyebrow" data-i18n="contact.eyebrow">06 · Become a distributor</div>
         <h2 class="h-display" data-i18n-html="contact.hed">Tell us where<br/>you <em>pour</em>.</h2>
         <p class="lede" data-i18n="contact.lede">Fill in the form and our trade team will come back within one business day. If you'd rather speak now, WhatsApp is the fastest channel.</p>
         <div class="direct">
@@ -594,6 +629,6 @@
   <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12.04 2.5c-5.25 0-9.5 4.25-9.5 9.5 0 1.67.44 3.3 1.27 4.75L2.5 21.5l4.9-1.28a9.48 9.48 0 0 0 4.64 1.19c5.25 0 9.5-4.25 9.5-9.5s-4.25-9.41-9.5-9.41zm5.55 13.45c-.24.67-1.39 1.28-1.93 1.32-.5.03-1.13.05-1.82-.11-.42-.1-.96-.27-1.65-.57-2.9-1.26-4.8-4.18-4.95-4.38-.14-.2-1.18-1.57-1.18-3 0-1.43.75-2.13 1.02-2.43.26-.3.58-.37.77-.37l.55.01c.18 0 .42-.07.65.5.24.59.81 2.03.88 2.18.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.18-.32.4-.45.54-.15.15-.31.31-.13.6.18.3.79 1.3 1.7 2.1 1.17 1.04 2.15 1.37 2.44 1.52.3.15.47.13.64-.08.18-.2.74-.86.94-1.16.2-.3.4-.25.67-.15.27.1 1.72.81 2.01.96.3.15.5.22.57.35.07.13.07.77-.17 1.44z"/></svg>
 </a>
 
-<script src="app.js?v=56"></script>
+<script src="app.js?v=57"></script>
 </body>
 </html>

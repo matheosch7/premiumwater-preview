@@ -826,6 +826,54 @@ main { position: relative; z-index: 5; padding-right: 0; }
 .programs em { font-style: normal; font-family: var(--serif); font-size: 22px; color: #fff; display: block; margin-bottom: 12px; }
 .programs p { color: rgba(255,255,255,0.72); font-size: 14px; line-height: 1.55; }
 
+/* ============================================================
+   ORIGIN — the Ebright family / Dagua valley story.
+   Two-column layout (photo + copy). Inherits .grid-2 base, which
+   already collapses to single-column on mobile.
+   ============================================================ */
+.origin-grid {
+  align-items: center;       /* vertically centre photo + copy */
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.origin-photo {
+  margin: 0;                  /* reset <figure> default margin */
+}
+.origin-photo picture,
+.origin-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  overflow: hidden;
+  /* GPU-accelerated shadow that lifts the image off the section bg. */
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+}
+.origin-body {
+  margin-top: 24px;
+}
+.origin-body p {
+  margin: 0 0 16px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.78);
+}
+.origin-body p:last-child { margin-bottom: 0; }
+/* Bold mode ships a condensed 2-paragraph version of the body;
+   p3 / p4 come from BOLD_COPY as empty strings. Hide the empty
+   <p> so they don't add stray gaps. */
+.origin-body p:empty { display: none; }
+.origin-tagline {
+  margin: 32px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--accent);
+}
+
 /* contact */
 .contact-grid {
   max-width: 1280px; margin: 0 auto;
@@ -1675,10 +1723,12 @@ main#top { position: relative; z-index: 2; }
 }
 :root[data-brand="calm"] #trade,
 :root[data-brand="calm"] #impact,
+:root[data-brand="calm"] #origin,
 :root[data-brand="calm"] #contact,
 :root[data-brand="calm"] footer,
 :root:not([data-brand]) #trade,
 :root:not([data-brand]) #impact,
+:root:not([data-brand]) #origin,
 :root:not([data-brand]) #contact,
 :root:not([data-brand]) footer { background: var(--bg-d, #0E0C08); }
 
@@ -2785,6 +2835,43 @@ html[data-brand="bold"],
 
 /* Impact — white. */
 [data-brand="bold"] #impact { background: #FFFFFF; }
+
+/* Origin — black with red accent. Breaks the white/grey block
+   rhythm of the bold sections and lets the photo of the valley
+   pop against the dark backdrop. */
+[data-brand="bold"] #origin {
+  background: #0A0A0C;
+  color: #FFFFFF;
+}
+[data-brand="bold"] #origin .h-display,
+[data-brand="bold"] #origin .lede,
+[data-brand="bold"] #origin .origin-body p {
+  color: #FFFFFF;
+}
+[data-brand="bold"] #origin .lede,
+[data-brand="bold"] #origin .origin-body p {
+  color: rgba(255, 255, 255, 0.72);
+}
+[data-brand="bold"] #origin .origin-body p {
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+[data-brand="bold"] #origin .origin-tagline {
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+[data-brand="bold"] #origin .origin-photo picture,
+[data-brand="bold"] #origin .origin-photo img {
+  border-radius: 4px;          /* match other bold-mode card radii */
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
+}
 
 /* Contact — off-white. */
 [data-brand="bold"] #contact { background: #F7F7F8; }
