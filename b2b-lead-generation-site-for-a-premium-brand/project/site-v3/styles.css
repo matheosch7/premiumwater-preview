@@ -662,6 +662,9 @@ main { position: relative; z-index: 5; padding-right: 0; }
   padding: 140px 56px;
   background: linear-gradient(180deg, rgba(20, 10, 40, 0.55), rgba(20, 10, 40, 0.85));
 }
+/* Clear the fixed nav (top:18px + ~62px pill) when jumping to an anchor,
+   so section headings don't tuck under it on hash load / nav clicks. */
+.hero, main section[id] { scroll-margin-top: 96px; }
 .block + .block { padding-top: 0; }
 .grid-2 {
   display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
@@ -1164,6 +1167,10 @@ body.legal-page { background: var(--bg-d); }
 
 /* mobile sticky CTA bar — desktop hidden, shown only on small screens */
 .mobile-sticky-cta { display: none; }
+/* When the mobile drawer is open it carries its own CTAs, so hide the fixed
+   sticky bar and WhatsApp FAB to avoid three CTA layers stacking at the bottom. */
+#navDrawer.open ~ .mobile-sticky-cta,
+#navDrawer.open ~ .fab { display: none !important; }
 @media (max-width: 900px) {
   .mobile-sticky-cta {
     position: fixed;
@@ -1702,6 +1709,15 @@ main#top { position: relative; z-index: 2; }
 :root:not([data-brand]) #story { background: transparent !important; }
 :root[data-brand="calm"] .marquee-band,
 :root:not([data-brand]) .marquee-band { background: linear-gradient(180deg, transparent, rgba(0,0,0,0.25)) !important; }
+/* #story sits transparent over the pour video, so its copy can land on the
+   bottle's bright condensation highlights. Shadow the right-column text the
+   same way the hero copy is shadowed, to hold contrast over any frame. */
+:root[data-brand="calm"] #story .lede,
+:root[data-brand="calm"] #story .spec-list,
+:root:not([data-brand]) #story .lede,
+:root:not([data-brand]) #story .spec-list {
+  text-shadow: 0 2px 16px rgba(12, 18, 12, 0.7), 0 1px 2px rgba(0, 0, 0, 0.55);
+}
 
 /* After the cinematic zone in calm mode, fade back to the solid page background.
    In bold mode each section paints its own background, so these rules are

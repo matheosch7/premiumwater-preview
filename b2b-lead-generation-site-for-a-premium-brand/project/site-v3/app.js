@@ -104,7 +104,6 @@
     const acceptBtn = document.getElementById('pwNoticeAccept');
     const rejectBtn = document.getElementById('pwNoticeReject');
     const reopenBtn = document.getElementById('pwNoticeReopen');
-    console.log('[pw] consent banner init', { banner: !!banner, consent: getConsent() });
     if (!banner) return;
     const show = () => {
       banner.removeAttribute('hidden');
@@ -1986,7 +1985,7 @@
       const target = document.querySelector(href);
       if (target) {
         e.preventDefault();
-        window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 20, behavior: 'smooth' });
+        window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
       }
     });
   });
