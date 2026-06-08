@@ -1978,6 +1978,10 @@
   }
 
   // ---------- smooth anchor scroll ----------
+  const NAV_OFFSET = 96; // fixed nav (top:18px + ~62px pill) + breathing room
+  function scrollToAnchor(target, behavior) {
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - NAV_OFFSET, behavior: behavior || 'smooth' });
+  }
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', (e) => {
       const href = a.getAttribute('href');
@@ -1985,10 +1989,21 @@
       const target = document.querySelector(href);
       if (target) {
         e.preventDefault();
-        window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' });
+        scrollToAnchor(target);
       }
     });
   });
+  // Direct hash load (bookmark/paste of /#contact): the native jump fires
+  // before the tall page settles (injected marquee, video, lazy images), so
+  // re-land on the same nav-cleared offset once layout is stable.
+  if (location.hash && location.hash.length > 1) {
+    const target = document.querySelector(location.hash);
+    if (target) {
+      window.addEventListener('load', () => {
+        requestAnimationFrame(() => scrollToAnchor(target, 'auto'));
+      });
+    }
+  }
 
   // ---------- mobile sticky CTA bar ----------
   // Hides itself when the contact form is on screen so it doesn't double up.
