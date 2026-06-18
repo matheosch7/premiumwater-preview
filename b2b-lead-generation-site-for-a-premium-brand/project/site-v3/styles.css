@@ -3843,3 +3843,43 @@ html[data-brand="bold"],
     transform: none;
   }
 }
+
+/* ===========================================================================
+   HALO CURSOR
+   A hairline brand-tinted ring eases behind a precise dot and morphs to wrap
+   buttons / links / nav on hover. The native cursor is hidden (the caret
+   returns in form fields); colour is the live --accent var so it re-tints with
+   the brand (gold on Calm, crimson on Bold). Engine: app.js. Active only on
+   fine-pointer / non-touch / non-reduced-motion devices.
+   =========================================================================== */
+/* hide the native cursor while the halo is active (the * rule beats the
+   per-element cursor:pointer on buttons); keep the caret in text fields. */
+html.mg-halo-on, html.mg-halo-on * { cursor: none; }
+html.mg-halo-on :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]),
+  textarea, select, [contenteditable="true"]
+) { cursor: auto; }
+
+.mg-halo-dot, .mg-halo-ring {
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 2147483000;   /* above all chrome */
+  transform: translate3d(-200px, -200px, 0) translate(-50%, -50%);
+  will-change: transform;
+}
+.mg-halo-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  transition: opacity .2s ease;
+}
+.mg-halo-ring {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px solid color-mix(in oklab, var(--accent) 72%, transparent);
+  opacity: 0;                                   /* revealed on first move */
+  transition: width .26s cubic-bezier(.22,1,.36,1), height .26s cubic-bezier(.22,1,.36,1),
+              border-radius .26s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+}
+@media (pointer: coarse), (hover: none) {
+  html.mg-halo-on, html.mg-halo-on * { cursor: auto; }
+  .mg-halo-dot, .mg-halo-ring { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .mg-halo-ring { transition: opacity .2s; } }

@@ -852,32 +852,81 @@
     update();  // initial position
   }
 
-  // Cursor follower — subtle accent dot trailing the cursor. Only on bold mode
-  // and only on devices with a fine pointer (skips touch).
-  let cursorEl = null, cursorRaf = 0, cursorTarget = { x: 0, y: 0 }, cursorPos = { x: 0, y: 0 };
-  function applyCursorFollower() {
-    if (cursorEl) return;
-    if (!window.matchMedia || !window.matchMedia('(pointer: fine)').matches) return;
-    cursorEl = document.createElement('div');
-    cursorEl.className = 'mg-cursor';
-    cursorEl.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(cursorEl);
-    window.addEventListener('mousemove', (e) => {
-      cursorTarget.x = e.clientX;
-      cursorTarget.y = e.clientY;
-      if (!cursorRaf) {
-        cursorRaf = requestAnimationFrame(function loop() {
-          cursorPos.x += (cursorTarget.x - cursorPos.x) * 0.18;
-          cursorPos.y += (cursorTarget.y - cursorPos.y) * 0.18;
-          cursorEl.style.transform = `translate3d(${cursorPos.x}px, ${cursorPos.y}px, 0) translate(-50%, -50%)`;
-          if (Math.abs(cursorTarget.x - cursorPos.x) > 0.5 || Math.abs(cursorTarget.y - cursorPos.y) > 0.5) {
-            cursorRaf = requestAnimationFrame(loop);
-          } else {
-            cursorRaf = 0;
-          }
-        });
+  // Halo cursor — a hairline brand-tinted ring eases behind a precise dot and
+  // morphs to wrap buttons / links / nav on hover. The native cursor is hidden
+  // (the caret returns in form fields); colour comes from the live --accent var
+  // so it re-tints with the brand (gold on Calm, crimson on Bold). Gated to
+  // fine-pointer / non-touch / non-reduced-motion; self-parks when idle.
+  let haloState = null;
+  function applyHaloCursor() {
+    if (haloState) return;
+    const mq = window.matchMedia;
+    if (!mq || !mq('(pointer: fine)').matches || mq('(hover: none)').matches) return;
+    if (mq('(prefers-reduced-motion: reduce)').matches) return;
+
+    const docEl = document.documentElement;
+    const ring = document.createElement('div'); ring.className = 'mg-halo-ring'; ring.setAttribute('aria-hidden', 'true');
+    const dot  = document.createElement('div'); dot.className  = 'mg-halo-dot';  dot.setAttribute('aria-hidden', 'true');
+    document.body.append(ring, dot);
+    docEl.classList.add('mg-halo-on');
+
+    const GRAB = 'a, button, [role="button"], summary';
+    let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+    let hx = mx, hy = my, hovered = null, moved = false, raf = 0;
+
+    const onMove = (e) => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.transform = `translate3d(${mx}px,${my}px,0) translate(-50%,-50%)`;   // precise, never lags
+      if (!moved) { moved = true; hx = mx; hy = my; ring.style.opacity = '1'; }
+      wake();
+    };
+    const onOver = (e) => { const t = e.target; if (!(t instanceof Element)) return; const el = t.closest(GRAB); if (el) hovered = el; };
+    const onOut  = (e) => { const t = e.target; if (!(t instanceof Element)) return; const el = t.closest(GRAB); if (el && el === hovered && !el.contains(e.relatedTarget)) hovered = null; };
+
+    function frame() {
+      let tx = mx, ty = my, tw = 34, th = 34, tr = 17;
+      if (hovered && document.contains(hovered)) {
+        const r = hovered.getBoundingClientRect();
+        if (r.width && r.height) {
+          tx = r.left + r.width / 2; ty = r.top + r.height / 2;
+          tw = r.width + 12; th = r.height + 12;
+          const cr = parseFloat(getComputedStyle(hovered).borderRadius) || 8;
+          tr = Math.min(cr + 6, th / 2);
+        }
+      } else hovered = null;
+      dot.style.opacity = hovered ? '0' : '1';
+      hx += (tx - hx) * 0.16; hy += (ty - hy) * 0.16;
+      ring.style.transform = `translate3d(${hx}px,${hy}px,0) translate(-50%,-50%)`;
+      ring.style.width = tw + 'px'; ring.style.height = th + 'px'; ring.style.borderRadius = tr + 'px';
+      // park once the ring has caught up and nothing is hovered — rewoken on move
+      if (!hovered && Math.abs(tx - hx) < 0.4 && Math.abs(ty - hy) < 0.4) { raf = 0; return; }
+      raf = requestAnimationFrame(frame);
+    }
+    function wake() { if (!raf) raf = requestAnimationFrame(frame); }
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('mouseover', onOver, { passive: true });
+    window.addEventListener('mouseout',  onOut,  { passive: true });
+
+    haloState = {
+      destroy() {
+        try {
+          if (raf) cancelAnimationFrame(raf);
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseover', onOver);
+          window.removeEventListener('mouseout', onOut);
+          docEl.classList.remove('mg-halo-on');
+          ring.remove(); dot.remove();
+        } catch (_) {}
+        haloState = null;
       }
-    }, { passive: true });
+    };
+
+    // safety: a cursorless lead-gen page is a conversion killer — if anything
+    // throws later, restore the native cursor.
+    window.addEventListener('error', function guard() {
+      if (!document.body.contains(ring)) docEl.classList.remove('mg-halo-on');
+    }, { once: true });
   }
 
   // ---------- reveal on scroll ----------
@@ -2015,6 +2064,6 @@
   try { applySectionMotion(); }       catch (e) { console.warn('[mg] section motion failed', e); }
   try { applyBoldWordStagger(); }     catch (e) { console.warn('[mg] word stagger failed', e); }
   try { applyBoldBackdropParallax(); }catch (e) { console.warn('[mg] backdrop parallax failed', e); }
-  try { applyCursorFollower(); }      catch (e) { console.warn('[mg] cursor failed', e); }
+  try { applyHaloCursor(); }              catch (e) { console.warn('[mg] cursor failed', e); }
   updateCine();
 })();
